@@ -52,6 +52,12 @@ const formatFare = (fare) => {
   }
 }
 
+const getFareAmount = (fare) => {
+  if (!fare?.currencyCode) return null
+  const amount = Number(fare.units ?? 0) + Number(fare.nanos ?? 0) / 1_000_000_000
+  return Number.isFinite(amount) ? amount : null
+}
+
 const appendJapan = (address) => {
   const normalizedAddress = address.trim()
   return normalizedAddress.includes('日本') ? normalizedAddress : `${normalizedAddress}, 日本`
@@ -144,7 +150,9 @@ const fetchRoute = async ({ origin, destination, travelMode, apiKey, signal }) =
     duration: formatDuration(durationMinutes),
     durationMinutes,
     distance: Number.isFinite(route.distanceMeters) ? formatDistance(route.distanceMeters) : null,
+    distanceMeters: Number.isFinite(route.distanceMeters) ? route.distanceMeters : null,
     fare: formatFare(route.travelAdvisory?.transitFare),
+    fareAmount: getFareAmount(route.travelAdvisory?.transitFare),
   }
 }
 
@@ -187,7 +195,9 @@ export const getTravelInfo = async ({ origin, destination, apiKey: storedApiKey 
         duration: transitResult.value.duration,
         durationMinutes: transitResult.value.durationMinutes,
         distance: transitResult.value.distance,
+        distanceMeters: transitResult.value.distanceMeters,
         fare: transitResult.value.fare,
+        fareAmount: transitResult.value.fareAmount,
       }
     : null
 

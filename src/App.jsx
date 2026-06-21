@@ -14,7 +14,7 @@ import destinations from './data/destinations.js'
 
 const tripTypes = ['日帰り', '1泊2日', '2泊3日']
 const primaryTransportModes = ['車', '電車', '飛行機']
-const transportModes = [...primaryTransportModes, '高速バス', '夜行バス']
+const transportModes = [...primaryTransportModes]
 const seasonOptions = ['今の季節', '春', '夏', '秋', '冬', 'おまかせ']
 const filterOptions = ['温泉', '海', '山', 'グルメ', 'カップル向け']
 const FAVORITES_STORAGE_KEY = 'droptrip-favorites'
@@ -130,10 +130,6 @@ const calculateFeasibility = (durationMinutes, tripType, transportMode = '車') 
   if (tripType === '日帰り' && hours > 4) stars = Math.max(1, stars - 1)
   if (tripType === '1泊2日' && hours > 4 && hours <= 6) stars = Math.min(5, stars + 1)
   if (tripType === '2泊3日' && hours > 6 && hours <= 8) stars = Math.min(5, stars + 1)
-  if (transportMode === '高速バス' && hours >= 4 && hours <= 8) stars = Math.min(5, stars + 1)
-  if (transportMode === '夜行バス' && tripType !== '日帰り' && hours >= 6) {
-    stars = Math.max(3, stars)
-  }
   if (transportMode === '飛行機' && tripType !== '日帰り' && hours >= 6) {
     stars = Math.max(tripType === '2泊3日' ? 4 : 3, stars)
   }
@@ -161,14 +157,6 @@ const calculateFeasibility = (durationMinutes, tripType, transportMode = '車') 
       : '2泊3日でも長距離移動になるため、余裕のある計画がおすすめです。'
   }
 
-  if (transportMode === '高速バス') {
-    detail += ' 高速バスは中距離〜長距離向きとして参考評価しています。'
-  }
-  if (transportMode === '夜行バス') {
-    detail += tripType === '日帰り'
-      ? ' 夜行バスは宿泊を伴う旅行での利用がおすすめです。'
-      : ' 夜間の移動時間を活用できる前提で評価しています。'
-  }
   if (transportMode === '飛行機') {
     detail += tripType === '日帰り'
       ? ' 空港への移動や搭乗手続きを含め、時間に余裕が必要です。'
@@ -190,29 +178,125 @@ const getTransportEvaluations = (travelInfo, tripType) => {
   const transit = travelInfo.publicTransit?.durationMinutes
     ? { durationMinutes: travelInfo.publicTransit.durationMinutes, duration: travelInfo.publicTransit.duration, label: '公共交通機関' }
     : null
-
-  const reference = transit ?? car
+  const distanceMeters = travelInfo.car?.distanceMeters ?? travelInfo.publicTransit?.distanceMeters ?? null
+  const distanceKm = distanceMeters ? distanceMeters / 1000 : null
+  const planeEstimate = distanceKm === null
+    ? null
+    : distanceKm < 500
+      ? { durationMinutes: 600, duration: '基本おすすめしない', cost: null, range: '500km未満' }
+      : distanceKm < 900
+        ? { durationMinutes: 240, duration: '約3〜5時間', cost: 32500, range: '500〜900km' }
+        : { durationMinutes: 300, duration: '約4〜6時間', cost: 50000, range: '900km以上' }
   const definitions = [
-    { mode: '車', basis: car, isReference: false, isSecondary: false },
-    { mode: '電車', basis: transit, isReference: false, isSecondary: false },
-    { mode: '飛行機', basis: reference, isReference: true, isSecondary: false },
-    { mode: '高速バス', basis: reference, isReference: true, isSecondary: true },
-    { mode: '夜行バス', basis: reference, isReference: true, isSecondary: true },
+    {
+      mode: '車',
+      basis: car,
+      isReference: false,
+      estimatedCost: distanceKm === null ? null : distanceKm * 45,
+    },
+    {
+      mode: '電車',
+      basis: transit,
+      isReference: false,
+      estimatedCost: travelInfo.publicTransit?.fareAmount ?? null,
+    },
+    {
+      mode: '飛行機',
+      basis: planeEstimate,
+      isReference: true,
+      estimatedCost: planeEstimate?.cost ?? null,
+      distanceKm,
+    },
   ]
 
-  return definitions.map((item) => ({
-    ...item,
-    feasibility: item.basis
+  return definitions.map((item) => {
+    let feasibility = item.basis
       ? calculateFeasibility(item.basis.durationMinutes, tripType, item.mode)
-      : null,
-  }))
+      : null
+    if (item.mode === '飛行機' && distanceKm !== null && distanceKm < 500) {
+      feasibility = {
+        stars: 1,
+        starsLabel: '★☆☆☆☆',
+        label: '近距離ではおすすめしない',
+        detail: '空港アクセスや搭乗手続きを含めると、近距離では効率が下がります。',
+      }
+    }
+    const hours = item.basis ? item.basis.durationMinutes / 60 : 24
+    const costPenalty = item.estimatedCost ? item.estimatedCost / 10000 : 1.5
+    let recommendationScore = feasibility ? feasibility.stars * 10 - hours - costPenalty : -100
+
+    if (tripType === '日帰り') recommendationScore -= hours * 2
+    if (item.mode === '飛行機' && distanceKm !== null && distanceKm < 500) recommendationScore -= 100
+    if (item.mode === '飛行機' && distanceKm !== null && distanceKm >= 500 && tripType !== '日帰り') recommendationScore += 5
+    if (item.mode === '飛行機' && distanceKm !== null && distanceKm >= 900 && tripType === '2泊3日') recommendationScore += 15
+
+    return { ...item, feasibility, recommendationScore }
+  })
 }
 
 const getBestPrimaryTransport = (evaluations) => [...evaluations]
-  .filter((item) => !item.isSecondary && item.feasibility)
+  .filter((item) => item.feasibility)
   .sort((a, b) => (
-    b.feasibility.stars - a.feasibility.stars || Number(a.isReference) - Number(b.isReference)
+    b.recommendationScore - a.recommendationScore
+    || b.feasibility.stars - a.feasibility.stars
   ))[0] ?? null
+
+const formatEstimatedYen = (amount) => {
+  if (!Number.isFinite(amount)) return null
+  const rounded = Math.round(amount / 100) * 100
+  return `約${new Intl.NumberFormat('ja-JP').format(rounded)}円`
+}
+
+const getPlaneCostLabel = (distanceKm) => {
+  if (!Number.isFinite(distanceKm)) return '距離取得後に概算'
+  if (distanceKm < 500) return '飛行機は基本おすすめしない'
+  if (distanceKm < 900) return '20,000円〜45,000円'
+  return '30,000円〜70,000円'
+}
+
+const getCarTravelComment = (durationMinutes) => {
+  if (!Number.isFinite(durationMinutes)) return null
+  if (durationMinutes <= 120) return '日帰りでも行きやすい距離です。'
+  if (durationMinutes <= 240) return '日帰りも可能ですが、現地で過ごす時間に余裕を持ちたい距離です。'
+  if (durationMinutes <= 360) return '車での往復は長くなるため、宿泊旅行に向いています。'
+  if (durationMinutes <= 480) return '運転の負担が大きいため、1泊2日以上をおすすめします。'
+  return '車移動はかなり大変です。現実的には負担が大きいため、飛行機や電車を検討してください。'
+}
+
+const getRecommendedTransportReason = (recommended, evaluations, tripType) => {
+  if (!recommended) return '移動情報を取得すると、おすすめ理由を表示します。'
+  const car = evaluations.find((item) => item.mode === '車')
+  const train = evaluations.find((item) => item.mode === '電車')
+
+  if (recommended.mode === '飛行機') {
+    if (car?.basis?.durationMinutes > 480) {
+      return '車では移動時間が長すぎるため、飛行機を優先しました。'
+    }
+    return '距離が長く、宿泊日数を現地で有効に使いやすいため飛行機を優先しました。'
+  }
+  if (recommended.mode === '電車') {
+    if (car?.basis && train?.basis && train.basis.durationMinutes < car.basis.durationMinutes) {
+      return '車より移動時間が短く、運転の負担も避けられるため電車を優先しました。'
+    }
+    return '移動時間と料金のバランスが良く、乗車中も休めるため電車を優先しました。'
+  }
+  return tripType === '日帰り'
+    ? '所要時間が比較的短く、現地で自由に移動しやすいため車を優先しました。'
+    : '人数や荷物に合わせやすく、現地移動の自由度が高いため車を優先しました。'
+}
+
+const getFeasibilityTransportReason = (recommended, tripType) => {
+  if (!recommended) return '移動情報の取得後に理由を表示します。'
+  if (recommended.mode === '飛行機') {
+    return tripType === '日帰り'
+      ? '長距離のため飛行機が有力ですが、空港アクセスを含めた時間確認が必要です。'
+      : `長距離ですが、飛行機なら${tripType}でも現実的です。`
+  }
+  if (recommended.mode === '電車') {
+    return `${recommended.basis.duration}の電車移動なら、運転の負担を抑えて${tripType}を楽しめます。`
+  }
+  return `${recommended.basis.duration}の車移動で、現地での移動も自由に組み立てやすいです。`
+}
 
 const getTransportCompatibility = ({ transportMode, tripType, travelInfo }) => {
   const tripNote = tripType === '日帰り'
@@ -230,20 +314,6 @@ const getTransportCompatibility = ({ transportMode, tripType, travelInfo }) => {
     return transit
       ? `公共交通機関で${transit.duration}のルートを電車移動の参考にしています。乗り換えや駅から観光地までの移動も含めて計画すると安心です。${tripNote}`
       : `公共交通機関ルートを電車移動の参考にして評価します。乗り換えや駅からの移動も含めた計画がおすすめです。${tripNote}`
-  }
-
-  if (transportMode === '高速バス') {
-    const reference = travelInfo.publicTransit?.duration
-      ? `公共交通機関の${travelInfo.publicTransit.duration}を参考に、`
-      : ''
-    return `${reference}中距離〜長距離旅行向きの移動手段として評価しています。${tripNote} 詳細な時刻・料金は今後対応予定です。`
-  }
-
-  if (transportMode === '夜行バス') {
-    const stayNote = tripType === '日帰り'
-      ? '宿泊旅行へ変更すると、夜間の移動時間を活用しやすくなります。'
-      : '移動時間が長くても、宿泊旅行なら夜間を活用できる現実的な選択肢です。'
-    return `${stayNote} 到着後に休める余裕を持ったプランがおすすめです。詳細な時刻・料金は今後対応予定です。`
   }
 
   return `${tripType === '日帰り' ? '日帰りでは空港までの移動や搭乗手続き時間に注意が必要です。' : `${tripType}なら、長距離でも移動時間を短縮できる候補です。`} 空港から旅先までの二次交通も含めて計画しましょう。詳細な時刻・料金は今後対応予定です。`
@@ -523,7 +593,6 @@ function App() {
   const [aiPlanResult, setAiPlanResult] = useState('')
   const [aiPlanUsage, setAiPlanUsage] = useState(loadAiPlanUsage)
   const [isPremiumUser, setIsPremiumUser] = useState(loadPremiumStatus)
-  const [showOtherTransport, setShowOtherTransport] = useState(false)
 
   const favoriteDestinations = favoriteCities
     .map((city) => destinations.find((place) => place.city === city))
@@ -548,11 +617,12 @@ function App() {
     ? getTransportEvaluations(travelInfo, planContext.tripType)
     : []
   const bestTransportEvaluation = getBestPrimaryTransport(transportEvaluations)
-  const visibleTransportEvaluations = transportEvaluations.filter((item) => (
-    !item.isSecondary || showOtherTransport
-  ))
+  const bestTransportReason = getRecommendedTransportReason(
+    bestTransportEvaluation,
+    transportEvaluations,
+    planContext?.tripType,
+  )
   const feasibility = bestTransportEvaluation?.feasibility ?? null
-  const feasibilityBasis = bestTransportEvaluation?.basis ?? null
   const transportCompatibility = destination && planContext && bestTransportEvaluation
     ? getTransportCompatibility({
       transportMode: bestTransportEvaluation.mode,
@@ -767,7 +837,6 @@ function App() {
     setCompareCities([])
     saveCities(COMPARE_STORAGE_KEY, [])
     setShowComparison(false)
-    setShowOtherTransport(false)
     resetAiPlanState()
   }
 
@@ -855,7 +924,6 @@ function App() {
       visitedPolicy: entry.visitedPolicy ?? '履歴から再表示',
     })
     setTravelInfo({ status: 'loading', car: null, publicTransit: null })
-    setShowOtherTransport(false)
     resetAiPlanState()
     setCurrentPage('main')
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -991,7 +1059,6 @@ function App() {
       selectedFilters: [...selectedFilters],
     })
     setTravelInfo({ status: 'loading', car: null, publicTransit: null })
-    setShowOtherTransport(false)
     resetAiPlanState()
 
     try {
@@ -1045,7 +1112,7 @@ function App() {
       ++aiPlanRequestId.current
       setAiPlanResult('')
       setAiPlanStatus('premium-required')
-      setAiPlanNotice('AIプラン生成はプレミアム機能です。今後、月額プランまたは回数制で提供予定です。')
+      setAiPlanNotice('プレミアム機能は今後提供予定です')
       return
     }
     if (!openAiApiKeySource) {
@@ -1374,14 +1441,29 @@ function App() {
                 <strong>{planContext.tripType}</strong>旅行プラン
               </p>
 
-              <div className="premium-feature-note">
-                <span aria-hidden="true">PREMIUM</span>
-                <p>AIプラン生成はプレミアム機能です</p>
-              </div>
+              <section className={`premium-guide-card ${isPremiumUser ? 'active' : ''}`} aria-labelledby="premium-guide-title">
+                <div className="premium-guide-heading">
+                  <span aria-hidden="true">✦</span>
+                  <div>
+                    <p>PREMIUM AI PLAN</p>
+                    <h3 id="premium-guide-title">AIプラン生成はプレミアム機能です</h3>
+                  </div>
+                  {isPremiumUser && <b>有効</b>}
+                </div>
+                <p className="premium-guide-description">
+                  出発地・旅先・季節・交通手段・予算をもとに、あなた専用の旅行プランをAIが作成します。
+                </p>
+                <ul>
+                  <li>AIが日程別プランを作成</li>
+                  <li>食事・カフェ案を提案</li>
+                  <li>移動の注意点を整理</li>
+                  <li>旅行を楽しむコツを提案</li>
+                </ul>
+              </section>
 
               <button type="button" className={`ai-plan-button ${isPremiumUser ? 'premium-active' : 'premium-locked'}`} onClick={generateAiPlan} disabled={aiPlanStatus === 'loading'}>
                 <span aria-hidden="true">✦</span>
-                {aiPlanStatus === 'loading' ? 'AIプランを生成中...' : 'AIでプランを作る'}
+                {aiPlanStatus === 'loading' ? 'AIプランを生成中...' : 'プレミアムでAIプランを作成'}
               </button>
               {aiPlanNotice && <p className="ai-plan-key-notice" role="status">{aiPlanNotice}</p>}
               {aiPlanStatus === 'loading' && (
@@ -1444,7 +1526,7 @@ function App() {
                     </div>
                   )}
                   <div className="transport-comparison-list">
-                      {visibleTransportEvaluations.map((item) => (
+                      {transportEvaluations.map((item) => (
                         <article
                           className={`transport-comparison-item ${item.isReference ? 'reference' : ''} ${bestTransportEvaluation?.mode === item.mode ? 'best' : ''}`}
                           key={item.mode}
@@ -1457,37 +1539,59 @@ function App() {
                           </header>
                           {item.mode === '車' && (
                             travelInfo.car ? (
-                              <dl>
-                                <div><dt>距離</dt><dd>{travelInfo.car.distance ?? '取得できませんでした'}</dd></div>
-                                <div><dt>時間</dt><dd>{travelInfo.car.duration}</dd></div>
-                              </dl>
+                              <>
+                                <dl>
+                                  <div><dt>距離</dt><dd>{travelInfo.car.distance ?? '取得できませんでした'}</dd></div>
+                                  <div><dt>所要時間</dt><dd>{travelInfo.car.duration}</dd></div>
+                                  <div><dt>料金目安</dt><dd>{formatEstimatedYen(item.estimatedCost) ?? '距離取得後に概算'}</dd></div>
+                                  <div><dt>データ種別</dt><dd>距離・時間はGoogle Maps API、料金は概算</dd></div>
+                                </dl>
+                                <p className={`transport-comment ${travelInfo.car.durationMinutes > 480 ? 'strong-warning' : ''}`}>
+                                  車で{travelInfo.car.duration}のため、{getCarTravelComment(travelInfo.car.durationMinutes)}
+                                </p>
+                              </>
                             ) : <p>車の経路が見つかりませんでした</p>
                           )}
                           {item.mode === '電車' && (
                             travelInfo.publicTransit ? (
                               <dl>
-                                <div><dt>時間</dt><dd>{travelInfo.publicTransit.duration}</dd></div>
-                                {travelInfo.publicTransit.distance && <div><dt>距離</dt><dd>{travelInfo.publicTransit.distance}</dd></div>}
-                                {travelInfo.publicTransit.fare && <div><dt>料金</dt><dd>{travelInfo.publicTransit.fare}</dd></div>}
+                                <div><dt>距離</dt><dd>{travelInfo.publicTransit.distance ?? '取得できませんでした'}</dd></div>
+                                <div><dt>所要時間</dt><dd>{travelInfo.publicTransit.duration}</dd></div>
+                                <div><dt>料金目安</dt><dd>{travelInfo.publicTransit.fare ?? '料金は取得できませんでした'}</dd></div>
+                                <div><dt>データ種別</dt><dd>Google Maps API取得</dd></div>
                               </dl>
-                            ) : <p>電車を含む公共交通機関の経路が見つかりませんでした</p>
+                            ) : <p className="transport-comment strong-warning">電車ルートを取得できませんでした。出発地や目的地の指定を詳しくすると取得できる場合があります。</p>
                           )}
-                          {item.mode === '飛行機' && <p>飛行機ルートの詳細取得は今後対応予定です。長距離旅行向きの候補として表示しています。</p>}
-                          {item.mode === '高速バス' && <p>今後対応予定。中距離〜長距離旅行向きの選択肢です。</p>}
-                          {item.mode === '夜行バス' && <p>今後対応予定。移動時間を睡眠にあてられるため、宿泊旅行向きの選択肢です。</p>}
-                          {bestTransportEvaluation?.mode === item.mode && <b>最も現実的</b>}
+                          {item.mode === '飛行機' && (
+                            <>
+                              <dl>
+                                <div><dt>所要時間目安</dt><dd>{item.basis?.duration ?? '距離取得後に概算'}</dd></div>
+                                <div><dt>料金目安</dt><dd>{getPlaneCostLabel(item.distanceKm)}</dd></div>
+                                <div><dt>データ種別</dt><dd>距離帯による概算</dd></div>
+                              </dl>
+                              <p>航空券・空港アクセス・時期によって大きく変動します。現時点では概算表示です。</p>
+                              {bestTransportEvaluation?.mode === '飛行機' && (
+                                <p className="transport-comment recommended-comment">距離が長いため、飛行機が最も現実的な移動手段です。航空券代や空港アクセスで費用は変動します。</p>
+                              )}
+                            </>
+                          )}
+                          <p className="transport-reliability">
+                            信頼度：{item.mode === '車'
+                              ? '距離・時間 高精度 / 料金 概算'
+                              : item.mode === '電車'
+                                ? '時間 高精度 / 料金 取得できる場合のみ'
+                                : '概算'}
+                          </p>
+                          {bestTransportEvaluation?.mode === item.mode && <b>おすすめ</b>}
+                          {bestTransportEvaluation?.mode === item.mode && (
+                            <div className="transport-recommendation-reason">
+                              <strong>おすすめ理由</strong>
+                              <p>{bestTransportReason}</p>
+                            </div>
+                          )}
                         </article>
                       ))}
                   </div>
-                  <button
-                    type="button"
-                    className="other-transport-toggle"
-                    aria-expanded={showOtherTransport}
-                    onClick={() => setShowOtherTransport((current) => !current)}
-                  >
-                    {showOtherTransport ? 'その他の移動手段を閉じる' : 'その他の移動手段を見る'}
-                    <span aria-hidden="true">{showOtherTransport ? '−' : '+'}</span>
-                  </button>
                   {travelInfo.status === 'unconfigured' && (
                     <div className="travel-state travel-unconfigured">
                       <strong><span aria-hidden="true">!</span>APIキー未設定</strong>
@@ -1528,11 +1632,11 @@ function App() {
                 {feasibility ? (
                   <div className="feasibility-result">
                     <strong>{feasibility.label}</strong>
-                    <p>
-                      {bestTransportEvaluation.isReference
-                        ? `${bestTransportEvaluation.mode}を旅行タイプと取得済みルートから参考評価した結果、${feasibility.detail}`
-                        : `${bestTransportEvaluation.mode}で${feasibilityBasis.duration}のため、${feasibility.detail}`}
-                    </p>
+                    <div className="feasibility-transport-choice">
+                      <span>採用交通手段</span>
+                      <b>{bestTransportEvaluation.mode}</b>
+                    </div>
+                    <p><b>理由：</b>{getFeasibilityTransportReason(bestTransportEvaluation, planContext.tripType)}</p>
                     <span>予算目安：1人あたり {destination.budgets[planContext.tripType]}</span>
                     {travelInfo.publicTransit?.duration && (
                       <span className="feasibility-transit">公共交通機関：{travelInfo.publicTransit.duration}</span>

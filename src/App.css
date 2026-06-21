@@ -958,6 +958,103 @@ h1 {
   font-weight: 700;
 }
 
+.premium-guide-card {
+  margin: 13px 0 8px;
+  padding: 16px;
+  color: #625d50;
+  background: linear-gradient(145deg, #fffaf0, #fff);
+  border: 1px solid #ead9af;
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(112, 85, 39, 0.08);
+}
+
+.premium-guide-card.active {
+  background: linear-gradient(145deg, #f5f3ff, #fff);
+  border-color: #d4d0ec;
+}
+
+.premium-guide-heading {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+}
+
+.premium-guide-heading > span {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: linear-gradient(135deg, #d29a42, #b8782e);
+  border-radius: 11px;
+}
+
+.premium-guide-card.active .premium-guide-heading > span {
+  background: linear-gradient(135deg, #6666c7, #8268c9);
+}
+
+.premium-guide-heading p,
+.premium-guide-heading h3 {
+  margin: 0;
+}
+
+.premium-guide-heading p {
+  color: #b7893e;
+  font-size: 0.5rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.premium-guide-heading h3 {
+  color: #61563f;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.premium-guide-heading > b {
+  padding: 3px 6px;
+  color: #fff;
+  background: #6666c7;
+  border-radius: 999px;
+  font-size: 0.52rem;
+}
+
+.premium-guide-description {
+  margin: 12px 0;
+  color: #756e61;
+  font-size: 0.68rem;
+  line-height: 1.7;
+}
+
+.premium-guide-card ul {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.premium-guide-card li {
+  position: relative;
+  padding: 8px 7px 8px 22px;
+  color: #776c56;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 9px;
+  font-size: 0.59rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.premium-guide-card li::before {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  color: #c28a35;
+  content: '✓';
+}
+
 .ai-plan-button.premium-locked {
   background: linear-gradient(135deg, #777a8f, #8d829d);
 }
@@ -1322,6 +1419,10 @@ h1 {
   box-shadow: 0 4px 14px rgba(42, 125, 111, 0.1);
 }
 
+.transport-comparison-item:nth-child(3) {
+  grid-column: 1 / -1;
+}
+
 .transport-comparison-item header {
   display: flex;
   align-items: center;
@@ -1345,6 +1446,58 @@ h1 {
 .transport-comparison-item dl,
 .transport-comparison-item p {
   margin: 0;
+}
+
+.transport-comparison-item .transport-reliability {
+  margin-top: 8px;
+  padding-top: 7px;
+  color: #54766d;
+  border-top: 1px dashed #dce7e3;
+  font-size: 0.57rem;
+  font-weight: 700;
+}
+
+.transport-comparison-item .transport-comment {
+  margin-top: 8px;
+  padding: 8px;
+  color: #5f706b;
+  background: #f5f8f7;
+  border-radius: 8px;
+  font-size: 0.61rem;
+  line-height: 1.6;
+}
+
+.transport-comparison-item .transport-comment.strong-warning {
+  color: #98503d;
+  background: #fff1ec;
+  border: 1px solid #efd0c5;
+  font-weight: 700;
+}
+
+.transport-comparison-item .transport-comment.recommended-comment {
+  color: #276f62;
+  background: #eaf7f2;
+  border: 1px solid #c9e5dc;
+}
+
+.transport-recommendation-reason {
+  margin-top: 8px;
+  padding: 9px;
+  color: #4c6d65;
+  background: #fff;
+  border: 1px solid #d5e7e1;
+  border-radius: 9px;
+}
+
+.transport-recommendation-reason strong {
+  display: block;
+  color: #247466;
+  font-size: 0.59rem;
+}
+
+.transport-recommendation-reason p {
+  margin-top: 3px;
+  color: #596f69;
 }
 
 .transport-comparison-item dl > div {
@@ -1380,29 +1533,6 @@ h1 {
   background: #dcefe9;
   border-radius: 999px;
   font-size: 0.56rem;
-}
-
-.other-transport-toggle {
-  width: 100%;
-  min-height: 38px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  margin-top: 9px;
-  color: #507269;
-  background: #f6f9f8;
-  border: 1px solid #dbe6e2;
-  border-radius: 10px;
-  cursor: pointer;
-  font: inherit;
-  font-size: 0.64rem;
-  font-weight: 800;
-}
-
-.other-transport-toggle:focus-visible {
-  outline: 2px solid #2a9d8f;
-  outline-offset: 2px;
 }
 
 .budget-card {
@@ -1564,6 +1694,24 @@ h1 {
   color: #6f746e;
   font-size: 0.7rem;
   line-height: 1.65;
+}
+
+.feasibility-transport-choice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 8px;
+  padding: 8px 10px;
+  color: #7b6a61;
+  background: rgba(255, 255, 255, 0.75);
+  border-radius: 9px;
+  font-size: 0.65rem;
+}
+
+.feasibility-transport-choice b {
+  color: #bd6343;
+  font-size: 0.72rem;
 }
 
 .feasibility-result > span {
@@ -2935,6 +3083,7 @@ h1 {
 @media (max-width: 350px) {
   .plan-grid { grid-template-columns: 1fr; }
   .ai-plan-card dl { grid-template-columns: 1fr; }
+  .premium-guide-card ul { grid-template-columns: 1fr; }
   .travel-mode-list { grid-template-columns: 1fr; }
   .transport-comparison-list { grid-template-columns: 1fr; }
   .visited-filter-options { grid-template-columns: 1fr; }
