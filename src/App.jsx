@@ -3,6 +3,7 @@ import './App.css'
 import { getGoogleMapsApiKeySource, getTravelInfo } from './services/travelTime'
 import { createAiPlanPrompt } from './services/aiPlanPrompt'
 import { getOpenAiApiKeySource } from './services/openAiConfig'
+import { generateOpenAiPlan, OPENAI_PLAN_MODEL } from './services/openAiPlan'
 import destinations from './data/destinations.js'
 
 const tripTypes = ['日帰り', '1泊2日', '2泊3日']
@@ -447,6 +448,7 @@ function HistoryItems({ entries, favoriteCities, onShow, onFavorite, onDelete })
 
 function App() {
   const travelRequestId = useRef(0)
+  const aiPlanRequestId = useRef(0)
   const [restoredInputState] = useState(loadInputState)
   const [departure, setDeparture] = useState(restoredInputState.departure)
   const [departureError, setDepartureError] = useState('')
@@ -474,8 +476,9 @@ function App() {
   const [drawHistory, setDrawHistory] = useState(loadDrawHistory)
   const [showDebugPanel, setShowDebugPanel] = useState(false)
   const [currentPage, setCurrentPage] = useState('main')
-  const [aiPlanPrompt, setAiPlanPrompt] = useState('')
   const [aiPlanNotice, setAiPlanNotice] = useState('')
+  const [aiPlanStatus, setAiPlanStatus] = useState('idle')
+  const [aiPlanResult, setAiPlanResult] = useState('')
 
   const favoriteDestinations = favoriteCities
     .map((city) => destinations.find((place) => place.city === city))
@@ -673,6 +676,13 @@ function App() {
     }
   }
 
+  const resetAiPlanState = () => {
+    ++aiPlanRequestId.current
+    setAiPlanNotice('')
+    setAiPlanStatus('idle')
+    setAiPlanResult('')
+  }
+
   const resetInputConditions = () => {
     ++travelRequestId.current
     setDeparture('')
@@ -690,8 +700,7 @@ function App() {
     setCompareCities([])
     saveCities(COMPARE_STORAGE_KEY, [])
     setShowComparison(false)
-    setAiPlanPrompt('')
-    setAiPlanNotice('')
+    resetAiPlanState()
   }
 
   const switchPage = (page) => {
@@ -766,8 +775,7 @@ function App() {
       visitedPolicy: entry.visitedPolicy ?? '履歴から再表示',
     })
     setTravelInfo({ status: 'loading', car: null, publicTransit: null })
-    setAiPlanPrompt('')
-    setAiPlanNotice('')
+    resetAiPlanState()
     setCurrentPage('main')
     window.scrollTo({ top: 0, behavior: 'smooth' })
 
@@ -907,8 +915,7 @@ function App() {
       selectedFilters: [...selectedFilters],
     })
     setTravelInfo({ status: 'loading', car: null, publicTransit: null })
-    setAiPlanPrompt('')
-    setAiPlanNotice('')
+    resetAiPlanState()
 
     try {
       const routes = await getTravelInfo({
@@ -960,15 +967,20 @@ function App() {
     }
   }
 
-  const showAiPlanSample = () => {
+  const generateAiPlan = async () => {
     if (!destination || !planContext) return
     if (!openAiApiKeySource) {
-      setAiPlanPrompt('')
+      ++aiPlanRequestId.current
+      setAiPlanResult('')
+      setAiPlanStatus('unconfigured')
       setAiPlanNotice('OpenAI APIキーを設定するとAIプランを生成できます')
       return
     }
 
+    const requestId = ++aiPlanRequestId.current
     setAiPlanNotice('')
+    setAiPlanResult('')
+    setAiPlanStatus('loading')
     const season = planContext.travelSeason === '今の季節'
       ? `今の季節（${getCurrentSeason()}）`
       : planContext.travelSeason
@@ -986,7 +998,21 @@ function App() {
       })),
       budget: destination.budgets[planContext.tripType],
     })
-    setAiPlanPrompt(prompt)
+    try {
+      const result = await generateOpenAiPlan({
+        prompt,
+        storedApiKey: savedOpenAiApiKey,
+      })
+      if (requestId === aiPlanRequestId.current) {
+        setAiPlanResult(result)
+        setAiPlanStatus('success')
+      }
+    } catch {
+      if (requestId === aiPlanRequestId.current) {
+        setAiPlanStatus('error')
+        setAiPlanNotice('AIプランを生成できませんでした。APIキーや通信状況を確認してください。')
+      }
+    }
   }
 
   return (
@@ -1257,23 +1283,23 @@ function App() {
                 <strong>{planContext.tripType}</strong>旅行プラン
               </p>
 
-              <button type="button" className="ai-plan-button" onClick={showAiPlanSample}>
+              <button type="button" className="ai-plan-button" onClick={generateAiPlan} disabled={aiPlanStatus === 'loading'}>
                 <span aria-hidden="true">✦</span>
-                AIでプランを作る
+                {aiPlanStatus === 'loading' ? 'AIプランを生成中...' : 'AIでプランを作る'}
               </button>
               {aiPlanNotice && <p className="ai-plan-key-notice" role="status">{aiPlanNotice}</p>}
+              {aiPlanStatus === 'loading' && (
+                <div className="ai-plan-loading" role="status"><span aria-hidden="true" />AIプランを生成中...</div>
+              )}
 
-              {aiPlanPrompt && (
+              {aiPlanStatus === 'success' && aiPlanResult && (
                 <section className="ai-plan-card" aria-labelledby="ai-plan-title">
                   <div className="ai-plan-heading">
                     <span aria-hidden="true">AI</span>
                     <div><p>PERSONALIZED TRIP</p><h3 id="ai-plan-title">AIプラン案</h3></div>
-                    <b>サンプル</b>
+                    <b>{OPENAI_PLAN_MODEL}</b>
                   </div>
-                  <p className="ai-plan-message">
-                    出発地、旅行タイプ、季節、こだわり条件、移動情報をもとに、
-                    より自然な旅行プランを生成する予定です。
-                  </p>
+                  <div className="ai-generated-content">{aiPlanResult}</div>
                   <dl>
                     <div><dt>出発地</dt><dd>{planContext.departure}</dd></div>
                     <div><dt>旅先</dt><dd>{destination.prefecture} {destination.city}</dd></div>
@@ -1283,9 +1309,6 @@ function App() {
                     <div><dt>交通手段比較の結果</dt><dd>{bestTransportEvaluation ? `${bestTransportEvaluation.mode}が最も現実的（${bestTransportEvaluation.feasibility.starsLabel}）` : '移動情報取得後に評価'}</dd></div>
                     <div><dt>予算目安</dt><dd>1人あたり {destination.budgets[planContext.tripType]}</dd></div>
                   </dl>
-                  <p className="ai-plan-notice">
-                    現在はサンプル表示です。API接続後に、あなた専用の旅行プランを作成します。
-                  </p>
                 </section>
               )}
 
@@ -1775,6 +1798,8 @@ function App() {
               <div><dt>抽選方式</dt><dd>重み付きランダム（ランダム要素あり）</dd></div>
               <div><dt>APIキー設定状態</dt><dd>{apiKeyDebugStatus}</dd></div>
               <div><dt>OpenAI APIキー設定状態</dt><dd>{openAiApiKeyDebugStatus}</dd></div>
+              <div><dt>AIプランモデル</dt><dd>{OPENAI_PLAN_MODEL}</dd></div>
+              <div><dt>AIプラン生成状態</dt><dd>{aiPlanStatus}</dd></div>
               <div><dt>移動情報取得状態</dt><dd>{travelStatusLabels[travelInfo.status] ?? travelInfo.status}</dd></div>
               <div><dt>localStorage保存状態</dt><dd>{getLocalStorageDebugStatus()}</dd></div>
             </dl>
