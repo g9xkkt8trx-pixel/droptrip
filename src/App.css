@@ -3603,13 +3603,105 @@ h1 {
   .app-shell { padding: 0; place-items: start center; }
   .trip-card {
     min-height: 100svh;
-    padding: 20px 14px 18px;
+    padding: 18px 14px 20px;
     border: 0;
     border-radius: 0;
     box-shadow: none;
   }
   .main-page { background: #f8faf9; }
   .developer-page { background: #f4f7f6; }
+
+  .trip-card button { min-height: 44px; }
+  .hero { margin-bottom: 22px; padding-top: 8px; }
+  .trip-form { gap: 20px; padding: 16px; border-radius: 19px; }
+  .field-group > label,
+  .field-group legend { margin-bottom: 8px; font-size: 0.8rem; }
+  .trip-type-options label,
+  .season-options label,
+  .filter-options label,
+  .visited-filter-options label { min-height: 44px; }
+
+  .result-card { margin-top: 22px; padding: 20px 16px 18px; }
+  .result-hero-image { margin: -20px -16px 18px; width: calc(100% + 32px); }
+  .favorite-button { min-height: 44px; }
+  .destiny-card { gap: 13px; padding: 16px; }
+  .destiny-score { width: 82px; height: 82px; }
+  .destiny-score > div { width: 64px; height: 64px; padding-top: 16px; }
+  .destiny-score strong { font-size: 1.55rem; }
+  .recommendation-card,
+  .season-compatibility-card { padding: 15px; }
+  .reason-summary { padding: 12px 13px; font-size: 0.72rem; line-height: 1.7; }
+
+  .journey-gallery-card { padding: 14px; }
+  .journey-gallery { gap: 9px; margin-right: -14px; padding-right: 14px; }
+  .journey-image-card { flex-basis: 82%; }
+  .journey-image { height: 180px; }
+
+  .detail-plan { margin-top: 23px; }
+  .plan-route-title { padding: 11px 12px; }
+  .plan-grid,
+  .ai-plan-card dl,
+  .premium-guide-card ul { grid-template-columns: 1fr; }
+  .plan-card { padding: 15px; }
+  .schedule-card li { font-size: 0.74rem; line-height: 1.6; }
+  .premium-guide-card { padding: 14px; }
+
+  .transport-comparison-list { grid-template-columns: 1fr; gap: 10px; }
+  .transport-comparison-item,
+  .transport-comparison-item:nth-child(3) { grid-column: auto; }
+  .transport-comparison-item { padding: 15px; border-radius: 14px; }
+  .transport-comparison-item header { margin-bottom: 10px; }
+  .transport-comparison-item header strong { font-size: 0.84rem; }
+  .transport-comparison-item header span { font-size: 0.72rem; }
+  .transport-comparison-item dl > div {
+    align-items: flex-start;
+    gap: 12px;
+    margin-top: 7px;
+    font-size: 0.71rem;
+    line-height: 1.55;
+  }
+  .transport-comparison-item dt { flex: 0 0 34%; }
+  .transport-comparison-item dd { overflow-wrap: anywhere; }
+  .transport-comparison-item .transport-comment,
+  .transport-comparison-item .transport-reliability { font-size: 0.67rem; line-height: 1.65; }
+  .transit-fallback > a,
+  .calculation-method-button { min-height: 44px; font-size: 0.68rem; }
+
+  .feasibility-card { padding: 16px; }
+  .feasibility-result > p,
+  .transport-compatibility p { line-height: 1.7; }
+
+  .favorites-entry-card { padding: 12px 13px; }
+  .favorites-entry-card button { min-width: 92px; }
+  .favorites-page .favorites-page-list,
+  .history-page .history-page-list { margin-top: 18px; padding: 15px; border-radius: 17px; }
+  .favorite-page-card,
+  .history-item { padding: 14px; }
+  .favorite-page-actions button,
+  .history-actions button { min-height: 44px; line-height: 1.35; }
+  .history-item dd { overflow: visible; text-overflow: clip; white-space: normal; }
+  .favorite-item button { min-width: 44px; min-height: 44px; }
+
+  .developer-page-header { padding-top: 62px; }
+  .developer-page-header > button { min-height: 44px; }
+  .settings-card,
+  .quality-check-card,
+  .debug-card,
+  .calculation-method-card { padding: 15px; border-radius: 16px; }
+  .settings-actions button,
+  .reset-settings button,
+  .ai-usage-settings button,
+  .debug-toggle-row button,
+  .flight-link-list a { min-height: 44px; }
+  .debug-toggle-row { align-items: stretch; flex-direction: column; }
+  .debug-toggle-row button { width: 100%; justify-content: space-between; }
+  .debug-details { grid-template-columns: 1fr; }
+  .quality-check-summary { gap: 7px; }
+  .quality-warning-list { max-height: 330px; }
+  .calculation-method-card > p,
+  .calculation-method-card li,
+  .calculation-formula p,
+  .flight-comparison p { font-size: 0.7rem; line-height: 1.75; }
 }
 
 @media (max-width: 350px) {
