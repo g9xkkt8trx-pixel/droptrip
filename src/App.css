@@ -934,6 +934,34 @@ h1 {
   font-weight: 800;
 }
 
+.premium-feature-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0 7px;
+}
+
+.premium-feature-note span {
+  padding: 4px 7px;
+  color: #7a5b1f;
+  background: #f8e7ae;
+  border-radius: 999px;
+  font-size: 0.5rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.premium-feature-note p {
+  margin: 0;
+  color: #756b55;
+  font-size: 0.65rem;
+  font-weight: 700;
+}
+
+.ai-plan-button.premium-locked {
+  background: linear-gradient(135deg, #777a8f, #8d829d);
+}
+
 .ai-plan-button:focus-visible {
   outline: 2px solid #5b63c9;
   outline-offset: 3px;
@@ -1352,6 +1380,29 @@ h1 {
   background: #dcefe9;
   border-radius: 999px;
   font-size: 0.56rem;
+}
+
+.other-transport-toggle {
+  width: 100%;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 9px;
+  color: #507269;
+  background: #f6f9f8;
+  border: 1px solid #dbe6e2;
+  border-radius: 10px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.64rem;
+  font-weight: 800;
+}
+
+.other-transport-toggle:focus-visible {
+  outline: 2px solid #2a9d8f;
+  outline-offset: 2px;
 }
 
 .budget-card {
@@ -2715,6 +2766,17 @@ h1 {
   font-size: 0.7rem;
 }
 
+.developer-warning {
+  margin: 10px 0 0;
+  padding: 12px 14px;
+  color: #765f49;
+  background: #fff8e8;
+  border: 1px solid #ead9af;
+  border-radius: 12px;
+  font-size: 0.66rem;
+  line-height: 1.65;
+}
+
 .developer-page .settings-card {
   margin-top: 22px;
   background: #fff;
@@ -2728,6 +2790,121 @@ h1 {
 .openai-settings-card .settings-heading > span {
   color: #fff;
   background: #6666c7;
+  font-size: 0.58rem;
+}
+
+.ai-usage-settings {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 15px;
+  border-top: 1px solid #e2e9e6;
+}
+
+.ai-usage-settings strong {
+  color: #365f56;
+  font-size: 0.7rem;
+}
+
+.ai-usage-settings p {
+  margin: 3px 0 0;
+  color: #6666a6;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.ai-usage-settings button {
+  min-height: 34px;
+  padding: 0 10px;
+  color: #716d91;
+  background: #f4f2ff;
+  border: 1px solid #dcd8ef;
+  border-radius: 9px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.62rem;
+  font-weight: 700;
+}
+
+.ai-usage-settings button:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.premium-test-settings {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #e2e9e6;
+}
+
+.premium-test-settings strong {
+  color: #365f56;
+  font-size: 0.7rem;
+}
+
+.premium-test-settings p {
+  margin: 3px 0 0;
+  color: #87938f;
+  font-size: 0.58rem;
+}
+
+.premium-switch {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.premium-switch input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.premium-switch > span {
+  position: relative;
+  width: 38px;
+  height: 22px;
+  background: #c8cfcc;
+  border-radius: 999px;
+  transition: 160ms ease;
+}
+
+.premium-switch > span::after {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 2px 5px rgba(34, 60, 54, 0.2);
+  content: '';
+  transition: 160ms ease;
+}
+
+.premium-switch input:checked + span {
+  background: #6666c7;
+}
+
+.premium-switch input:checked + span::after {
+  transform: translateX(16px);
+}
+
+.premium-switch input:focus-visible + span {
+  outline: 2px solid #6666c7;
+  outline-offset: 2px;
+}
+
+.premium-switch b {
+  min-width: 22px;
+  color: #706d85;
   font-size: 0.58rem;
 }
 

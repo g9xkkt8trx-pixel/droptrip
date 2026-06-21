@@ -4,10 +4,17 @@ import { getGoogleMapsApiKeySource, getTravelInfo } from './services/travelTime'
 import { createAiPlanPrompt } from './services/aiPlanPrompt'
 import { getOpenAiApiKeySource } from './services/openAiConfig'
 import { generateOpenAiPlan, OPENAI_PLAN_MODEL } from './services/openAiPlan'
+import {
+  isPremiumEnabled,
+  loadPremiumStatus,
+  PREMIUM_STATUS_STORAGE_KEY,
+  savePremiumStatus,
+} from './services/premium'
 import destinations from './data/destinations.js'
 
 const tripTypes = ['日帰り', '1泊2日', '2泊3日']
-const transportModes = ['車', '鉄道', '高速バス', '夜行バス', '飛行機']
+const primaryTransportModes = ['車', '電車', '飛行機']
+const transportModes = [...primaryTransportModes, '高速バス', '夜行バス']
 const seasonOptions = ['今の季節', '春', '夏', '秋', '冬', 'おまかせ']
 const filterOptions = ['温泉', '海', '山', 'グルメ', 'カップル向け']
 const FAVORITES_STORAGE_KEY = 'droptrip-favorites'
@@ -15,16 +22,20 @@ const VISITED_STORAGE_KEY = 'droptrip-visited'
 const COMPARE_STORAGE_KEY = 'droptrip-compare'
 const MAPS_API_KEY_STORAGE_KEY = 'droptrip-google-maps-api-key'
 const OPENAI_API_KEY_STORAGE_KEY = 'droptrip-openai-api-key'
+const AI_PLAN_USAGE_STORAGE_KEY = 'droptrip-ai-plan-usage'
 const TRAVEL_CACHE_STORAGE_KEY = 'droptrip-travel-time-cache'
 const DRAW_HISTORY_STORAGE_KEY = 'droptrip-draw-history'
 const INPUT_STATE_STORAGE_KEY = 'droptrip-input-state'
 const MAX_HISTORY_ITEMS = 20
+const DAILY_AI_PLAN_LIMIT = 3
 const DEBUG_STORAGE_KEYS = [
   FAVORITES_STORAGE_KEY,
   VISITED_STORAGE_KEY,
   COMPARE_STORAGE_KEY,
   MAPS_API_KEY_STORAGE_KEY,
   OPENAI_API_KEY_STORAGE_KEY,
+  AI_PLAN_USAGE_STORAGE_KEY,
+  PREMIUM_STATUS_STORAGE_KEY,
   TRAVEL_CACHE_STORAGE_KEY,
   DRAW_HISTORY_STORAGE_KEY,
   INPUT_STATE_STORAGE_KEY,
@@ -182,11 +193,11 @@ const getTransportEvaluations = (travelInfo, tripType) => {
 
   const reference = transit ?? car
   const definitions = [
-    { mode: '車', basis: car, isReference: false },
-    { mode: '鉄道', basis: transit, isReference: false },
-    { mode: '高速バス', basis: reference, isReference: true },
-    { mode: '夜行バス', basis: reference, isReference: true },
-    { mode: '飛行機', basis: reference, isReference: true },
+    { mode: '車', basis: car, isReference: false, isSecondary: false },
+    { mode: '電車', basis: transit, isReference: false, isSecondary: false },
+    { mode: '飛行機', basis: reference, isReference: true, isSecondary: false },
+    { mode: '高速バス', basis: reference, isReference: true, isSecondary: true },
+    { mode: '夜行バス', basis: reference, isReference: true, isSecondary: true },
   ]
 
   return definitions.map((item) => ({
@@ -196,6 +207,12 @@ const getTransportEvaluations = (travelInfo, tripType) => {
       : null,
   }))
 }
+
+const getBestPrimaryTransport = (evaluations) => [...evaluations]
+  .filter((item) => !item.isSecondary && item.feasibility)
+  .sort((a, b) => (
+    b.feasibility.stars - a.feasibility.stars || Number(a.isReference) - Number(b.isReference)
+  ))[0] ?? null
 
 const getTransportCompatibility = ({ transportMode, tripType, travelInfo }) => {
   const tripNote = tripType === '日帰り'
@@ -208,11 +225,11 @@ const getTransportCompatibility = ({ transportMode, tripType, travelInfo }) => {
     return `車で${car.duration}${car.distance ? `・${car.distance}` : ''}の移動です。${tripNote} 現地での移動もしやすく、自由度の高い旅になりやすいです。`
   }
 
-  if (transportMode === '鉄道') {
+  if (transportMode === '電車') {
     const transit = travelInfo.publicTransit
     return transit
-      ? `公共交通機関で${transit.duration}のルートを鉄道移動の参考にしています。乗り換えや駅から観光地までの移動も含めて計画すると安心です。${tripNote}`
-      : `公共交通機関ルートを鉄道移動の参考にして評価します。乗り換えや駅からの移動も含めた計画がおすすめです。${tripNote}`
+      ? `公共交通機関で${transit.duration}のルートを電車移動の参考にしています。乗り換えや駅から観光地までの移動も含めて計画すると安心です。${tripNote}`
+      : `公共交通機関ルートを電車移動の参考にして評価します。乗り換えや駅からの移動も含めた計画がおすすめです。${tripNote}`
   }
 
   if (transportMode === '高速バス') {
@@ -308,6 +325,26 @@ const loadStoredApiKey = (storageKey = MAPS_API_KEY_STORAGE_KEY) => {
   }
 }
 
+const getLocalDateKey = (date = new Date()) => {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+const loadAiPlanUsage = () => {
+  const today = getLocalDateKey()
+  try {
+    const saved = JSON.parse(window.localStorage.getItem(AI_PLAN_USAGE_STORAGE_KEY) ?? '{}')
+    if (saved?.date !== today || !Number.isInteger(saved?.count) || saved.count < 0) {
+      return { date: today, count: 0 }
+    }
+    return { date: today, count: Math.min(saved.count, DAILY_AI_PLAN_LIMIT) }
+  } catch {
+    return { date: today, count: 0 }
+  }
+}
+
 const loadTravelTimeCache = () => {
   try {
     const saved = JSON.parse(window.localStorage.getItem(TRAVEL_CACHE_STORAGE_KEY) ?? '{}')
@@ -327,9 +364,13 @@ const loadDrawHistory = () => {
       ? saved.filter((entry) => entry && typeof entry === 'object' && entry.id && entry.city)
         .map((entry) => ({
           ...entry,
-          bestTransport: transportModes.includes(entry.bestTransport)
-            ? entry.bestTransport
-            : transportModes.includes(entry.transportMode) ? entry.transportMode : null,
+          bestTransport: entry.bestTransport === '鉄道'
+            ? '電車'
+            : transportModes.includes(entry.bestTransport)
+              ? entry.bestTransport
+              : entry.transportMode === '鉄道'
+                ? '電車'
+                : transportModes.includes(entry.transportMode) ? entry.transportMode : null,
           travelSeason: seasonOptions.includes(entry.travelSeason) ? entry.travelSeason : '今の季節',
           selectedFilters: Array.isArray(entry.selectedFilters)
             ? entry.selectedFilters.filter((filter) => filterOptions.includes(filter))
@@ -449,6 +490,7 @@ function HistoryItems({ entries, favoriteCities, onShow, onFavorite, onDelete })
 function App() {
   const travelRequestId = useRef(0)
   const aiPlanRequestId = useRef(0)
+  const developerTitleClicks = useRef({ count: 0, lastClickAt: 0 })
   const [restoredInputState] = useState(loadInputState)
   const [departure, setDeparture] = useState(restoredInputState.departure)
   const [departureError, setDepartureError] = useState('')
@@ -479,6 +521,9 @@ function App() {
   const [aiPlanNotice, setAiPlanNotice] = useState('')
   const [aiPlanStatus, setAiPlanStatus] = useState('idle')
   const [aiPlanResult, setAiPlanResult] = useState('')
+  const [aiPlanUsage, setAiPlanUsage] = useState(loadAiPlanUsage)
+  const [isPremiumUser, setIsPremiumUser] = useState(loadPremiumStatus)
+  const [showOtherTransport, setShowOtherTransport] = useState(false)
 
   const favoriteDestinations = favoriteCities
     .map((city) => destinations.find((place) => place.city === city))
@@ -502,11 +547,10 @@ function App() {
   const transportEvaluations = planContext
     ? getTransportEvaluations(travelInfo, planContext.tripType)
     : []
-  const bestTransportEvaluation = [...transportEvaluations]
-    .filter((item) => item.feasibility)
-    .sort((a, b) => (
-      b.feasibility.stars - a.feasibility.stars || Number(a.isReference) - Number(b.isReference)
-    ))[0] ?? null
+  const bestTransportEvaluation = getBestPrimaryTransport(transportEvaluations)
+  const visibleTransportEvaluations = transportEvaluations.filter((item) => (
+    !item.isSecondary || showOtherTransport
+  ))
   const feasibility = bestTransportEvaluation?.feasibility ?? null
   const feasibilityBasis = bestTransportEvaluation?.basis ?? null
   const transportCompatibility = destination && planContext && bestTransportEvaluation
@@ -531,6 +575,7 @@ function App() {
     : openAiApiKeySource === 'localStorage'
       ? '設定カードで設定済み'
       : '未設定'
+  const todayAiPlanUsageCount = aiPlanUsage.date === getLocalDateKey() ? aiPlanUsage.count : 0
 
   useEffect(() => {
     try {
@@ -676,6 +721,28 @@ function App() {
     }
   }
 
+  const saveAiPlanUsage = (usage) => {
+    setAiPlanUsage(usage)
+    try {
+      window.localStorage.setItem(AI_PLAN_USAGE_STORAGE_KEY, JSON.stringify(usage))
+    } catch {
+      // 保存できない環境でも、現在の画面では回数制限を維持する
+    }
+  }
+
+  const resetAiPlanUsage = () => {
+    const resetUsage = { date: getLocalDateKey(), count: 0 }
+    saveAiPlanUsage(resetUsage)
+    setOpenAiApiKeyNotice('本日のAI生成回数をリセットしました。')
+  }
+
+  const togglePremiumStatus = () => {
+    const nextStatus = !isPremiumUser
+    savePremiumStatus(nextStatus)
+    setIsPremiumUser(nextStatus)
+    resetAiPlanState()
+  }
+
   const resetAiPlanState = () => {
     ++aiPlanRequestId.current
     setAiPlanNotice('')
@@ -700,12 +767,25 @@ function App() {
     setCompareCities([])
     saveCities(COMPARE_STORAGE_KEY, [])
     setShowComparison(false)
+    setShowOtherTransport(false)
     resetAiPlanState()
   }
 
   const switchPage = (page) => {
     setCurrentPage(page)
     window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const handleDeveloperTitleClick = () => {
+    const now = Date.now()
+    const previous = developerTitleClicks.current
+    const nextCount = now - previous.lastClickAt <= 1200 ? previous.count + 1 : 1
+    developerTitleClicks.current = { count: nextCount, lastClickAt: now }
+
+    if (nextCount >= 5) {
+      developerTitleClicks.current = { count: 0, lastClickAt: 0 }
+      switchPage('developer')
+    }
   }
 
   const markAsVisited = (city) => {
@@ -775,6 +855,7 @@ function App() {
       visitedPolicy: entry.visitedPolicy ?? '履歴から再表示',
     })
     setTravelInfo({ status: 'loading', car: null, publicTransit: null })
+    setShowOtherTransport(false)
     resetAiPlanState()
     setCurrentPage('main')
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -796,12 +877,7 @@ function App() {
       if (requestId === travelRequestId.current) {
         setTravelInfo(routes)
         const restoredEvaluations = getTransportEvaluations(routes, restoredTripType)
-        const restoredBest = [...restoredEvaluations]
-          .filter((item) => item.feasibility)
-          .sort((a, b) => (
-            b.feasibility.stars - a.feasibility.stars
-            || Number(a.isReference) - Number(b.isReference)
-          ))[0] ?? null
+        const restoredBest = getBestPrimaryTransport(restoredEvaluations)
         if (routes.car?.durationMinutes) {
           const cacheKey = getTravelCacheKey(restoredDeparture, place.id)
           const nextCache = { ...travelTimeCache, [cacheKey]: routes.car.durationMinutes }
@@ -915,6 +991,7 @@ function App() {
       selectedFilters: [...selectedFilters],
     })
     setTravelInfo({ status: 'loading', car: null, publicTransit: null })
+    setShowOtherTransport(false)
     resetAiPlanState()
 
     try {
@@ -939,12 +1016,7 @@ function App() {
           saveCities(TRAVEL_CACHE_STORAGE_KEY, nextCache)
         }
         const selectedEvaluations = getTransportEvaluations(routes, tripType)
-        const selectedBest = [...selectedEvaluations]
-          .filter((item) => item.feasibility)
-          .sort((a, b) => (
-            b.feasibility.stars - a.feasibility.stars
-            || Number(a.isReference) - Number(b.isReference)
-          ))[0] ?? null
+        const selectedBest = getBestPrimaryTransport(selectedEvaluations)
         if (selectedBest) {
           const currentFeasibility = selectedBest.feasibility
           setSelectionMeta((current) => current
@@ -969,6 +1041,13 @@ function App() {
 
   const generateAiPlan = async () => {
     if (!destination || !planContext) return
+    if (!isPremiumEnabled(isPremiumUser)) {
+      ++aiPlanRequestId.current
+      setAiPlanResult('')
+      setAiPlanStatus('premium-required')
+      setAiPlanNotice('AIプラン生成はプレミアム機能です。今後、月額プランまたは回数制で提供予定です。')
+      return
+    }
     if (!openAiApiKeySource) {
       ++aiPlanRequestId.current
       setAiPlanResult('')
@@ -977,7 +1056,19 @@ function App() {
       return
     }
 
+    if (todayAiPlanUsageCount >= DAILY_AI_PLAN_LIMIT) {
+      ++aiPlanRequestId.current
+      setAiPlanResult('')
+      setAiPlanStatus('limit')
+      setAiPlanNotice('本日のAIプラン生成回数に達しました。明日またお試しください。')
+      return
+    }
+
     const requestId = ++aiPlanRequestId.current
+    saveAiPlanUsage({
+      date: getLocalDateKey(),
+      count: todayAiPlanUsageCount + 1,
+    })
     setAiPlanNotice('')
     setAiPlanResult('')
     setAiPlanStatus('loading')
@@ -1031,7 +1122,7 @@ function App() {
             </svg>
           </div>
           <p className="eyebrow">WHERE TO NEXT?</p>
-          <h1 id="app-title">DROPTRIP</h1>
+          <h1 id="app-title" onClick={handleDeveloperTitleClick}>DROPTRIP</h1>
           <p className="subtitle">運命の旅行先を決めよう</p>
         </header>
 
@@ -1283,7 +1374,12 @@ function App() {
                 <strong>{planContext.tripType}</strong>旅行プラン
               </p>
 
-              <button type="button" className="ai-plan-button" onClick={generateAiPlan} disabled={aiPlanStatus === 'loading'}>
+              <div className="premium-feature-note">
+                <span aria-hidden="true">PREMIUM</span>
+                <p>AIプラン生成はプレミアム機能です</p>
+              </div>
+
+              <button type="button" className={`ai-plan-button ${isPremiumUser ? 'premium-active' : 'premium-locked'}`} onClick={generateAiPlan} disabled={aiPlanStatus === 'loading'}>
                 <span aria-hidden="true">✦</span>
                 {aiPlanStatus === 'loading' ? 'AIプランを生成中...' : 'AIでプランを作る'}
               </button>
@@ -1348,7 +1444,7 @@ function App() {
                     </div>
                   )}
                   <div className="transport-comparison-list">
-                      {transportEvaluations.map((item) => (
+                      {visibleTransportEvaluations.map((item) => (
                         <article
                           className={`transport-comparison-item ${item.isReference ? 'reference' : ''} ${bestTransportEvaluation?.mode === item.mode ? 'best' : ''}`}
                           key={item.mode}
@@ -1367,22 +1463,31 @@ function App() {
                               </dl>
                             ) : <p>車の経路が見つかりませんでした</p>
                           )}
-                          {item.mode === '鉄道' && (
+                          {item.mode === '電車' && (
                             travelInfo.publicTransit ? (
                               <dl>
                                 <div><dt>時間</dt><dd>{travelInfo.publicTransit.duration}</dd></div>
                                 {travelInfo.publicTransit.distance && <div><dt>距離</dt><dd>{travelInfo.publicTransit.distance}</dd></div>}
                                 {travelInfo.publicTransit.fare && <div><dt>料金</dt><dd>{travelInfo.publicTransit.fare}</dd></div>}
                               </dl>
-                            ) : <p>鉄道を含む公共交通機関の経路が見つかりませんでした</p>
+                            ) : <p>電車を含む公共交通機関の経路が見つかりませんでした</p>
                           )}
-                          {item.mode === '高速バス' && <p>中距離〜長距離向きの参考評価です。詳細な時刻・料金は今後対応予定です。</p>}
-                          {item.mode === '夜行バス' && <p>長距離・宿泊旅行向きの選択肢として参考表示しています。詳細な時刻・料金は今後対応予定です。</p>}
-                          {item.mode === '飛行機' && <p>長距離旅行向きの選択肢として参考表示しています。詳細な時刻・料金は今後対応予定です。</p>}
+                          {item.mode === '飛行機' && <p>飛行機ルートの詳細取得は今後対応予定です。長距離旅行向きの候補として表示しています。</p>}
+                          {item.mode === '高速バス' && <p>今後対応予定。中距離〜長距離旅行向きの選択肢です。</p>}
+                          {item.mode === '夜行バス' && <p>今後対応予定。移動時間を睡眠にあてられるため、宿泊旅行向きの選択肢です。</p>}
                           {bestTransportEvaluation?.mode === item.mode && <b>最も現実的</b>}
                         </article>
                       ))}
                   </div>
+                  <button
+                    type="button"
+                    className="other-transport-toggle"
+                    aria-expanded={showOtherTransport}
+                    onClick={() => setShowOtherTransport((current) => !current)}
+                  >
+                    {showOtherTransport ? 'その他の移動手段を閉じる' : 'その他の移動手段を見る'}
+                    <span aria-hidden="true">{showOtherTransport ? '−' : '+'}</span>
+                  </button>
                   {travelInfo.status === 'unconfigured' && (
                     <div className="travel-state travel-unconfigured">
                       <strong><span aria-hidden="true">!</span>APIキー未設定</strong>
@@ -1487,17 +1592,6 @@ function App() {
             <small>最大{MAX_HISTORY_ITEMS}件まで保存</small>
           </div>
           <button type="button" onClick={() => switchPage('history')}>一覧を見る <span aria-hidden="true">→</span></button>
-        </nav>
-
-        <nav className="page-switch-card" aria-label="開発者ページへの移動">
-          <div>
-            <span aria-hidden="true">⚙</span>
-            <p>API設定やデバッグ情報を確認できます</p>
-          </div>
-          <button type="button" onClick={() => switchPage('developer')}>
-            開発者ページ
-            <span aria-hidden="true">→</span>
-          </button>
         </nav>
 
         <p className="footer-note">思いがけない場所へ、出かけよう。</p>
@@ -1659,6 +1753,10 @@ function App() {
           <span>API設定とアプリの内部状態を管理します</span>
         </header>
 
+        <p className="developer-warning">
+          このページは開発者向けです。APIキーは公開版ではサーバー側で管理する必要があります。
+        </p>
+
         <section className="settings-card" aria-labelledby="settings-title">
           <div className="settings-heading">
             <span aria-hidden="true">⚙</span>
@@ -1762,6 +1860,25 @@ function App() {
               <button type="button" className="delete-key-button" onClick={deleteOpenAiApiKey} disabled={!savedOpenAiApiKey}>削除</button>
             </div>
           </form>
+
+          <div className="ai-usage-settings">
+            <div>
+              <strong>本日のAI生成回数</strong>
+              <p>{todayAiPlanUsageCount} / {DAILY_AI_PLAN_LIMIT}回</p>
+            </div>
+            <button type="button" onClick={resetAiPlanUsage} disabled={todayAiPlanUsageCount === 0}>回数をリセット</button>
+          </div>
+          <div className="premium-test-settings">
+            <div>
+              <strong>プレミアム状態を切り替える</strong>
+              <p>開発テスト専用。決済機能とは連携していません。</p>
+            </div>
+            <label className="premium-switch">
+              <input type="checkbox" checked={isPremiumUser} onChange={togglePremiumStatus} />
+              <span aria-hidden="true" />
+              <b>{isPremiumUser ? 'ON' : 'OFF'}</b>
+            </label>
+          </div>
         </section>
 
         <section className={`debug-card ${showDebugPanel ? 'expanded' : ''}`} aria-labelledby="debug-title">
@@ -1800,6 +1917,8 @@ function App() {
               <div><dt>OpenAI APIキー設定状態</dt><dd>{openAiApiKeyDebugStatus}</dd></div>
               <div><dt>AIプランモデル</dt><dd>{OPENAI_PLAN_MODEL}</dd></div>
               <div><dt>AIプラン生成状態</dt><dd>{aiPlanStatus}</dd></div>
+              <div><dt>本日のAI生成回数</dt><dd>{todayAiPlanUsageCount} / {DAILY_AI_PLAN_LIMIT}回</dd></div>
+              <div><dt>プレミアム状態</dt><dd>{isPremiumUser ? '有効（テスト）' : '無効'}</dd></div>
               <div><dt>移動情報取得状態</dt><dd>{travelStatusLabels[travelInfo.status] ?? travelInfo.status}</dd></div>
               <div><dt>localStorage保存状態</dt><dd>{getLocalStorageDebugStatus()}</dd></div>
             </dl>
