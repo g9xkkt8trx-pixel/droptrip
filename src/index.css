@@ -1,0 +1,33 @@
+:root {
+  font-family: Inter, "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+  color: #294a43;
+  background: #edf4f1;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  background: #edf4f1;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(244, 162, 97, 0.16), transparent 28%),
+    radial-gradient(circle at 88% 92%, rgba(42, 157, 143, 0.14), transparent 30%),
+    #edf4f1;
+}
+
+button,
+input {
+  -webkit-tap-highlight-color: transparent;
+}
