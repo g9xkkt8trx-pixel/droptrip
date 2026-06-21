@@ -54,13 +54,75 @@ const destinationCoordinates = {
   佐世保市: [33.1799, 129.7151],
 }
 
+// 町村は郡名を含む正式な自治体住所を使用する。
+const destinationAddresses = {
+  箱根町: '神奈川県足柄下郡箱根町',
+  草津町: '群馬県吾妻郡草津町',
+  松島町: '宮城県宮城郡松島町',
+  富士河口湖町: '山梨県南都留郡富士河口湖町',
+  白浜町: '和歌山県西牟婁郡白浜町',
+  白川村: '岐阜県大野郡白川村',
+}
+
+const getSeasonProfile = (destination) => {
+  const { city, prefecture, tags } = destination
+  const bestSeasons = new Set(['春', '秋'])
+
+  if (tags.includes('海')) bestSeasons.add('夏')
+  if (tags.includes('温泉')) bestSeasons.add('冬')
+  if (tags.includes('山')) bestSeasons.add('秋')
+  if (['北海道', '青森県', '岩手県'].includes(prefecture)) bestSeasons.add('冬')
+  if (['沖縄県', '宮崎県'].includes(prefecture)) bestSeasons.add('夏')
+
+  return {
+    bestSeasons: [...bestSeasons],
+    seasonHighlights: {
+      春: tags.includes('山')
+        ? `${city}の新緑と春の散策を楽しめる`
+        : `${city}の穏やかな街歩きと春景色を楽しめる`,
+      夏: tags.includes('海')
+        ? `${city}の海景色と爽やかな夏の観光を満喫できる`
+        : tags.includes('山')
+          ? `${city}の自然に囲まれて涼やかに過ごせる`
+          : `${city}の夏らしい街歩きとグルメを楽しめる`,
+      秋: tags.includes('山') || tags.includes('温泉')
+        ? `${city}の紅葉と${tags.includes('温泉') ? '温泉' : '自然散策'}の相性が良い`
+        : `${city}の落ち着いた街並みと秋の味覚を楽しめる`,
+      冬: tags.includes('温泉')
+        ? `${city}で冬景色と温泉のぬくもりを楽しめる`
+        : ['北海道', '青森県', '岩手県'].includes(prefecture)
+          ? `${city}ならではの雪景色と冬の味覚に出会える`
+          : `${city}の冬グルメと静かな観光を楽しめる`,
+    },
+  }
+}
+
+// 出発地によって移動時間が変わるため、固定の出発・到着時刻を柔軟な表記へ整える。
+const normalizePlans = (plans, city) => Object.fromEntries(
+  Object.entries(plans).map(([tripType, days]) => [
+    tripType,
+    days.map((day) => ({
+      ...day,
+      items: day.items.map((item) => {
+        if (/^\d{2}:\d{2} 出発$/.test(item)) return '出発 移動時間に合わせて出発'
+        if (item.includes(`${city}に到着`)) {
+          return `${tripType === '2泊3日' ? '午後' : '午前'} ${city}に到着`
+        }
+        return item
+      }),
+    })),
+  ]),
+)
+
 /**
  * UIで利用する旅行先データの公開モデル。
  * 元データを追加しても、このファイルで項目名と必須値を統一できる。
  */
 const destinations = rawDestinations.map((destination) => {
   const [latitude, longitude] = destinationCoordinates[destination.city]
-  const address = `${destination.prefecture}${destination.city}`
+  const address = destinationAddresses[destination.city]
+    ?? `${destination.prefecture}${destination.city}`
+  const seasonProfile = getSeasonProfile(destination)
 
   return {
     id: `${destination.prefecture}-${destination.city}`,
@@ -70,13 +132,15 @@ const destinations = rawDestinations.map((destination) => {
     address,
     latitude,
     longitude,
-    googleMapsQuery: `${destination.prefecture} ${destination.city} 観光`,
+    googleMapsQuery: `${address} 観光`,
     tags: destination.tags,
     recommendation: destination.recommendation,
     reason: `${destination.city}は「${destination.recommendation}」をテーマにした旅行ができ、${destination.tags.join('・')}を重視する方におすすめです。`,
     budgets: destination.budget,
-    plans: destination.schedule,
+    plans: normalizePlans(destination.schedule, destination.city),
     highlights: destination.highlight,
+    bestSeasons: seasonProfile.bestSeasons,
+    seasonHighlights: seasonProfile.seasonHighlights,
   }
 })
 

@@ -35,6 +35,23 @@ const formatDistance = (distanceMeters) => {
   return `${new Intl.NumberFormat('ja-JP').format(kilometers)}km`
 }
 
+const formatFare = (fare) => {
+  if (!fare?.currencyCode) return null
+
+  const amount = Number(fare.units ?? 0) + Number(fare.nanos ?? 0) / 1_000_000_000
+  if (!Number.isFinite(amount)) return null
+
+  try {
+    return new Intl.NumberFormat('ja-JP', {
+      style: 'currency',
+      currency: fare.currencyCode,
+      maximumFractionDigits: fare.currencyCode === 'JPY' ? 0 : 2,
+    }).format(amount)
+  } catch {
+    return `${amount.toLocaleString('ja-JP')} ${fare.currencyCode}`
+  }
+}
+
 const appendJapan = (address) => {
   const normalizedAddress = address.trim()
   return normalizedAddress.includes('日本') ? normalizedAddress : `${normalizedAddress}, 日本`
@@ -97,7 +114,7 @@ const fetchRoute = async ({ origin, destination, travelMode, apiKey, signal }) =
     headers: {
       'Content-Type': 'application/json',
       'X-Goog-Api-Key': apiKey,
-      'X-Goog-FieldMask': 'routes.duration,routes.distanceMeters',
+      'X-Goog-FieldMask': 'routes.duration,routes.distanceMeters,routes.travelAdvisory.transitFare',
     },
     body: JSON.stringify(requestBody),
     signal,
@@ -127,6 +144,7 @@ const fetchRoute = async ({ origin, destination, travelMode, apiKey, signal }) =
     duration: formatDuration(durationMinutes),
     durationMinutes,
     distance: Number.isFinite(route.distanceMeters) ? formatDistance(route.distanceMeters) : null,
+    fare: formatFare(route.travelAdvisory?.transitFare),
   }
 }
 
@@ -168,6 +186,8 @@ export const getTravelInfo = async ({ origin, destination, apiKey: storedApiKey 
     ? {
         duration: transitResult.value.duration,
         durationMinutes: transitResult.value.durationMinutes,
+        distance: transitResult.value.distance,
+        fare: transitResult.value.fare,
       }
     : null
 

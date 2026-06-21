@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import './App.css'
 import { getGoogleMapsApiKeySource, getTravelInfo } from './services/travelTime'
+import { createAiPlanPrompt } from './services/aiPlanPrompt'
 import destinations from './data/destinations.js'
 
 const tripTypes = ['日帰り', '1泊2日', '2泊3日']
+const transportModes = ['車', '鉄道', '高速バス', '夜行バス', '飛行機']
+const seasonOptions = ['今の季節', '春', '夏', '秋', '冬', 'おまかせ']
 const filterOptions = ['温泉', '海', '山', 'グルメ', 'カップル向け']
 const FAVORITES_STORAGE_KEY = 'droptrip-favorites'
 const VISITED_STORAGE_KEY = 'droptrip-visited'
@@ -47,6 +50,40 @@ const destinyComments = {
   ],
 }
 
+const getCurrentSeason = (month = new Date().getMonth() + 1) => {
+  if (month >= 3 && month <= 5) return '春'
+  if (month >= 6 && month <= 8) return '夏'
+  if (month >= 9 && month <= 11) return '秋'
+  return '冬'
+}
+
+const resolveSeason = (travelSeason) => (
+  travelSeason === '今の季節' ? getCurrentSeason() : travelSeason === 'おまかせ' ? null : travelSeason
+)
+
+const getSeasonCompatibility = (destination, travelSeason, tripType) => {
+  const season = resolveSeason(travelSeason)
+  if (!season) {
+    return {
+      season: 'おまかせ',
+      stars: 4,
+      starsLabel: '★★★★☆',
+      isBest: false,
+      description: `${destination.city}の季節ごとの魅力から、旅行時期に合わせて楽しみ方を選べます。`,
+    }
+  }
+
+  const isBest = destination.bestSeasons.includes(season)
+  const stars = isBest ? 5 : 3
+  return {
+    season,
+    stars,
+    starsLabel: `${'★'.repeat(stars)}${'☆'.repeat(5 - stars)}`,
+    isBest,
+    description: `${season}の${destination.city}は${destination.seasonHighlights[season]}ため、${tripType}の旅行先として${isBest ? '特に魅力が高い' : '新しい魅力を見つけやすい'}です。`,
+  }
+}
+
 const calculateDestiny = (destination, selectedFilters, tripType) => {
   const matchingConditions = selectedFilters.filter((filter) => destination.tags.includes(filter))
   const conditionPoints = selectedFilters.length > 0
@@ -71,13 +108,20 @@ const calculateDestiny = (destination, selectedFilters, tripType) => {
   }
 }
 
-const calculateFeasibility = (durationMinutes, tripType) => {
+const calculateFeasibility = (durationMinutes, tripType, transportMode = '車') => {
   const hours = durationMinutes / 60
   let stars = hours <= 2 ? 5 : hours <= 4 ? 4 : hours <= 6 ? 3 : hours <= 8 ? 2 : 1
 
   if (tripType === '日帰り' && hours > 4) stars = Math.max(1, stars - 1)
   if (tripType === '1泊2日' && hours > 4 && hours <= 6) stars = Math.min(5, stars + 1)
   if (tripType === '2泊3日' && hours > 6 && hours <= 8) stars = Math.min(5, stars + 1)
+  if (transportMode === '高速バス' && hours >= 4 && hours <= 8) stars = Math.min(5, stars + 1)
+  if (transportMode === '夜行バス' && tripType !== '日帰り' && hours >= 6) {
+    stars = Math.max(3, stars)
+  }
+  if (transportMode === '飛行機' && tripType !== '日帰り' && hours >= 6) {
+    stars = Math.max(tripType === '2泊3日' ? 4 : 3, stars)
+  }
 
   const labels = {
     5: 'とても行きやすい',
@@ -102,12 +146,86 @@ const calculateFeasibility = (durationMinutes, tripType) => {
       : '2泊3日でも長距離移動になるため、余裕のある計画がおすすめです。'
   }
 
+  if (transportMode === '高速バス') {
+    detail += ' 高速バスは中距離〜長距離向きとして参考評価しています。'
+  }
+  if (transportMode === '夜行バス') {
+    detail += tripType === '日帰り'
+      ? ' 夜行バスは宿泊を伴う旅行での利用がおすすめです。'
+      : ' 夜間の移動時間を活用できる前提で評価しています。'
+  }
+  if (transportMode === '飛行機') {
+    detail += tripType === '日帰り'
+      ? ' 空港への移動や搭乗手続きを含め、時間に余裕が必要です。'
+      : ' 長距離でも飛行機を使う旅行候補として評価しています。'
+  }
+
   return {
     stars,
     starsLabel: `${'★'.repeat(stars)}${'☆'.repeat(5 - stars)}`,
     label: labels[stars],
     detail,
   }
+}
+
+const getTransportEvaluations = (travelInfo, tripType) => {
+  const car = travelInfo.car?.durationMinutes
+    ? { durationMinutes: travelInfo.car.durationMinutes, duration: travelInfo.car.duration, label: '車' }
+    : null
+  const transit = travelInfo.publicTransit?.durationMinutes
+    ? { durationMinutes: travelInfo.publicTransit.durationMinutes, duration: travelInfo.publicTransit.duration, label: '公共交通機関' }
+    : null
+
+  const reference = transit ?? car
+  const definitions = [
+    { mode: '車', basis: car, isReference: false },
+    { mode: '鉄道', basis: transit, isReference: false },
+    { mode: '高速バス', basis: reference, isReference: true },
+    { mode: '夜行バス', basis: reference, isReference: true },
+    { mode: '飛行機', basis: reference, isReference: true },
+  ]
+
+  return definitions.map((item) => ({
+    ...item,
+    feasibility: item.basis
+      ? calculateFeasibility(item.basis.durationMinutes, tripType, item.mode)
+      : null,
+  }))
+}
+
+const getTransportCompatibility = ({ transportMode, tripType, travelInfo }) => {
+  const tripNote = tripType === '日帰り'
+    ? '日帰りでは、現地で過ごす時間を確保できるか確認しましょう。'
+    : `${tripType}なら、移動を含めた余裕のある計画を立てやすいです。`
+
+  if (transportMode === '車') {
+    const car = travelInfo.car
+    if (!car) return `車の移動時間と距離を取得すると、より具体的な相性を表示できます。${tripNote}`
+    return `車で${car.duration}${car.distance ? `・${car.distance}` : ''}の移動です。${tripNote} 現地での移動もしやすく、自由度の高い旅になりやすいです。`
+  }
+
+  if (transportMode === '鉄道') {
+    const transit = travelInfo.publicTransit
+    return transit
+      ? `公共交通機関で${transit.duration}のルートを鉄道移動の参考にしています。乗り換えや駅から観光地までの移動も含めて計画すると安心です。${tripNote}`
+      : `公共交通機関ルートを鉄道移動の参考にして評価します。乗り換えや駅からの移動も含めた計画がおすすめです。${tripNote}`
+  }
+
+  if (transportMode === '高速バス') {
+    const reference = travelInfo.publicTransit?.duration
+      ? `公共交通機関の${travelInfo.publicTransit.duration}を参考に、`
+      : ''
+    return `${reference}中距離〜長距離旅行向きの移動手段として評価しています。${tripNote} 詳細な時刻・料金は今後対応予定です。`
+  }
+
+  if (transportMode === '夜行バス') {
+    const stayNote = tripType === '日帰り'
+      ? '宿泊旅行へ変更すると、夜間の移動時間を活用しやすくなります。'
+      : '移動時間が長くても、宿泊旅行なら夜間を活用できる現実的な選択肢です。'
+    return `${stayNote} 到着後に休める余裕を持ったプランがおすすめです。詳細な時刻・料金は今後対応予定です。`
+  }
+
+  return `${tripType === '日帰り' ? '日帰りでは空港までの移動や搭乗手続き時間に注意が必要です。' : `${tripType}なら、長距離でも移動時間を短縮できる候補です。`} 空港から旅先までの二次交通も含めて計画しましょう。詳細な時刻・料金は今後対応予定です。`
 }
 
 const getTravelCacheKey = (origin, destinationId) => (
@@ -120,6 +238,7 @@ const scoreDestination = ({
   tripType,
   isVisited,
   cachedDurationMinutes,
+  travelSeason,
   isPrevious,
 }) => {
   const matchingCount = selectedFilters.filter((filter) => destination.tags.includes(filter)).length
@@ -128,8 +247,10 @@ const scoreDestination = ({
   const tripRatio = Math.min(planDays / expectedDays, 1)
   const tripCompatibilityLabel = tripRatio >= 1 ? '良い' : tripRatio >= 0.66 ? '普通' : '低い'
   const cachedFeasibility = cachedDurationMinutes
-    ? calculateFeasibility(cachedDurationMinutes, tripType)
+    ? calculateFeasibility(cachedDurationMinutes, tripType, '車')
     : null
+  const season = resolveSeason(travelSeason)
+  const seasonPoints = season && destination.bestSeasons.includes(season) ? 18 : season ? 2 : 8
 
   const score = Math.max(1, Math.round(
     10
@@ -137,6 +258,7 @@ const scoreDestination = ({
     + tripRatio * 18
     + (isVisited ? -12 : 8)
     + Math.min(destination.tags.length, 5) * 2
+    + seasonPoints
     + (cachedFeasibility ? cachedFeasibility.stars * 4 : 0),
   ))
 
@@ -145,6 +267,9 @@ const scoreDestination = ({
     matchingCount,
     tripCompatibilityLabel,
     feasibilityStars: cachedFeasibility?.starsLabel ?? null,
+    seasonCompatibility: !season
+      ? 'おまかせ'
+      : destination.bestSeasons.includes(season) ? 'とても良い' : '標準',
     score,
     weight: Math.pow(score, 1.35) * (isPrevious ? 0.35 : 1),
   }
@@ -198,6 +323,10 @@ const loadDrawHistory = () => {
       ? saved.filter((entry) => entry && typeof entry === 'object' && entry.id && entry.city)
         .map((entry) => ({
           ...entry,
+          bestTransport: transportModes.includes(entry.bestTransport)
+            ? entry.bestTransport
+            : transportModes.includes(entry.transportMode) ? entry.transportMode : null,
+          travelSeason: seasonOptions.includes(entry.travelSeason) ? entry.travelSeason : '今の季節',
           selectedFilters: Array.isArray(entry.selectedFilters)
             ? entry.selectedFilters.filter((filter) => filterOptions.includes(filter))
             : [],
@@ -224,6 +353,7 @@ const loadInputState = () => {
   const initialState = {
     departure: '',
     tripType: '日帰り',
+    travelSeason: '今の季節',
     selectedFilters: [],
     includeVisited: false,
   }
@@ -233,6 +363,9 @@ const loadInputState = () => {
     return {
       departure: typeof saved.departure === 'string' ? saved.departure : initialState.departure,
       tripType: tripTypes.includes(saved.tripType) ? saved.tripType : initialState.tripType,
+      travelSeason: seasonOptions.includes(saved.travelSeason)
+        ? saved.travelSeason
+        : initialState.travelSeason,
       selectedFilters: Array.isArray(saved.selectedFilters)
         ? saved.selectedFilters.filter((filter) => filterOptions.includes(filter))
         : initialState.selectedFilters,
@@ -265,12 +398,57 @@ const travelStatusLabels = {
   'api-error': 'API設定エラー',
 }
 
+function HistoryItems({ entries, favoriteCities, onShow, onFavorite, onDelete }) {
+  return (
+    <div className="history-list">
+      {entries.map((entry) => (
+        <article className="history-item" key={entry.id}>
+          <header>
+            <div><p>{entry.prefecture}</p><h3>{entry.city}</h3></div>
+            <time dateTime={entry.drawnAt}>{formatHistoryDate(entry.drawnAt)}</time>
+          </header>
+          <dl>
+            <div><dt>出発地</dt><dd>{entry.departure}</dd></div>
+            <div><dt>旅行タイプ</dt><dd>{entry.tripType}</dd></div>
+            <div><dt>旅行予定季節</dt><dd>{entry.travelSeason ?? '今の季節'}</dd></div>
+            <div><dt>最適な移動手段</dt><dd>{entry.bestTransport ?? '未評価'}</dd></div>
+            <div><dt>選択条件</dt><dd>{entry.selectedFilters?.length > 0 ? entry.selectedFilters.join('、') : '指定なし'}</dd></div>
+            <div><dt>運命度</dt><dd>{entry.destinyScore}%</dd></div>
+            <div><dt>行けそう度</dt><dd>{entry.feasibilityStars ?? '未取得'}</dd></div>
+            <div><dt>予算目安</dt><dd>{entry.budget}</dd></div>
+          </dl>
+          <div className="history-actions">
+            <button type="button" onClick={() => onShow(entry)}>もう一度表示</button>
+            <button
+              type="button"
+              className="history-favorite-button"
+              onClick={() => onFavorite(entry)}
+              disabled={favoriteCities.includes(entry.city)}
+            >
+              {favoriteCities.includes(entry.city) ? 'お気に入り済み' : 'お気に入り登録'}
+            </button>
+            <button
+              type="button"
+              className="history-delete-button"
+              onClick={() => onDelete(entry.id)}
+              aria-label={`${entry.city}の抽選履歴を削除`}
+            >
+              削除
+            </button>
+          </div>
+        </article>
+      ))}
+    </div>
+  )
+}
+
 function App() {
   const travelRequestId = useRef(0)
   const [restoredInputState] = useState(loadInputState)
   const [departure, setDeparture] = useState(restoredInputState.departure)
   const [departureError, setDepartureError] = useState('')
   const [tripType, setTripType] = useState(restoredInputState.tripType)
+  const [travelSeason, setTravelSeason] = useState(restoredInputState.travelSeason)
   const [selectedFilters, setSelectedFilters] = useState(restoredInputState.selectedFilters)
   const [destination, setDestination] = useState(null)
   const [planContext, setPlanContext] = useState(null)
@@ -289,6 +467,8 @@ function App() {
   const [selectionMeta, setSelectionMeta] = useState(null)
   const [drawHistory, setDrawHistory] = useState(loadDrawHistory)
   const [showDebugPanel, setShowDebugPanel] = useState(false)
+  const [currentPage, setCurrentPage] = useState('main')
+  const [aiPlanPrompt, setAiPlanPrompt] = useState('')
 
   const favoriteDestinations = favoriteCities
     .map((city) => destinations.find((place) => place.city === city))
@@ -306,9 +486,26 @@ function App() {
   const destiny = destination && planContext
     ? calculateDestiny(destination, planContext.selectedFilters, planContext.tripType)
     : null
-  const feasibility = travelInfo.status === 'success' && travelInfo.car?.durationMinutes
-    ? calculateFeasibility(travelInfo.car.durationMinutes, planContext.tripType)
+  const seasonCompatibility = destination && planContext
+    ? getSeasonCompatibility(destination, planContext.travelSeason, planContext.tripType)
     : null
+  const transportEvaluations = planContext
+    ? getTransportEvaluations(travelInfo, planContext.tripType)
+    : []
+  const bestTransportEvaluation = [...transportEvaluations]
+    .filter((item) => item.feasibility)
+    .sort((a, b) => (
+      b.feasibility.stars - a.feasibility.stars || Number(a.isReference) - Number(b.isReference)
+    ))[0] ?? null
+  const feasibility = bestTransportEvaluation?.feasibility ?? null
+  const feasibilityBasis = bestTransportEvaluation?.basis ?? null
+  const transportCompatibility = destination && planContext && bestTransportEvaluation
+    ? getTransportCompatibility({
+      transportMode: bestTransportEvaluation.mode,
+      tripType: planContext.tripType,
+      travelInfo,
+    })
+    : '移動情報を取得すると、最も現実的な交通手段との相性を表示します。'
 
   const apiKeySource = getGoogleMapsApiKeySource(savedApiKey)
   const maskedApiKey = savedApiKey ? savedApiKey.slice(-4) : ''
@@ -323,13 +520,14 @@ function App() {
       window.localStorage.setItem(INPUT_STATE_STORAGE_KEY, JSON.stringify({
         departure,
         tripType,
+        travelSeason,
         selectedFilters,
         includeVisited,
       }))
     } catch {
       // 保存できない環境でも入力操作は継続する
     }
-  }, [departure, tripType, selectedFilters, includeVisited])
+  }, [departure, tripType, travelSeason, selectedFilters, includeVisited])
 
   const saveCities = (storageKey, cities) => {
     try {
@@ -401,6 +599,7 @@ function App() {
     setCompareCities([])
     saveCities(COMPARE_STORAGE_KEY, [])
     setShowComparison(false)
+    setAiPlanPrompt('')
   }
 
   const saveApiKey = (event) => {
@@ -437,6 +636,7 @@ function App() {
     setDeparture('')
     setDepartureError('')
     setTripType('日帰り')
+    setTravelSeason('今の季節')
     setSelectedFilters([])
     setIncludeVisited(false)
     setDestination(null)
@@ -448,6 +648,11 @@ function App() {
     setCompareCities([])
     saveCities(COMPARE_STORAGE_KEY, [])
     setShowComparison(false)
+  }
+
+  const switchPage = (page) => {
+    setCurrentPage(page)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const markAsVisited = (city) => {
@@ -490,12 +695,14 @@ function App() {
     const requestId = ++travelRequestId.current
     const restoredDeparture = typeof entry.departure === 'string' ? entry.departure : ''
     const restoredTripType = tripTypes.includes(entry.tripType) ? entry.tripType : '日帰り'
+    const restoredSeason = seasonOptions.includes(entry.travelSeason) ? entry.travelSeason : '今の季節'
     const restoredFilters = Array.isArray(entry.selectedFilters) ? entry.selectedFilters : []
     const matchingCount = restoredFilters.filter((filter) => place.tags.includes(filter)).length
 
     setDeparture(restoredDeparture)
     setDepartureError('')
     setTripType(restoredTripType)
+    setTravelSeason(restoredSeason)
     setSelectedFilters(restoredFilters)
     setDestination(place)
     setLastDestinationId(place.id)
@@ -503,6 +710,7 @@ function App() {
     setPlanContext({
       departure: restoredDeparture,
       tripType: restoredTripType,
+      travelSeason: restoredSeason,
       selectedFilters: restoredFilters,
     })
     setSelectionMeta({
@@ -510,9 +718,12 @@ function App() {
       tripCompatibilityLabel: entry.tripCompatibilityLabel ?? '良い',
       feasibilityStars: entry.feasibilityStars ?? null,
       score: entry.selectionScore ?? 0,
+      seasonCompatibility: entry.seasonCompatibility ?? '標準',
       visitedPolicy: entry.visitedPolicy ?? '履歴から再表示',
     })
     setTravelInfo({ status: 'loading', car: null, publicTransit: null })
+    setAiPlanPrompt('')
+    setCurrentPage('main')
     window.scrollTo({ top: 0, behavior: 'smooth' })
 
     try {
@@ -531,16 +742,28 @@ function App() {
 
       if (requestId === travelRequestId.current) {
         setTravelInfo(routes)
+        const restoredEvaluations = getTransportEvaluations(routes, restoredTripType)
+        const restoredBest = [...restoredEvaluations]
+          .filter((item) => item.feasibility)
+          .sort((a, b) => (
+            b.feasibility.stars - a.feasibility.stars
+            || Number(a.isReference) - Number(b.isReference)
+          ))[0] ?? null
         if (routes.car?.durationMinutes) {
-          const currentFeasibility = calculateFeasibility(routes.car.durationMinutes, restoredTripType)
           const cacheKey = getTravelCacheKey(restoredDeparture, place.id)
           const nextCache = { ...travelTimeCache, [cacheKey]: routes.car.durationMinutes }
           setTravelTimeCache(nextCache)
           saveCities(TRAVEL_CACHE_STORAGE_KEY, nextCache)
+        }
+        if (restoredBest) {
+          const currentFeasibility = restoredBest.feasibility
           setSelectionMeta((current) => current
             ? { ...current, feasibilityStars: currentFeasibility.starsLabel }
             : current)
-          updateHistoryEntry(entry.id, { feasibilityStars: currentFeasibility.starsLabel })
+          updateHistoryEntry(entry.id, {
+            feasibilityStars: currentFeasibility.starsLabel,
+            bestTransport: restoredBest.mode,
+          })
         }
       }
     } catch (error) {
@@ -592,6 +815,7 @@ function App() {
       destination: place,
       selectedFilters,
       tripType,
+      travelSeason,
       isVisited: visitedCities.includes(place.city),
       cachedDurationMinutes: travelTimeCache[getTravelCacheKey(normalizedDeparture, place.id)],
       isPrevious: place.id === lastDestinationId,
@@ -608,12 +832,15 @@ function App() {
       prefecture: next.prefecture,
       departure: normalizedDeparture,
       tripType,
+      travelSeason,
       selectedFilters: [...selectedFilters],
       destinyScore: selectedDestiny.score,
       feasibilityStars: selected.feasibilityStars,
+      bestTransport: selected.feasibilityStars ? '車' : null,
       budget: next.budgets[tripType],
       drawnAt: new Date().toISOString(),
       selectionScore: selected.score,
+      seasonCompatibility: selected.seasonCompatibility,
       tripCompatibilityLabel: selected.tripCompatibilityLabel,
       visitedPolicy: includeVisited ? '含める（訪問済みは減点）' : '除外',
     })
@@ -625,14 +852,17 @@ function App() {
       tripCompatibilityLabel: selected.tripCompatibilityLabel,
       feasibilityStars: selected.feasibilityStars,
       score: selected.score,
+      seasonCompatibility: selected.seasonCompatibility,
       visitedPolicy: includeVisited ? '含める（訪問済みは減点）' : '除外',
     })
     setPlanContext({
       departure: normalizedDeparture,
       tripType,
+      travelSeason,
       selectedFilters: [...selectedFilters],
     })
     setTravelInfo({ status: 'loading', car: null, publicTransit: null })
+    setAiPlanPrompt('')
 
     try {
       const routes = await getTravelInfo({
@@ -654,12 +884,22 @@ function App() {
           const nextCache = { ...travelTimeCache, [cacheKey]: routes.car.durationMinutes }
           setTravelTimeCache(nextCache)
           saveCities(TRAVEL_CACHE_STORAGE_KEY, nextCache)
-          const currentFeasibility = calculateFeasibility(routes.car.durationMinutes, tripType)
+        }
+        const selectedEvaluations = getTransportEvaluations(routes, tripType)
+        const selectedBest = [...selectedEvaluations]
+          .filter((item) => item.feasibility)
+          .sort((a, b) => (
+            b.feasibility.stars - a.feasibility.stars
+            || Number(a.isReference) - Number(b.isReference)
+          ))[0] ?? null
+        if (selectedBest) {
+          const currentFeasibility = selectedBest.feasibility
           setSelectionMeta((current) => current
             ? { ...current, feasibilityStars: currentFeasibility.starsLabel }
             : current)
           updateHistoryEntry(historyEntryId, {
             feasibilityStars: currentFeasibility.starsLabel,
+            bestTransport: selectedBest.mode,
           })
         }
       }
@@ -674,9 +914,37 @@ function App() {
     }
   }
 
+  const showAiPlanSample = () => {
+    if (!destination || !planContext) return
+
+    const season = planContext.travelSeason === '今の季節'
+      ? `今の季節（${getCurrentSeason()}）`
+      : planContext.travelSeason
+    const prompt = createAiPlanPrompt({
+      departure: planContext.departure,
+      destination,
+      tripType: planContext.tripType,
+      season,
+      selectedFilters: planContext.selectedFilters,
+      transportComparisons: transportEvaluations.map((item) => ({
+        mode: item.mode,
+        rating: item.feasibility?.starsLabel ?? '未評価',
+        duration: item.isReference ? null : item.basis?.duration,
+        isReference: item.isReference,
+      })),
+      budget: destination.budgets[planContext.tripType],
+    })
+    setAiPlanPrompt(prompt)
+  }
+
   return (
     <main className="app-shell">
-      <section className="trip-card" aria-labelledby="app-title">
+      <section
+        className={`trip-card ${currentPage === 'developer' ? 'developer-page' : currentPage === 'history' ? 'history-page' : currentPage === 'favorites' ? 'favorites-page' : 'main-page'}`}
+        aria-labelledby={currentPage === 'developer' ? 'developer-page-title' : currentPage === 'history' ? 'history-page-title' : currentPage === 'favorites' ? 'favorites-page-title' : 'app-title'}
+      >
+        {currentPage === 'main' ? (
+          <>
         <header className="hero">
           <div className="logo-mark" aria-hidden="true">
             <svg viewBox="0 0 48 48" role="img">
@@ -735,6 +1003,27 @@ function App() {
                 </label>
               ))}
             </div>
+          </fieldset>
+
+          <fieldset className="field-group">
+            <legend>旅行予定季節</legend>
+            <div className="season-options">
+              {seasonOptions.map((season) => (
+                <label key={season} className={travelSeason === season ? 'selected' : ''}>
+                  <input
+                    type="radio"
+                    name="travelSeason"
+                    value={season}
+                    checked={travelSeason === season}
+                    onChange={(event) => setTravelSeason(event.target.value)}
+                  />
+                  <span>{season}</span>
+                </label>
+              ))}
+            </div>
+            {travelSeason === '今の季節' && (
+              <p className="season-current-note">現在は「{getCurrentSeason()}」として抽選します。</p>
+            )}
           </fieldset>
 
           <fieldset className="field-group">
@@ -845,24 +1134,6 @@ function App() {
               </div>
             </section>
 
-            <section className="lottery-logic-card" aria-labelledby="lottery-logic-title">
-              <div className="lottery-logic-heading">
-                <span aria-hidden="true">◇</span>
-                <div>
-                  <p>WEIGHTED LOTTERY</p>
-                  <h2 id="lottery-logic-title">今回の抽選ロジック</h2>
-                </div>
-              </div>
-              <dl>
-                <div><dt>条件一致</dt><dd>{selectionMeta.matchingCount}件</dd></div>
-                <div><dt>旅行タイプ相性</dt><dd>{selectionMeta.tripCompatibilityLabel}</dd></div>
-                <div><dt>行けそう度</dt><dd>{selectionMeta.feasibilityStars ?? '移動情報取得後に反映'}</dd></div>
-                <div><dt>行った場所</dt><dd>{selectionMeta.visitedPolicy}</dd></div>
-                <div><dt>抽選スコア</dt><dd>{selectionMeta.score}pt</dd></div>
-                <div><dt>ランダム要素</dt><dd>あり</dd></div>
-              </dl>
-            </section>
-
             <section className="recommendation-card" aria-labelledby="recommendation-title">
               <div className="recommendation-heading">
                 <span aria-hidden="true">✦</span>
@@ -894,6 +1165,11 @@ function App() {
                 </div>
 
                 <div className="reason-item">
+                  <p className="reason-label">季節との相性</p>
+                  <p><strong>{seasonCompatibility.season}</strong> — {seasonCompatibility.description}</p>
+                </div>
+
+                <div className="reason-item">
                   <p className="reason-label">旅先の特徴</p>
                   <p>{destination.recommendation}</p>
                 </div>
@@ -903,6 +1179,16 @@ function App() {
                 {destination.reason}
                 {tripCompatibility[planContext.tripType]}
               </p>
+            </section>
+
+            <section className="season-compatibility-card" aria-labelledby="season-compatibility-title">
+              <div>
+                <p>SEASON MATCH</p>
+                <h2 id="season-compatibility-title">季節との相性</h2>
+              </div>
+              <strong aria-label={`${seasonCompatibility.stars}つ星`}>{seasonCompatibility.starsLabel}</strong>
+              <p>{seasonCompatibility.description}</p>
+              <span>ベストシーズン：{destination.bestSeasons.join('・')}</span>
             </section>
 
             <section className="detail-plan" aria-labelledby="detail-plan-title">
@@ -918,6 +1204,37 @@ function App() {
                 {planContext.departure}から{destination.city}への
                 <strong>{planContext.tripType}</strong>旅行プラン
               </p>
+
+              <button type="button" className="ai-plan-button" onClick={showAiPlanSample}>
+                <span aria-hidden="true">✦</span>
+                AIでプランを作る
+              </button>
+
+              {aiPlanPrompt && (
+                <section className="ai-plan-card" aria-labelledby="ai-plan-title">
+                  <div className="ai-plan-heading">
+                    <span aria-hidden="true">AI</span>
+                    <div><p>PERSONALIZED TRIP</p><h3 id="ai-plan-title">AIプラン案</h3></div>
+                    <b>サンプル</b>
+                  </div>
+                  <p className="ai-plan-message">
+                    出発地、旅行タイプ、季節、こだわり条件、移動情報をもとに、
+                    より自然な旅行プランを生成する予定です。
+                  </p>
+                  <dl>
+                    <div><dt>出発地</dt><dd>{planContext.departure}</dd></div>
+                    <div><dt>旅先</dt><dd>{destination.prefecture} {destination.city}</dd></div>
+                    <div><dt>旅行タイプ</dt><dd>{planContext.tripType}</dd></div>
+                    <div><dt>季節</dt><dd>{planContext.travelSeason === '今の季節' ? `今の季節（${getCurrentSeason()}）` : planContext.travelSeason}</dd></div>
+                    <div><dt>こだわり条件</dt><dd>{planContext.selectedFilters.length > 0 ? planContext.selectedFilters.join('、') : '指定なし'}</dd></div>
+                    <div><dt>交通手段比較の結果</dt><dd>{bestTransportEvaluation ? `${bestTransportEvaluation.mode}が最も現実的（${bestTransportEvaluation.feasibility.starsLabel}）` : '移動情報取得後に評価'}</dd></div>
+                    <div><dt>予算目安</dt><dd>1人あたり {destination.budgets[planContext.tripType]}</dd></div>
+                  </dl>
+                  <p className="ai-plan-notice">
+                    現在はサンプル表示です。API接続後に、あなた専用の旅行プランを作成します。
+                  </p>
+                </section>
+              )}
 
               <div className="plan-card schedule-card">
                 <h3>
@@ -943,7 +1260,7 @@ function App() {
               </div>
 
               <div className="plan-card travel-card">
-                  <h3><span aria-hidden="true">⌁</span>移動情報</h3>
+                  <h3><span aria-hidden="true">⌁</span>交通手段比較</h3>
                   <p className="travel-destination">目的地：{destination.address}</p>
                   {travelInfo.status === 'loading' && (
                     <div className="travel-state travel-loading" role="status">
@@ -954,25 +1271,42 @@ function App() {
                       </div>
                     </div>
                   )}
-                  {travelInfo.status === 'success' && (
-                    <div className="travel-mode-list">
-                      <div className="travel-mode">
-                        <strong>車</strong>
-                        {travelInfo.car ? (
-                          <dl>
-                            <div><dt>距離</dt><dd>{travelInfo.car.distance ?? '取得できませんでした'}</dd></div>
-                            <div><dt>時間</dt><dd>{travelInfo.car.duration}</dd></div>
-                          </dl>
-                        ) : <p>経路が見つかりませんでした</p>}
-                      </div>
-                      <div className="travel-mode">
-                        <strong>公共交通機関</strong>
-                        {travelInfo.publicTransit ? (
-                          <dl><div><dt>時間</dt><dd>{travelInfo.publicTransit.duration}</dd></div></dl>
-                        ) : <p>経路が見つかりませんでした</p>}
-                      </div>
-                    </div>
-                  )}
+                  <div className="transport-comparison-list">
+                      {transportEvaluations.map((item) => (
+                        <article
+                          className={`transport-comparison-item ${item.isReference ? 'reference' : ''} ${bestTransportEvaluation?.mode === item.mode ? 'best' : ''}`}
+                          key={item.mode}
+                        >
+                          <header>
+                            <strong>{item.mode}</strong>
+                            <span aria-label={item.feasibility ? `${item.feasibility.stars}つ星` : '未評価'}>
+                              {item.feasibility?.starsLabel ?? '未評価'}
+                            </span>
+                          </header>
+                          {item.mode === '車' && (
+                            travelInfo.car ? (
+                              <dl>
+                                <div><dt>距離</dt><dd>{travelInfo.car.distance ?? '取得できませんでした'}</dd></div>
+                                <div><dt>時間</dt><dd>{travelInfo.car.duration}</dd></div>
+                              </dl>
+                            ) : <p>車の経路が見つかりませんでした</p>
+                          )}
+                          {item.mode === '鉄道' && (
+                            travelInfo.publicTransit ? (
+                              <dl>
+                                <div><dt>時間</dt><dd>{travelInfo.publicTransit.duration}</dd></div>
+                                {travelInfo.publicTransit.distance && <div><dt>距離</dt><dd>{travelInfo.publicTransit.distance}</dd></div>}
+                                {travelInfo.publicTransit.fare && <div><dt>料金</dt><dd>{travelInfo.publicTransit.fare}</dd></div>}
+                              </dl>
+                            ) : <p>鉄道を含む公共交通機関の経路が見つかりませんでした</p>
+                          )}
+                          {item.mode === '高速バス' && <p>中距離〜長距離向きの参考評価です。詳細な時刻・料金は今後対応予定です。</p>}
+                          {item.mode === '夜行バス' && <p>長距離・宿泊旅行向きの選択肢として参考表示しています。詳細な時刻・料金は今後対応予定です。</p>}
+                          {item.mode === '飛行機' && <p>長距離旅行向きの選択肢として参考表示しています。詳細な時刻・料金は今後対応予定です。</p>}
+                          {bestTransportEvaluation?.mode === item.mode && <b>最も現実的</b>}
+                        </article>
+                      ))}
+                  </div>
                   {travelInfo.status === 'unconfigured' && (
                     <div className="travel-state travel-unconfigured">
                       <strong><span aria-hidden="true">!</span>APIキー未設定</strong>
@@ -1013,8 +1347,15 @@ function App() {
                 {feasibility ? (
                   <div className="feasibility-result">
                     <strong>{feasibility.label}</strong>
-                    <p>車で{travelInfo.car.duration}のため、{feasibility.detail}</p>
+                    <p>
+                      {bestTransportEvaluation.isReference
+                        ? `${bestTransportEvaluation.mode}を旅行タイプと取得済みルートから参考評価した結果、${feasibility.detail}`
+                        : `${bestTransportEvaluation.mode}で${feasibilityBasis.duration}のため、${feasibility.detail}`}
+                    </p>
                     <span>予算目安：1人あたり {destination.budgets[planContext.tripType]}</span>
+                    {travelInfo.publicTransit?.duration && (
+                      <span className="feasibility-transit">公共交通機関：{travelInfo.publicTransit.duration}</span>
+                    )}
                   </div>
                 ) : (
                   <p className="feasibility-placeholder">
@@ -1027,6 +1368,11 @@ function App() {
                           : '車の移動時間を取得すると表示されます'}
                   </p>
                 )}
+
+                <div className="transport-compatibility">
+                  <strong>最も現実的な移動手段：{bestTransportEvaluation?.mode ?? '判定中'}</strong>
+                  <p>{transportCompatibility}</p>
+                </div>
               </section>
 
               <div className="plan-card budget-card">
@@ -1049,224 +1395,193 @@ function App() {
           </div>
         )}
 
-        {favoriteDestinations.length > 0 && (
-          <section className="favorites-section" aria-labelledby="favorites-title">
-            <div className="favorites-heading">
-              <div>
-                <p>MY FAVORITES</p>
-                <h2 id="favorites-title">お気に入り一覧</h2>
-              </div>
-              <span>{favoriteDestinations.length}件</span>
-            </div>
-
-            <div className="favorites-list">
-              {favoriteDestinations.map((place) => (
-                <article className="favorite-item" key={place.city}>
-                  <div className="favorite-item-icon" aria-hidden="true">♥</div>
-                  <div className="favorite-item-content">
-                    <p>{place.prefecture}</p>
-                    <h3>{place.city}</h3>
-                    <span>{place.recommendation}</span>
-                  </div>
-                  <div className="favorite-item-actions">
-                    <button
-                      type="button"
-                      className={`compare-select-button ${compareCities.includes(place.city) ? 'selected' : ''}`}
-                      aria-pressed={compareCities.includes(place.city)}
-                      onClick={() => toggleComparison(place.city)}
-                    >
-                      <span aria-hidden="true">✓</span>
-                      {compareCities.includes(place.city) ? '比較選択中' : '比較に追加'}
-                    </button>
-                    <button
-                      type="button"
-                      className="visited-button"
-                      onClick={() => markAsVisited(place.city)}
-                    >
-                      行った
-                    </button>
-                    <button
-                      type="button"
-                      className="remove-button"
-                      onClick={() => toggleFavorite(place.city)}
-                      aria-label={`${place.city}をお気に入りから削除`}
-                    >
-                      ×
-                    </button>
-                  </div>
-                </article>
-              ))}
-            </div>
-
-            {comparisonDestinations.length >= 2 && (
-              <button
-                type="button"
-                className="compare-open-button"
-                onClick={() => setShowComparison(true)}
-              >
-                選択した{comparisonDestinations.length}件を比較する
-                <span aria-hidden="true">→</span>
-              </button>
-            )}
-          </section>
-        )}
-
-        {showComparison && comparisonDestinations.length >= 2 && (
-          <section className="comparison-section" aria-labelledby="comparison-title">
-            <div className="comparison-heading">
-              <div>
-                <p>COMPARE TRIPS</p>
-                <h2 id="comparison-title">旅先を比較</h2>
-              </div>
-              <button type="button" onClick={() => setShowComparison(false)}>閉じる</button>
-            </div>
-
-            <div className="comparison-context">
-              <span>旅行タイプ：<strong>{tripType}</strong></span>
-              <button type="button" onClick={clearComparison}>選択を解除</button>
-            </div>
-
-            <div className="comparison-list">
-              {comparisonDestinations.map((place) => {
-                const matchingConditions = selectedFilters.filter((filter) => place.tags.includes(filter))
-
-                return (
-                  <article className="comparison-card" key={place.city}>
-                    <header>
-                      <p>{place.prefecture}</p>
-                      <h3>{place.city}</h3>
-                    </header>
-
-                    <dl>
-                      <div>
-                        <dt>タグ</dt>
-                        <dd className="comparison-tags">
-                          {place.tags.map((tag) => <span key={tag}>{tag}</span>)}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt>予算目安</dt>
-                        <dd>1人あたり {place.budgets[tripType]}</dd>
-                      </div>
-                      <div>
-                        <dt>選択条件との一致</dt>
-                        <dd>
-                          <strong>{matchingConditions.length}件</strong>
-                          {matchingConditions.length > 0
-                            ? `（${matchingConditions.join('、')}）`
-                            : selectedFilters.length === 0
-                              ? '（条件指定なし）'
-                              : '（一致なし）'}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt>おすすめポイント</dt>
-                        <dd>{place.highlights}</dd>
-                      </div>
-                      <div>
-                        <dt>旅行タイプとの相性</dt>
-                        <dd>{tripCompatibility[tripType]}</dd>
-                      </div>
-                    </dl>
-                  </article>
-                )
-              })}
-            </div>
-          </section>
-        )}
-
-        {visitedDestinations.length > 0 && (
-          <section className="favorites-section visited-section" aria-labelledby="visited-title">
-            <div className="favorites-heading">
-              <div>
-                <p>PLACES VISITED</p>
-                <h2 id="visited-title">行った場所一覧</h2>
-              </div>
-              <span>{visitedDestinations.length}件</span>
-            </div>
-
-            <div className="favorites-list">
-              {visitedDestinations.map((place) => (
-                <article className="favorite-item visited-item" key={place.city}>
-                  <div className="favorite-item-icon" aria-hidden="true">✓</div>
-                  <div className="favorite-item-content">
-                    <p>{place.prefecture}</p>
-                    <h3>{place.city}</h3>
-                    <span>{place.recommendation}</span>
-                  </div>
-                  <button
-                    type="button"
-                    className="restore-button"
-                    onClick={() => moveBackToFavorites(place.city)}
-                  >
-                    未訪問に戻す
-                  </button>
-                </article>
-              ))}
-            </div>
-          </section>
-        )}
-
-        <section className="history-section" aria-labelledby="history-title">
-          <div className="history-heading">
-            <span aria-hidden="true">↶</span>
-            <div>
-              <p>DRAW HISTORY</p>
-              <h2 id="history-title">抽選履歴</h2>
-            </div>
-            <b>{drawHistory.length} / {MAX_HISTORY_ITEMS}件</b>
+        <nav className="favorites-entry-card" aria-label="お気に入りページへの移動">
+          <div>
+            <span aria-hidden="true">♥</span>
+            <p>お気に入り <b>{favoriteDestinations.length}件</b></p>
+            {compareCities.length > 0 && <small>比較中：{compareCities.length}件</small>}
           </div>
+          <button type="button" onClick={() => switchPage('favorites')}>一覧を見る <span aria-hidden="true">→</span></button>
+        </nav>
 
-          {drawHistory.length === 0 ? (
-            <p className="history-empty">まだ抽選履歴はありません</p>
-          ) : (
-            <div className="history-list">
-              {drawHistory.slice(0, 5).map((entry) => (
-                <article className="history-item" key={entry.id}>
-                  <header>
-                    <div>
-                      <p>{entry.prefecture}</p>
-                      <h3>{entry.city}</h3>
-                    </div>
-                    <time dateTime={entry.drawnAt}>{formatHistoryDate(entry.drawnAt)}</time>
-                  </header>
+        <nav className="favorites-entry-card history-entry-card" aria-label="抽選履歴ページへの移動">
+          <div>
+            <span aria-hidden="true">↶</span>
+            <p>抽選履歴 <b>{drawHistory.length}件</b></p>
+            <small>最大{MAX_HISTORY_ITEMS}件まで保存</small>
+          </div>
+          <button type="button" onClick={() => switchPage('history')}>一覧を見る <span aria-hidden="true">→</span></button>
+        </nav>
 
-                  <dl>
-                    <div><dt>出発地</dt><dd>{entry.departure}</dd></div>
-                    <div><dt>旅行タイプ</dt><dd>{entry.tripType}</dd></div>
-                    <div>
-                      <dt>選択条件</dt>
-                      <dd>{entry.selectedFilters?.length > 0 ? entry.selectedFilters.join('、') : '指定なし'}</dd>
-                    </div>
-                    <div><dt>運命度</dt><dd>{entry.destinyScore}%</dd></div>
-                    <div><dt>行けそう度</dt><dd>{entry.feasibilityStars ?? '未取得'}</dd></div>
-                    <div><dt>予算目安</dt><dd>{entry.budget}</dd></div>
-                  </dl>
+        <nav className="page-switch-card" aria-label="開発者ページへの移動">
+          <div>
+            <span aria-hidden="true">⚙</span>
+            <p>API設定やデバッグ情報を確認できます</p>
+          </div>
+          <button type="button" onClick={() => switchPage('developer')}>
+            開発者ページ
+            <span aria-hidden="true">→</span>
+          </button>
+        </nav>
 
-                  <div className="history-actions">
-                    <button type="button" onClick={() => showHistoryEntry(entry)}>もう一度表示</button>
-                    <button
-                      type="button"
-                      className="history-favorite-button"
-                      onClick={() => addHistoryToFavorites(entry)}
-                      disabled={favoriteCities.includes(entry.city)}
-                    >
-                      {favoriteCities.includes(entry.city) ? 'お気に入り済み' : 'お気に入り登録'}
-                    </button>
-                    <button
-                      type="button"
-                      className="history-delete-button"
-                      onClick={() => deleteHistoryEntry(entry.id)}
-                      aria-label={`${entry.city}の抽選履歴を削除`}
-                    >
-                      削除
-                    </button>
+        <p className="footer-note">思いがけない場所へ、出かけよう。</p>
+          </>
+        ) : currentPage === 'favorites' ? (
+          <>
+            <header className="developer-page-header favorites-page-header">
+              <button type="button" onClick={() => switchPage('main')}><span aria-hidden="true">←</span>メイン画面に戻る</button>
+              <div className="developer-page-icon favorites-page-icon" aria-hidden="true">♥</div>
+              <p>MY FAVORITES</p>
+              <h1 id="favorites-page-title">お気に入り</h1>
+              <span>気になる旅先を比べて、次の旅行を考えましょう</span>
+            </header>
+
+            <section className="favorites-section favorites-page-list" aria-labelledby="favorites-page-list-title">
+              <div className="favorites-heading">
+                <div><p>SAVED PLACES</p><h2 id="favorites-page-list-title">登録済みの旅先</h2></div>
+                <span>{favoriteDestinations.length}件</span>
+              </div>
+              {favoriteDestinations.length === 0 ? (
+                <p className="favorites-empty">まだお気に入りはありません</p>
+              ) : (
+                <div className="favorites-list">
+                  {favoriteDestinations.map((place) => {
+                    const latestHistory = drawHistory.find((entry) => entry.city === place.city)
+                    return (
+                      <article className="favorite-page-card" key={place.city}>
+                        <header><div><p>{place.prefecture}</p><h3>{place.city}</h3></div><span aria-hidden="true">♥</span></header>
+                        <p className="favorite-recommendation">{place.recommendation}</p>
+                        <div className="favorite-tags">{place.tags.map((tag) => <span key={tag}>{tag}</span>)}</div>
+                        <dl>
+                          <div><dt>予算目安</dt><dd>1人あたり {place.budgets[tripType]}</dd></div>
+                          <div><dt>運命度</dt><dd>{latestHistory ? `${latestHistory.destinyScore}%` : '未評価'}</dd></div>
+                          <div><dt>行けそう度</dt><dd>{latestHistory?.feasibilityStars ?? '未取得'}</dd></div>
+                        </dl>
+                        <div className="favorite-page-actions">
+                          <button type="button" className={compareCities.includes(place.city) ? 'selected' : ''} onClick={() => toggleComparison(place.city)}>
+                            {compareCities.includes(place.city) ? '比較対象から外す' : '比較対象に追加'}
+                          </button>
+                          <button type="button" onClick={() => markAsVisited(place.city)}>行った場所にする</button>
+                          <button type="button" className="danger" onClick={() => toggleFavorite(place.city)}>お気に入り削除</button>
+                        </div>
+                      </article>
+                    )
+                  })}
+                </div>
+              )}
+              {comparisonDestinations.length >= 2 && (
+                <button type="button" className="compare-open-button" onClick={() => setShowComparison(true)}>
+                  選択した{comparisonDestinations.length}件を比較する <span aria-hidden="true">→</span>
+                </button>
+              )}
+            </section>
+
+            {visitedDestinations.length > 0 && (
+              <section className="favorites-section visited-section" aria-labelledby="visited-title">
+                <div className="favorites-heading">
+                  <div><p>PLACES VISITED</p><h2 id="visited-title">行った場所一覧</h2></div>
+                  <span>{visitedDestinations.length}件</span>
+                </div>
+                <div className="favorites-list">
+                  {visitedDestinations.map((place) => (
+                    <article className="favorite-item visited-item" key={place.city}>
+                      <div className="favorite-item-icon" aria-hidden="true">✓</div>
+                      <div className="favorite-item-content">
+                        <p>{place.prefecture}</p><h3>{place.city}</h3><span>{place.recommendation}</span>
+                      </div>
+                      <button type="button" className="restore-button" onClick={() => moveBackToFavorites(place.city)}>未訪問に戻す</button>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {showComparison && comparisonDestinations.length >= 2 && (
+              <section className="comparison-section" aria-labelledby="comparison-title">
+                <div className="comparison-heading">
+                  <div><p>COMPARE TRIPS</p><h2 id="comparison-title">旅先を比較</h2></div>
+                  <button type="button" onClick={() => setShowComparison(false)}>閉じる</button>
+                </div>
+                <div className="comparison-context">
+                  <div>
+                    <span>旅行タイプ：<strong>{tripType}</strong></span>
+                    <span>旅行予定季節：<strong>{travelSeason}</strong></span>
                   </div>
-                </article>
-              ))}
-            </div>
-          )}
-        </section>
+                  <button type="button" onClick={clearComparison}>選択を解除</button>
+                </div>
+                <div className="comparison-list">
+                  {comparisonDestinations.map((place) => {
+                    const matchingConditions = selectedFilters.filter((filter) => place.tags.includes(filter))
+                    const latestEvaluation = drawHistory.find((entry) => entry.city === place.city)
+                    const placeSeason = getSeasonCompatibility(place, travelSeason, tripType)
+                    return (
+                      <article className="comparison-card" key={place.city}>
+                        <header><p>{place.prefecture}</p><h3>{place.city}</h3></header>
+                        <dl>
+                          <div><dt>タグ</dt><dd className="comparison-tags">{place.tags.map((tag) => <span key={tag}>{tag}</span>)}</dd></div>
+                          <div><dt>予算目安</dt><dd>1人あたり {place.budgets[tripType]}</dd></div>
+                          <div><dt>一致条件</dt><dd>{matchingConditions.length}件{matchingConditions.length > 0 ? `（${matchingConditions.join('、')}）` : ''}</dd></div>
+                          <div><dt>おすすめポイント</dt><dd>{place.highlights}</dd></div>
+                          <div><dt>旅行タイプとの相性</dt><dd>{tripCompatibility[tripType]}</dd></div>
+                          <div><dt>季節との相性</dt><dd>{placeSeason.starsLabel} {placeSeason.description}</dd></div>
+                          <div><dt>最適な移動手段</dt><dd>{latestEvaluation?.bestTransport ?? '未評価'}</dd></div>
+                        </dl>
+                      </article>
+                    )
+                  })}
+                </div>
+              </section>
+            )}
+            <p className="footer-note">DROPTRIP Favorites</p>
+          </>
+        ) : currentPage === 'history' ? (
+          <>
+            <header className="developer-page-header history-page-header">
+              <button type="button" onClick={() => switchPage('main')}>
+                <span aria-hidden="true">←</span>
+                メイン画面に戻る
+              </button>
+              <div className="developer-page-icon history-page-icon" aria-hidden="true">↶</div>
+              <p>DRAW HISTORY</p>
+              <h1 id="history-page-title">抽選履歴一覧</h1>
+              <span>保存されている履歴を最大20件まで表示します</span>
+            </header>
+
+            <section className="history-section history-page-list" aria-labelledby="history-page-list-title">
+              <div className="history-heading">
+                <span aria-hidden="true">↶</span>
+                <div>
+                  <p>ALL RESULTS</p>
+                  <h2 id="history-page-list-title">保存済みの抽選結果</h2>
+                </div>
+                <b>{drawHistory.length} / {MAX_HISTORY_ITEMS}件</b>
+              </div>
+              {drawHistory.length === 0
+                ? <p className="history-empty">まだ抽選履歴はありません</p>
+                : (
+                  <HistoryItems
+                    entries={drawHistory.slice(0, MAX_HISTORY_ITEMS)}
+                    favoriteCities={favoriteCities}
+                    onShow={showHistoryEntry}
+                    onFavorite={addHistoryToFavorites}
+                    onDelete={deleteHistoryEntry}
+                  />
+                )}
+            </section>
+            <p className="footer-note">DROPTRIP Draw History</p>
+          </>
+        ) : (
+          <>
+        <header className="developer-page-header">
+          <button type="button" onClick={() => switchPage('main')}>
+            <span aria-hidden="true">←</span>
+            メイン画面に戻る
+          </button>
+          <div className="developer-page-icon" aria-hidden="true">⚙</div>
+          <p>DEVELOPER PAGE</p>
+          <h1 id="developer-page-title">開発者ページ</h1>
+          <span>API設定とアプリの内部状態を管理します</span>
+        </header>
 
         <section className="settings-card" aria-labelledby="settings-title">
           <div className="settings-heading">
@@ -1351,19 +1666,26 @@ function App() {
             <dl className="debug-details" id="debug-details">
               <div><dt>現在の出発地</dt><dd>{departure.trim() || '未入力'}</dd></div>
               <div><dt>選択中の旅行タイプ</dt><dd>{tripType}</dd></div>
+              <div><dt>選択中の旅行予定季節</dt><dd>{travelSeason}（判定：{resolveSeason(travelSeason) ?? 'おまかせ'}）</dd></div>
+              <div><dt>最も現実的な移動手段</dt><dd>{bestTransportEvaluation?.mode ?? '未評価'}</dd></div>
               <div><dt>選択中の条件</dt><dd>{selectedFilters.length > 0 ? selectedFilters.join('、') : '指定なし'}</dd></div>
               <div><dt>現在の旅先</dt><dd>{destination ? `${destination.prefecture} ${destination.city}` : '未抽選'}</dd></div>
               <div><dt>運命度スコア</dt><dd>{destiny ? `${destiny.score}%` : '未算出'}</dd></div>
               <div><dt>行けそう度スコア</dt><dd>{feasibility ? `${feasibility.stars}/5（${feasibility.starsLabel}）` : '未算出'}</dd></div>
               <div><dt>抽選スコア</dt><dd>{selectionMeta ? `${selectionMeta.score}pt` : '未算出'}</dd></div>
+              <div><dt>条件一致数</dt><dd>{selectionMeta ? `${selectionMeta.matchingCount}件` : '未算出'}</dd></div>
+              <div><dt>旅行タイプ相性</dt><dd>{selectionMeta?.tripCompatibilityLabel ?? '未算出'}</dd></div>
+              <div><dt>季節相性</dt><dd>{selectionMeta?.seasonCompatibility ?? '未算出'}</dd></div>
+              <div><dt>抽選方式</dt><dd>重み付きランダム（ランダム要素あり）</dd></div>
               <div><dt>APIキー設定状態</dt><dd>{apiKeyDebugStatus}</dd></div>
               <div><dt>移動情報取得状態</dt><dd>{travelStatusLabels[travelInfo.status] ?? travelInfo.status}</dd></div>
               <div><dt>localStorage保存状態</dt><dd>{getLocalStorageDebugStatus()}</dd></div>
             </dl>
           )}
         </section>
-
-        <p className="footer-note">思いがけない場所へ、出かけよう。</p>
+        <p className="footer-note">DROPTRIP Developer Tools</p>
+          </>
+        )}
       </section>
     </main>
   )
