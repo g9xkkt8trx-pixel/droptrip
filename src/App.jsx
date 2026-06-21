@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import './App.css'
-import { getGoogleMapsApiKeySource, getTravelInfo } from './services/travelTime'
+import { createTransitFallback, getGoogleMapsApiKeySource, getTravelInfo } from './services/travelTime'
 import { createAiPlanPrompt } from './services/aiPlanPrompt'
 import { getOpenAiApiKeySource } from './services/openAiConfig'
 import { generateOpenAiPlan, OPENAI_PLAN_MODEL } from './services/openAiPlan'
@@ -11,6 +11,13 @@ import {
   savePremiumStatus,
 } from './services/premium'
 import destinations from './data/destinations.js'
+import {
+  DEFAULT_FOOD_IMAGE,
+  DEFAULT_SCENERY_IMAGE,
+  DEFAULT_TRAVEL_IMAGE,
+  isValidImageUrl,
+} from './data/destinationImages'
+import { runDestinationQualityChecks } from './services/destinationQuality'
 
 const tripTypes = ['日帰り', '1泊2日', '2泊3日']
 const primaryTransportModes = ['車', '電車', '飛行機']
@@ -28,6 +35,7 @@ const DRAW_HISTORY_STORAGE_KEY = 'droptrip-draw-history'
 const INPUT_STATE_STORAGE_KEY = 'droptrip-input-state'
 const MAX_HISTORY_ITEMS = 20
 const DAILY_AI_PLAN_LIMIT = 3
+const destinationQualityReport = runDestinationQualityChecks(destinations)
 const DEBUG_STORAGE_KEYS = [
   FAVORITES_STORAGE_KEY,
   VISITED_STORAGE_KEY,
@@ -127,9 +135,11 @@ const calculateFeasibility = (durationMinutes, tripType, transportMode = '車') 
   const hours = durationMinutes / 60
   let stars = hours <= 2 ? 5 : hours <= 4 ? 4 : hours <= 6 ? 3 : hours <= 8 ? 2 : 1
 
-  if (tripType === '日帰り' && hours > 4) stars = Math.max(1, stars - 1)
-  if (tripType === '1泊2日' && hours > 4 && hours <= 6) stars = Math.min(5, stars + 1)
-  if (tripType === '2泊3日' && hours > 6 && hours <= 8) stars = Math.min(5, stars + 1)
+  if (transportMode !== '電車') {
+    if (tripType === '日帰り' && hours > 4) stars = Math.max(1, stars - 1)
+    if (tripType === '1泊2日' && hours > 4 && hours <= 6) stars = Math.min(5, stars + 1)
+    if (tripType === '2泊3日' && hours > 6 && hours <= 8) stars = Math.min(5, stars + 1)
+  }
   if (transportMode === '飛行機' && tripType !== '日帰り' && hours >= 6) {
     stars = Math.max(tripType === '2泊3日' ? 4 : 3, stars)
   }
@@ -171,15 +181,79 @@ const calculateFeasibility = (durationMinutes, tripType, transportMode = '車') 
   }
 }
 
-const getTransportEvaluations = (travelInfo, tripType) => {
+const formatTrainEstimateDuration = (totalMinutes) => {
+  const hours = Math.floor(totalMinutes / 60)
+  const minutes = totalMinutes % 60
+  if (hours === 0) return `約${minutes}分`
+  if (minutes === 0) return `約${hours}時間`
+  return `約${hours}時間${minutes}分`
+}
+
+const majorShinkansenPairs = new Set([
+  '京都駅|東京駅', '新大阪駅|東京駅', '名古屋駅|東京駅', '仙台駅|東京駅',
+  '東京駅|金沢駅', '博多駅|東京駅', '博多駅|新大阪駅', '京都駅|名古屋駅',
+  '東京駅|軽井沢駅', '東京駅|那須塩原駅', '東京駅|熱海駅', '大阪駅|東京駅',
+  '博多駅|大阪駅',
+])
+
+const normalizeStationName = (station) => station?.replace(/^JR/, '').replace(/\s/g, '') ?? ''
+const createStationPairKey = (originStation, destinationStation) => (
+  [normalizeStationName(originStation), normalizeStationName(destinationStation)].sort().join('|')
+)
+const isMajorShinkansenRoute = (originStation, destinationStation) => (
+  majorShinkansenPairs.has(createStationPairKey(originStation, destinationStation))
+)
+
+const getTrainTimeEstimate = ({
+  distanceKm,
+  originStation,
+  destinationStation,
+  stationAccessMinutes = 0,
+  stationAccessNote = '駅周辺',
+}) => {
+  if (!Number.isFinite(distanceKm)) return null
+
+  const usesShinkansenCorrection = isMajorShinkansenRoute(originStation, destinationStation)
+  const rule = usesShinkansenCorrection
+    ? { averageSpeed: 220, additionalMinutes: 25, trainType: '新幹線中心' }
+    : distanceKm < 100
+      ? { averageSpeed: 50, additionalMinutes: 30, trainType: '普通列車・快速中心' }
+      : distanceKm < 300
+        ? { averageSpeed: 85, additionalMinutes: 45, trainType: '普通列車＋特急想定' }
+        : distanceKm < 700
+          ? { averageSpeed: 160, additionalMinutes: 60, trainType: '特急・新幹線想定' }
+          : { averageSpeed: 200, additionalMinutes: 90, trainType: '新幹線中心・長距離鉄道想定' }
+  const railMinutes = Math.max(1, Math.round((distanceKm / rule.averageSpeed) * 60 + rule.additionalMinutes))
+  const durationMinutes = Math.max(
+    1,
+    railMinutes + Math.max(0, Number(stationAccessMinutes) || 0),
+  )
+
+  return {
+    ...rule,
+    railMinutes,
+    durationMinutes,
+    duration: formatTrainEstimateDuration(durationMinutes),
+    label: '電車',
+    usesShinkansenCorrection,
+    stationAccessMinutes: Math.max(0, Number(stationAccessMinutes) || 0),
+    stationAccessNote,
+  }
+}
+
+const getTransportEvaluations = (travelInfo, tripType, destination = null) => {
   const car = travelInfo.car?.durationMinutes
     ? { durationMinutes: travelInfo.car.durationMinutes, duration: travelInfo.car.duration, label: '車' }
     : null
-  const transit = travelInfo.publicTransit?.durationMinutes
-    ? { durationMinutes: travelInfo.publicTransit.durationMinutes, duration: travelInfo.publicTransit.duration, label: '公共交通機関' }
-    : null
   const distanceMeters = travelInfo.car?.distanceMeters ?? travelInfo.publicTransit?.distanceMeters ?? null
   const distanceKm = distanceMeters ? distanceMeters / 1000 : null
+  const trainEstimate = getTrainTimeEstimate({
+    distanceKm,
+    originStation: travelInfo.transitFallback?.origin,
+    destinationStation: destination?.nearestStation ?? travelInfo.transitFallback?.destination,
+    stationAccessMinutes: destination?.stationAccessMinutes,
+    stationAccessNote: destination?.stationAccessNote,
+  })
   const planeEstimate = distanceKm === null
     ? null
     : distanceKm < 500
@@ -192,13 +266,14 @@ const getTransportEvaluations = (travelInfo, tripType) => {
       mode: '車',
       basis: car,
       isReference: false,
-      estimatedCost: distanceKm === null ? null : distanceKm * 45,
+      estimatedCost: distanceKm === null ? null : distanceKm * 42,
     },
     {
       mode: '電車',
-      basis: transit,
-      isReference: false,
-      estimatedCost: travelInfo.publicTransit?.fareAmount ?? null,
+      basis: trainEstimate,
+      isReference: true,
+      estimatedCost: null,
+      distanceKm,
     },
     {
       mode: '飛行機',
@@ -222,7 +297,11 @@ const getTransportEvaluations = (travelInfo, tripType) => {
       }
     }
     const hours = item.basis ? item.basis.durationMinutes / 60 : 24
-    const costPenalty = item.estimatedCost ? item.estimatedCost / 10000 : 1.5
+    const costPenalty = item.mode === '電車'
+      ? 0
+      : item.estimatedCost
+        ? item.estimatedCost / 10000
+        : 1.5
     let recommendationScore = feasibility ? feasibility.stars * 10 - hours - costPenalty : -100
 
     if (tripType === '日帰り') recommendationScore -= hours * 2
@@ -278,7 +357,7 @@ const getRecommendedTransportReason = (recommended, evaluations, tripType) => {
     if (car?.basis && train?.basis && train.basis.durationMinutes < car.basis.durationMinutes) {
       return '車より移動時間が短く、運転の負担も避けられるため電車を優先しました。'
     }
-    return '移動時間と料金のバランスが良く、乗車中も休めるため電車を優先しました。'
+    return '距離から概算した移動時間が現実的で、乗車中も休めるため電車を優先しました。'
   }
   return tripType === '日帰り'
     ? '目安時間が比較的短く、現地で自由に移動しやすいため車を優先しました。'
@@ -298,7 +377,7 @@ const getFeasibilityTransportReason = (recommended, tripType) => {
   return `${recommended.basis.duration}の車移動で、現地での移動も自由に組み立てやすいです。`
 }
 
-const getTransportCompatibility = ({ transportMode, tripType, travelInfo }) => {
+const getTransportCompatibility = ({ transportMode, tripType, travelInfo, transportEvaluation }) => {
   const tripNote = tripType === '日帰り'
     ? '日帰りでは、現地で過ごす時間を確保できるか確認しましょう。'
     : `${tripType}なら、移動を含めた余裕のある計画を立てやすいです。`
@@ -310,10 +389,9 @@ const getTransportCompatibility = ({ transportMode, tripType, travelInfo }) => {
   }
 
   if (transportMode === '電車') {
-    const transit = travelInfo.publicTransit
-    return transit
-      ? `公共交通機関で${transit.duration}のルートを電車移動の参考にしています。乗り換えや駅から観光地までの移動も含めて計画すると安心です。${tripNote}`
-      : `公共交通機関ルートを電車移動の参考にして評価します。乗り換えや駅からの移動も含めた計画がおすすめです。${tripNote}`
+    return transportEvaluation?.basis
+      ? `距離をもとに${transportEvaluation.basis.trainType}で${transportEvaluation.basis.duration}と概算しています。正確な経路はGoogle Mapsで確認してください。${tripNote}`
+      : `距離を取得すると電車の目安時間を概算できます。正確な経路はGoogle Mapsで確認してください。${tripNote}`
   }
 
   return `${tripType === '日帰り' ? '日帰りでは空港までの移動や搭乗手続き時間に注意が必要です。' : `${tripType}なら、長距離でも移動時間を短縮できる候補です。`} 空港から旅先までの二次交通も含めて計画しましょう。詳細な時刻・料金は今後対応予定です。`
@@ -557,14 +635,27 @@ function HistoryItems({ entries, favoriteCities, onShow, onFavorite, onDelete })
   )
 }
 
-function SafeImage({ src, alt, className = '', loading = 'lazy' }) {
-  const [hasError, setHasError] = useState(false)
+function SafeImage({ src, fallbackSrc = DEFAULT_TRAVEL_IMAGE, alt, className = '', loading = 'lazy' }) {
+  const [hasPrimaryError, setHasPrimaryError] = useState(false)
+  const [hasFallbackError, setHasFallbackError] = useState(false)
+  const resolvedSrc = isValidImageUrl(src) && !hasPrimaryError ? src : fallbackSrc
 
-  if (!src || hasError) {
+  if (!isValidImageUrl(resolvedSrc) || hasFallbackError) {
     return <div className={`${className} image-placeholder`} role="img" aria-label={`${alt}（写真準備中）`}>写真準備中</div>
   }
 
-  return <img className={className} src={src} alt={alt} loading={loading} onError={() => setHasError(true)} />
+  return (
+    <img
+      className={className}
+      src={resolvedSrc}
+      alt={alt}
+      loading={loading}
+      onError={() => {
+        if (resolvedSrc === fallbackSrc) setHasFallbackError(true)
+        else setHasPrimaryError(true)
+      }}
+    />
+  )
 }
 
 function App() {
@@ -623,9 +714,16 @@ function App() {
   const seasonCompatibility = destination && planContext
     ? getSeasonCompatibility(destination, planContext.travelSeason, planContext.tripType)
     : null
+  const transitFallback = destination && planContext
+    ? travelInfo.transitFallback ?? createTransitFallback(planContext.departure, destination)
+    : null
   const transportEvaluations = planContext
-    ? getTransportEvaluations(travelInfo, planContext.tripType)
+    ? getTransportEvaluations({ ...travelInfo, transitFallback }, planContext.tripType, destination)
     : []
+  const drivingMapsUrl = destination && planContext
+    ? `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(planContext.departure)}&destination=${encodeURIComponent(destination.googleMapsQuery ?? destination.address ?? `${destination.prefecture}${destination.city}`)}&travelmode=driving`
+    : 'https://www.google.com/maps'
+  const transitMapsUrl = transitFallback?.googleMapsUrl ?? 'https://www.google.com/maps'
   const bestTransportEvaluation = getBestPrimaryTransport(transportEvaluations)
   const bestTransportReason = getRecommendedTransportReason(
     bestTransportEvaluation,
@@ -638,6 +736,7 @@ function App() {
       transportMode: bestTransportEvaluation.mode,
       tripType: planContext.tripType,
       travelInfo,
+      transportEvaluation: bestTransportEvaluation,
     })
     : '移動情報を取得すると、最も現実的な交通手段との相性を表示します。'
 
@@ -946,6 +1045,9 @@ function App() {
           latitude: place.latitude,
           longitude: place.longitude,
           googleMapsQuery: place.googleMapsQuery,
+          nearestStation: place.nearestStation,
+          nearestStationLabel: place.nearestStationLabel,
+          transitQuery: place.transitQuery,
           prefecture: place.prefecture,
           city: place.city,
         },
@@ -954,7 +1056,7 @@ function App() {
 
       if (requestId === travelRequestId.current) {
         setTravelInfo(routes)
-        const restoredEvaluations = getTransportEvaluations(routes, restoredTripType)
+        const restoredEvaluations = getTransportEvaluations(routes, restoredTripType, place)
         const restoredBest = getBestPrimaryTransport(restoredEvaluations)
         if (routes.car?.durationMinutes) {
           const cacheKey = getTravelCacheKey(restoredDeparture, place.id)
@@ -979,6 +1081,8 @@ function App() {
           status: error?.code === 'API_KEY_INVALID' ? 'api-error' : 'error',
           car: null,
           publicTransit: null,
+          transitDebug: error?.transitDebug,
+          transitFallback: error?.transitFallback,
         })
       }
     }
@@ -1079,6 +1183,9 @@ function App() {
           latitude: next.latitude,
           longitude: next.longitude,
           googleMapsQuery: next.googleMapsQuery,
+          nearestStation: next.nearestStation,
+          nearestStationLabel: next.nearestStationLabel,
+          transitQuery: next.transitQuery,
           prefecture: next.prefecture,
           city: next.city,
         },
@@ -1092,7 +1199,7 @@ function App() {
           setTravelTimeCache(nextCache)
           saveCities(TRAVEL_CACHE_STORAGE_KEY, nextCache)
         }
-        const selectedEvaluations = getTransportEvaluations(routes, tripType)
+        const selectedEvaluations = getTransportEvaluations(routes, tripType, next)
         const selectedBest = getBestPrimaryTransport(selectedEvaluations)
         if (selectedBest) {
           const currentFeasibility = selectedBest.feasibility
@@ -1111,6 +1218,8 @@ function App() {
           status: error?.code === 'API_KEY_INVALID' ? 'api-error' : 'error',
           car: null,
           publicTransit: null,
+          transitDebug: error?.transitDebug,
+          transitFallback: error?.transitFallback,
         })
       }
     }
@@ -1186,8 +1295,8 @@ function App() {
   return (
     <main className="app-shell">
       <section
-        className={`trip-card ${currentPage === 'developer' ? 'developer-page' : currentPage === 'history' ? 'history-page' : currentPage === 'favorites' ? 'favorites-page' : 'main-page'}`}
-        aria-labelledby={currentPage === 'developer' ? 'developer-page-title' : currentPage === 'history' ? 'history-page-title' : currentPage === 'favorites' ? 'favorites-page-title' : 'app-title'}
+        className={`trip-card ${currentPage === 'developer' ? 'developer-page' : currentPage === 'history' ? 'history-page' : currentPage === 'favorites' ? 'favorites-page' : currentPage === 'calculation' ? 'calculation-page' : 'main-page'}`}
+        aria-labelledby={currentPage === 'developer' ? 'developer-page-title' : currentPage === 'history' ? 'history-page-title' : currentPage === 'favorites' ? 'favorites-page-title' : currentPage === 'calculation' ? 'calculation-page-title' : 'app-title'}
       >
         {currentPage === 'main' ? (
           <>
@@ -1219,7 +1328,7 @@ function App() {
                   setDeparture(event.target.value)
                   if (event.target.value.trim()) setDepartureError('')
                 }}
-                placeholder="例：東京都"
+                placeholder="例：水戸駅 / 茨城県水戸市 / 東京駅"
                 autoComplete="address-level1"
                 aria-required="true"
                 aria-invalid={Boolean(departureError)}
@@ -1343,6 +1452,7 @@ function App() {
               <p className="result-label">YOUR DESTINATION</p>
               <div className="result-pin" aria-hidden="true">✦</div>
               <p className="result-city"><span>旅先：</span>{destination.city}</p>
+              <p className="result-nearest-station">最寄り目安：{destination.nearestStationLabel}</p>
               <div className="result-divider" />
               <p className="result-recommendation">
                 <span>おすすめ</span>
@@ -1451,12 +1561,12 @@ function App() {
               </div>
               <div className="journey-gallery" role="list">
                 {[
-                  { key: 'hero', src: destination.heroImage, label: '観光地写真', alt: `${destination.city}の観光イメージ` },
-                  { key: 'food', src: destination.foodImage, label: 'グルメ写真', alt: `${destination.city}のグルメイメージ` },
-                  { key: 'scenery', src: destination.sceneryImage, label: '風景写真', alt: `${destination.city}の風景イメージ` },
+                  { key: 'hero', src: destination.heroImage, fallbackSrc: DEFAULT_TRAVEL_IMAGE, label: '観光地写真', alt: `${destination.city}の観光イメージ` },
+                  { key: 'food', src: destination.foodImage, fallbackSrc: DEFAULT_FOOD_IMAGE, label: 'グルメ写真', alt: `${destination.city}のグルメイメージ` },
+                  { key: 'scenery', src: destination.sceneryImage, fallbackSrc: DEFAULT_SCENERY_IMAGE, label: '風景写真', alt: `${destination.city}の風景イメージ` },
                 ].map((image) => (
                   <article className="journey-image-card" role="listitem" key={`${destination.id}-${image.key}`}>
-                    <SafeImage src={image.src} alt={image.alt} className="journey-image" />
+                    <SafeImage src={image.src} fallbackSrc={image.fallbackSrc} alt={image.alt} className="journey-image" />
                     <span>{image.label}</span>
                   </article>
                 ))}
@@ -1569,8 +1679,8 @@ function App() {
                         >
                           <header>
                             <strong>{item.mode}</strong>
-                            <span aria-label={item.feasibility ? `${item.feasibility.stars}つ星` : '未評価'}>
-                              {item.feasibility?.starsLabel ?? '未評価'}
+                            <span aria-label={item.feasibility ? `${item.feasibility.stars}つ星` : item.mode === '電車' ? 'Google Mapsで確認' : '未評価'}>
+                              {item.feasibility?.starsLabel ?? (item.mode === '電車' ? 'Google Mapsで確認' : '未評価')}
                             </span>
                           </header>
                           {item.mode === '車' && (
@@ -1589,14 +1699,19 @@ function App() {
                             ) : <p>車の経路が見つかりませんでした</p>
                           )}
                           {item.mode === '電車' && (
-                            travelInfo.publicTransit ? (
+                            <div className="transit-fallback train-estimate">
                               <dl>
-                                <div><dt>距離</dt><dd>{travelInfo.publicTransit.distance ?? '取得できませんでした'}</dd></div>
-                                <div><dt>目安時間</dt><dd>{travelInfo.publicTransit.duration}</dd></div>
-                                <div><dt>料金目安</dt><dd>{travelInfo.publicTransit.fare ?? '料金は取得できませんでした'}</dd></div>
-                                <div><dt>データ種別</dt><dd>Google Maps API取得</dd></div>
+                                <div><dt>目安時間</dt><dd>{item.basis?.duration ?? '距離取得後に概算'}</dd></div>
+                                <div><dt>想定列車種別</dt><dd>{item.basis?.trainType ?? '距離取得後に判定'}</dd></div>
+                                <div><dt>現地アクセス</dt><dd>{item.basis?.stationAccessNote ?? destination.stationAccessNote ?? '駅周辺'}</dd></div>
+                                <div><dt>データ種別</dt><dd>距離ベースの時間概算</dd></div>
+                                <div><dt>検索条件</dt><dd>{transitFallback?.searchCondition ?? '駅候補を特定できませんでした'}</dd></div>
                               </dl>
-                            ) : <p className="transport-comment strong-warning">電車ルートを取得できませんでした。出発地や目的地の指定を詳しくすると取得できる場合があります。</p>
+                              <p className="transport-comment">停車・乗換・駅までの移動余裕を含む、旅行アプリ用の平均速度による概算です。</p>
+                              {transitFallback?.googleMapsUrl && (
+                                <a href={transitFallback.googleMapsUrl} target="_blank" rel="noopener noreferrer">Google Mapsで確認する</a>
+                              )}
+                            </div>
                           )}
                           {item.mode === '飛行機' && (
                             <>
@@ -1615,7 +1730,7 @@ function App() {
                             信頼度：{item.mode === '車'
                               ? '距離・時間 高精度 / 料金 概算'
                               : item.mode === '電車'
-                                ? '時間 高精度 / 料金 取得できる場合のみ'
+                                ? '時間は概算 / 正確な経路・料金はGoogle Mapsで確認'
                                 : '概算'}
                           </p>
                           {bestTransportEvaluation?.mode === item.mode && <b>おすすめ</b>}
@@ -1654,6 +1769,9 @@ function App() {
                       <p>Google CloudのAPIキー、Routes API、課金設定を確認してください。</p>
                     </div>
                   )}
+                  <button className="calculation-method-button" type="button" onClick={() => switchPage('calculation')}>
+                    計算方法の内容はこちら <span aria-hidden="true">→</span>
+                  </button>
               </div>
 
               <section className="feasibility-card" aria-labelledby="feasibility-title">
@@ -1880,6 +1998,106 @@ function App() {
             </section>
             <p className="footer-note">DROPTRIP Draw History</p>
           </>
+        ) : currentPage === 'calculation' ? (
+          <>
+            <header className="developer-page-header calculation-page-header">
+              <button type="button" onClick={() => switchPage('main')}>
+                <span aria-hidden="true">←</span>
+                メイン画面に戻る
+              </button>
+              <div className="developer-page-icon calculation-page-icon" aria-hidden="true">∑</div>
+              <p>HOW WE CALCULATE</p>
+              <h1 id="calculation-page-title">計算方法</h1>
+              <span>交通手段ごとの時間・料金・信頼度の考え方</span>
+            </header>
+
+            <section className="calculation-methods" aria-label="交通手段の計算方法">
+              <article className="calculation-method-card">
+                <div className="calculation-method-heading"><span aria-hidden="true">🚗</span><h2>車</h2></div>
+                <ul>
+                  <li>距離・時間はGoogle Maps APIから取得</li>
+                  <li>料金は走行距離をもとにした概算</li>
+                </ul>
+                <div className="calculation-formula">
+                  <strong>計算式</strong>
+                  <p>ガソリン代 = 距離km × 17円</p>
+                  <p>高速代 = 距離km × 25円</p>
+                  <p>車料金目安 = ガソリン代 + 高速代</p>
+                  <p><b>車料金目安 = 距離km × 42円</b></p>
+                </div>
+                <div className="calculation-assumptions">
+                  <strong>ガソリン代の前提</strong>
+                  <p>想定ガソリン価格：170円/L</p>
+                  <p>想定燃費：10km/L</p>
+                  <p>170円 ÷ 10km = 17円/km</p>
+                  <span>レギュラーとハイオク、車種ごとの燃費差を考慮し、アプリ内ではガソリン価格170円/L・燃費10km/Lを目安にしています。</span>
+                </div>
+                <p className="calculation-note">実際のガソリン代は、地域、油種、車種、燃費、渋滞、山道、エアコン使用などによって変動します。高速料金も高速道路利用有無、ETC割引、駐車場代、寄り道によって変動します。</p>
+                <div className="verification-links">
+                  <h3>正確に確認する</h3>
+                  <p>実際のルートや高速料金は、各サービスで確認してください。</p>
+                  <div className="flight-link-list">
+                    <a href={drivingMapsUrl} target="_blank" rel="noopener noreferrer">Google Mapsでルート確認</a>
+                    <a href="https://www.driveplaza.com/dp/SearchTop" target="_blank" rel="noopener noreferrer">NEXCOで高速料金を確認</a>
+                  </div>
+                </div>
+              </article>
+
+              <article className="calculation-method-card">
+                <div className="calculation-method-heading"><span aria-hidden="true">🚆</span><h2>電車</h2></div>
+                <p>電車の目安時間は、距離に応じて普通列車・特急・新幹線の利用を想定し、平均速度を切り替えて概算しています。</p>
+                <div className="calculation-rules train-calculation-rules">
+                  <div><b>100km未満</b><span>普通列車・快速中心、平均50km/h + 30分</span></div>
+                  <div><b>100〜300km</b><span>普通列車＋特急想定、平均85km/h + 45分</span></div>
+                  <div><b>300〜700km</b><span>特急・新幹線想定、平均160km/h + 60分</span></div>
+                  <div><b>700km以上</b><span>新幹線中心、平均200km/h + 90分</span></div>
+                </div>
+                <div className="calculation-formula">
+                  <strong>計算式</strong>
+                  <p>電車目安時間 = 距離km ÷ 想定平均速度 + 追加時間</p>
+                  <p>営業最高速度ではなく、停車・乗換・駅までの移動余裕を含む旅行アプリ用の概算平均速度です。</p>
+                </div>
+                <div className="calculation-assumptions">
+                  <strong>新幹線・現地アクセス補正</strong>
+                  <p>主要新幹線駅同士：平均220km/h + 25分</p>
+                  <p>目的地が駅から離れている場合：現地アクセス時間を加算</p>
+                  <span>電車の目安時間は、通常の距離帯別概算に加えて、主要新幹線区間では新幹線補正を行います。また、目的地が駅から離れている場合は、現地アクセス時間を加算しています。</span>
+                </div>
+                <p className="calculation-note">実際の所要時間は、乗換回数、停車駅、列車種別、待ち時間、駅までの移動、運行状況によって変動します。正確な経路・時刻・料金はGoogle Mapsや乗換案内サービスで確認してください。</p>
+                <div className="verification-links">
+                  <h3>正確に確認する</h3>
+                  <p>乗車日時や運行状況を含む最新情報を確認できます。</p>
+                  <div className="flight-link-list">
+                    <a href={transitMapsUrl} target="_blank" rel="noopener noreferrer">Google Mapsで確認</a>
+                    <a href="https://transit.yahoo.co.jp/" target="_blank" rel="noopener noreferrer">Yahoo!乗換案内で確認</a>
+                    <a href="https://www.navitime.co.jp/transfer/" target="_blank" rel="noopener noreferrer">NAVITIMEで確認</a>
+                  </div>
+                </div>
+              </article>
+
+              <article className="calculation-method-card plane-calculation-card">
+                <div className="calculation-method-heading"><span aria-hidden="true">✈</span><h2>飛行機</h2></div>
+                <p>現時点では、車で取得した距離を基準にした距離帯ごとの概算です。</p>
+                <div className="calculation-rules">
+                  <div><b>500km未満</b><span>基本おすすめしない</span></div>
+                  <div><b>500km〜900km</b><span>目安時間 3〜5時間 / 料金目安 20,000円〜45,000円</span></div>
+                  <div><b>900km以上</b><span>目安時間 4〜6時間 / 料金目安 30,000円〜70,000円</span></div>
+                </div>
+                <p className="calculation-note">実際の航空券代は予約時期、航空会社、LCC利用、繁忙期、空港アクセス費、荷物料金によって大きく変動します。</p>
+
+                <div className="flight-comparison verification-links">
+                  <h3>正確に確認する・航空券を比較する</h3>
+                  <p>正確な航空券価格は、比較サイトで確認してください。</p>
+                  <div className="flight-link-list">
+                    <a href="https://www.google.com/travel/flights" target="_blank" rel="noopener noreferrer">Google Flightsで確認</a>
+                    <a href="https://www.skyscanner.jp/transport/flights/" target="_blank" rel="noopener noreferrer">Skyscannerで確認</a>
+                    <a href="https://www.tour.ne.jp/j_air/" target="_blank" rel="noopener noreferrer">トラベルコで確認</a>
+                  </div>
+                </div>
+              </article>
+            </section>
+            <p className="footer-note">DROPTRIP Calculation Guide</p>
+          </>
         ) : (
           <>
         <header className="developer-page-header">
@@ -2021,6 +2239,47 @@ function App() {
           </div>
         </section>
 
+        <section className="quality-check-card" aria-labelledby="quality-check-title">
+          <div className="quality-check-heading">
+            <span aria-hidden="true">✓</span>
+            <div>
+              <p>PRE-PUBLISH CHECK</p>
+              <h2 id="quality-check-title">品質チェック</h2>
+            </div>
+          </div>
+
+          <div className="quality-check-summary" aria-label="品質チェック集計">
+            <div className="quality-passed"><span>問題なし</span><strong>{destinationQualityReport.passed}件</strong></div>
+            <div className={destinationQualityReport.warningCount > 0 ? 'quality-warning' : 'quality-passed'}>
+              <span>要確認</span><strong>{destinationQualityReport.warningCount}件</strong>
+            </div>
+          </div>
+
+          <ul className="quality-global-checks">
+            {destinationQualityReport.globalChecks.map((check) => (
+              <li className={check.passed ? 'passed' : 'warning'} key={check.label}>
+                <span aria-hidden="true">{check.passed ? '✓' : '!'}</span>{check.label}
+              </li>
+            ))}
+          </ul>
+
+          {destinationQualityReport.warningCount === 0 ? (
+            <p className="quality-all-clear">全{destinationQualityReport.total}件の旅行先データに問題は見つかりませんでした。</p>
+          ) : (
+            <div className="quality-warning-list">
+              {destinationQualityReport.warnings.map((result) => (
+                <article className="quality-warning-item" key={result.id}>
+                  <header><strong>{result.city}</strong><span>{result.prefecture}</span></header>
+                  <dl>
+                    <div><dt>問題内容</dt><dd>{result.issues.map((issue) => issue.message).join(' / ')}</dd></div>
+                    <div><dt>修正が必要な項目</dt><dd>{result.fields.join('、')}</dd></div>
+                  </dl>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
+
         <section className={`debug-card ${showDebugPanel ? 'expanded' : ''}`} aria-labelledby="debug-title">
           <div className="debug-toggle-row">
             <div>
@@ -2060,6 +2319,33 @@ function App() {
               <div><dt>本日のAI生成回数</dt><dd>{todayAiPlanUsageCount} / {DAILY_AI_PLAN_LIMIT}回</dd></div>
               <div><dt>プレミアム状態</dt><dd>{isPremiumUser ? '有効（テスト）' : '無効'}</dd></div>
               <div><dt>移動情報取得状態</dt><dd>{travelStatusLabels[travelInfo.status] ?? travelInfo.status}</dd></div>
+              <div><dt>TRANSIT origin候補</dt><dd>{travelInfo.transitDebug?.originCandidates?.join(' / ') || '未検索'}</dd></div>
+              <div><dt>TRANSIT destination候補</dt><dd>{travelInfo.transitDebug?.destinationCandidates?.join(' / ') || '未検索'}</dd></div>
+              <div><dt>departureTime候補</dt><dd>{travelInfo.transitDebug?.departureTimeCandidates?.join(' / ') || '未検索'}</dd></div>
+              <div><dt>実際に使った検索条件</dt><dd>{travelInfo.transitDebug?.usedCondition ?? 'なし'}</dd></div>
+              <div><dt>TRANSIT APIエラー</dt><dd>{travelInfo.transitDebug?.apiError ?? 'なし'}</dd></div>
+              <div><dt>使用したorigin</dt><dd>{travelInfo.transitDebug?.lastRequest?.origin ?? '未検索'}</dd></div>
+              <div><dt>使用したdestination</dt><dd>{travelInfo.transitDebug?.lastRequest?.destination ?? '未検索'}</dd></div>
+              <div><dt>travelMode</dt><dd>{travelInfo.transitDebug?.lastRequest?.travelMode ?? '未検索'}</dd></div>
+              <div><dt>departureTime</dt><dd>{travelInfo.transitDebug?.lastRequest?.departureTime ?? '未検索'}</dd></div>
+              <div><dt>APIエンドポイント</dt><dd>{travelInfo.transitDebug?.lastRequest?.endpoint ?? '未検索'}</dd></div>
+              <div><dt>fields</dt><dd>{travelInfo.transitDebug?.lastRequest?.fields ?? '未検索'}</dd></div>
+              <div><dt>HTTPステータス</dt><dd>{travelInfo.transitDebug?.lastRequest?.httpStatus ?? '取得前・通信失敗'}</dd></div>
+              <div><dt>Google APIエラーメッセージ</dt><dd>{travelInfo.transitDebug?.lastRequest?.googleMessage || 'なし'}</dd></div>
+              <div className="debug-transit-attempts">
+                <dt>失敗した候補一覧</dt>
+                <dd>
+                  {travelInfo.transitDebug?.attempts?.some((attempt) => attempt.status === 'failed') ? (
+                    <ul>
+                      {travelInfo.transitDebug.attempts.filter((attempt) => attempt.status === 'failed').map((attempt, index) => (
+                        <li key={`${attempt.origin}-${attempt.destination}-${index}`}>
+                          {attempt.origin} → {attempt.destination} / {attempt.departureTime ?? '時刻なし'}：{attempt.reason}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : travelInfo.transitDebug?.attempts?.length > 0 ? '失敗なし' : '未検索'}
+                </dd>
+              </div>
               <div><dt>localStorage保存状態</dt><dd>{getLocalStorageDebugStatus()}</dd></div>
             </dl>
           )}

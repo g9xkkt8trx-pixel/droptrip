@@ -1,5 +1,8 @@
+import { findMajorStation } from '../data/majorStations'
+
 const ROUTES_API_URL = 'https://routes.googleapis.com/directions/v2:computeRoutes'
-const REQUEST_TIMEOUT_MS = 15000
+const ROUTE_FIELD_MASK = 'routes.duration,routes.distanceMeters'
+const REQUEST_TIMEOUT_MS = 30000
 
 class TravelTimeError extends Error {
   constructor(message, code = 'ROUTE_ERROR') {
@@ -35,32 +38,69 @@ const formatDistance = (distanceMeters) => {
   return `${new Intl.NumberFormat('ja-JP').format(kilometers)}km`
 }
 
-const formatFare = (fare) => {
-  if (!fare?.currencyCode) return null
-
-  const amount = Number(fare.units ?? 0) + Number(fare.nanos ?? 0) / 1_000_000_000
-  if (!Number.isFinite(amount)) return null
-
-  try {
-    return new Intl.NumberFormat('ja-JP', {
-      style: 'currency',
-      currency: fare.currencyCode,
-      maximumFractionDigits: fare.currencyCode === 'JPY' ? 0 : 2,
-    }).format(amount)
-  } catch {
-    return `${amount.toLocaleString('ja-JP')} ${fare.currencyCode}`
-  }
-}
-
-const getFareAmount = (fare) => {
-  if (!fare?.currencyCode) return null
-  const amount = Number(fare.units ?? 0) + Number(fare.nanos ?? 0) / 1_000_000_000
-  return Number.isFinite(amount) ? amount : null
-}
-
 const appendJapan = (address) => {
   const normalizedAddress = address.trim()
   return normalizedAddress.includes('日本') ? normalizedAddress : `${normalizedAddress}, 日本`
+}
+
+const uniqueStrings = (values) => [...new Set(values.map((value) => value?.trim()).filter(Boolean))]
+
+const getTransitOriginCandidates = (origin) => {
+  const normalized = origin.trim()
+  if (normalized.endsWith('駅')) return [normalized]
+
+  const majorStation = findMajorStation(normalized)
+  if (majorStation) return [majorStation]
+  const municipality = normalized.match(/([^都道府県]+?[市区町村])$/)?.[1]
+  const stationName = municipality ? `${municipality.replace(/[市区町村]$/, '')}駅` : null
+  return uniqueStrings([majorStation, stationName, normalized])
+}
+
+const getTransitDestinationCandidates = (destination) => {
+  if (destination?.nearestStation?.trim()) return [destination.nearestStation.trim()]
+  return uniqueStrings([
+    destination?.transitQuery,
+    findMajorStation('', destination?.prefecture, destination?.city),
+    `${destination?.prefecture ?? ''}${destination?.city ?? ''}`,
+  ])
+}
+
+export const createTransitFallback = (origin, destination) => {
+  const fallbackOrigin = getTransitOriginCandidates(origin)[0] ?? origin.trim()
+  const fallbackDestination = getTransitDestinationCandidates(destination)[0]
+  const fallbackDestinationLabel = fallbackDestination === destination?.nearestStation
+    ? destination.nearestStationLabel ?? fallbackDestination
+    : fallbackDestination
+
+  return {
+    origin: fallbackOrigin,
+    destination: fallbackDestination,
+    searchCondition: fallbackOrigin && fallbackDestinationLabel
+      ? `${fallbackOrigin} → ${fallbackDestinationLabel}`
+      : null,
+    googleMapsUrl: fallbackOrigin && fallbackDestination
+      ? `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(fallbackOrigin)}&destination=${encodeURIComponent(fallbackDestination)}&travelmode=transit`
+      : null,
+  }
+}
+
+const getTransitDepartureTimes = () => {
+  const now = new Date()
+  const tomorrowAtNine = new Date(now)
+  tomorrowAtNine.setDate(tomorrowAtNine.getDate() + 1)
+  tomorrowAtNine.setHours(9, 0, 0, 0)
+
+  const tomorrowAtTen = new Date(tomorrowAtNine)
+  tomorrowAtTen.setHours(10, 0, 0, 0)
+
+  const nextSaturdayAtNine = new Date(now)
+  const daysUntilSaturday = (6 - now.getDay() + 7) % 7 || 7
+  nextSaturdayAtNine.setDate(nextSaturdayAtNine.getDate() + daysUntilSaturday)
+  nextSaturdayAtNine.setHours(9, 0, 0, 0)
+
+  const oneHourLater = new Date(now.getTime() + 60 * 60 * 1000)
+  return [tomorrowAtNine, tomorrowAtTen, nextSaturdayAtNine, oneHourLater]
+    .map((date) => date.toISOString())
 }
 
 const toDestinationWaypoint = (destination) => {
@@ -98,7 +138,7 @@ const toDestinationWaypoint = (destination) => {
   throw new Error('Destination is missing')
 }
 
-const fetchRoute = async ({ origin, destination, travelMode, apiKey, signal }) => {
+const fetchRoute = async ({ origin, destination, travelMode, departureTime, apiKey, signal }) => {
   const requestBody = {
     origin: { address: appendJapan(origin) },
     destination: toDestinationWaypoint(destination),
@@ -112,36 +152,66 @@ const fetchRoute = async ({ origin, destination, travelMode, apiKey, signal }) =
   }
 
   if (travelMode === 'TRANSIT') {
-    requestBody.departureTime = new Date(Date.now() + 5 * 60 * 1000).toISOString()
+    requestBody.departureTime = departureTime
   }
 
-  const response = await fetch(ROUTES_API_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Goog-Api-Key': apiKey,
-      'X-Goog-FieldMask': 'routes.duration,routes.distanceMeters,routes.travelAdvisory.transitFare',
-    },
-    body: JSON.stringify(requestBody),
-    signal,
-  })
+  const requestDebug = {
+    origin: requestBody.origin.address ?? JSON.stringify(requestBody.origin),
+    destination: requestBody.destination.address ?? JSON.stringify(requestBody.destination),
+    travelMode,
+    departureTime: requestBody.departureTime ?? null,
+    endpoint: ROUTES_API_URL,
+    fields: ROUTE_FIELD_MASK,
+  }
+
+  let response
+  try {
+    response = await fetch(ROUTES_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': apiKey,
+        'X-Goog-FieldMask': ROUTE_FIELD_MASK,
+      },
+      body: JSON.stringify(requestBody),
+      signal,
+    })
+  } catch (error) {
+    error.requestDebug = requestDebug
+    throw error
+  }
 
   if (!response.ok) {
     const errorBody = await response.text()
+    const apiMessage = (() => {
+      try {
+        return JSON.parse(errorBody)?.error?.message?.slice(0, 180) ?? ''
+      } catch {
+        return ''
+      }
+    })()
     const looksLikeApiKeyError = [401, 403].includes(response.status)
       || /api.?key|permission.denied|not enabled|disabled|billing/i.test(errorBody)
 
-    throw new TravelTimeError(
-      `Routes API request failed: ${response.status}`,
+    const routeError = new TravelTimeError(
+      `Routes API request failed: ${response.status}${apiMessage ? ` - ${apiMessage}` : ''}`,
       looksLikeApiKeyError ? 'API_KEY_INVALID' : 'ROUTE_ERROR',
     )
+    routeError.httpStatus = response.status
+    routeError.googleMessage = apiMessage || 'Google APIから詳細メッセージは返されませんでした'
+    routeError.requestDebug = requestDebug
+    throw routeError
   }
 
   const data = await response.json()
   const route = data.routes?.[0]
 
   if (!route?.duration) {
-    throw new TravelTimeError('Route not found')
+    const routeNotFoundError = new TravelTimeError('Route not found')
+    routeNotFoundError.httpStatus = response.status
+    routeNotFoundError.googleMessage = 'レスポンスに利用可能なルートが含まれていません'
+    routeNotFoundError.requestDebug = requestDebug
+    throw routeNotFoundError
   }
 
   const durationMinutes = durationToMinutes(route.duration)
@@ -151,9 +221,90 @@ const fetchRoute = async ({ origin, destination, travelMode, apiKey, signal }) =
     durationMinutes,
     distance: Number.isFinite(route.distanceMeters) ? formatDistance(route.distanceMeters) : null,
     distanceMeters: Number.isFinite(route.distanceMeters) ? route.distanceMeters : null,
-    fare: formatFare(route.travelAdvisory?.transitFare),
-    fareAmount: getFareAmount(route.travelAdvisory?.transitFare),
+    requestDebug: { ...requestDebug, httpStatus: response.status, googleMessage: '' },
   }
+}
+
+const fetchTransitRoute = async ({ origin, destination, apiKey, signal }) => {
+  const origins = getTransitOriginCandidates(origin)
+  const destinations = getTransitDestinationCandidates(destination)
+  const departureTimes = getTransitDepartureTimes()
+  const attempts = []
+  const pairs = destinations.flatMap((destinationCandidate) => (
+    origins.map((originCandidate) => [originCandidate, destinationCandidate])
+  ))
+  const fallback = createTransitFallback(origin, destination)
+  const createDebug = (usedCondition = null, apiError = null, lastRequest = null) => ({
+    originCandidates: origins,
+    destinationCandidates: destinations,
+    departureTimeCandidates: departureTimes,
+    attempts,
+    usedCondition,
+    apiError,
+    lastRequest: lastRequest ?? attempts.at(-1) ?? null,
+  })
+
+  for (const [originCandidate, destinationCandidate] of pairs) {
+    for (const departureTime of departureTimes) {
+      try {
+        const route = await fetchRoute({
+          origin: originCandidate,
+          destination: destinationCandidate,
+          travelMode: 'TRANSIT',
+          departureTime,
+          apiKey,
+          signal,
+        })
+        const searchCondition = `${originCandidate} → ${destinationCandidate}`
+        const destinationLabel = destinationCandidate === destination?.nearestStation
+          ? destination.nearestStationLabel ?? destinationCandidate
+          : destinationCandidate
+        const displayCondition = `${originCandidate} → ${destinationLabel}`
+        const successfulAttempt = {
+          origin: originCandidate,
+          destination: destinationCandidate,
+          status: 'success',
+          reason: '',
+          ...route.requestDebug,
+        }
+        attempts.push(successfulAttempt)
+        return {
+          route: { ...route, searchCondition: displayCondition },
+          debug: createDebug(searchCondition, null, successfulAttempt),
+          fallback,
+        }
+      } catch (error) {
+        const reason = error?.name === 'AbortError'
+          ? '検索がタイムアウトしました'
+          : error?.code === 'API_KEY_INVALID'
+            ? 'APIキーまたはRoutes API設定エラー'
+            : error?.message ?? '経路が見つかりませんでした'
+        const failedAttempt = {
+          origin: originCandidate,
+          destination: destinationCandidate,
+          status: 'failed',
+          reason,
+          ...(error?.requestDebug ?? {
+            travelMode: 'TRANSIT',
+            departureTime: null,
+            endpoint: ROUTES_API_URL,
+            fields: ROUTE_FIELD_MASK,
+          }),
+          httpStatus: error?.httpStatus ?? null,
+          googleMessage: error?.googleMessage ?? reason,
+        }
+        attempts.push(failedAttempt)
+        if (error?.code === 'API_KEY_INVALID' || error?.name === 'AbortError') {
+          error.transitDebug = createDebug(null, reason, failedAttempt)
+          error.transitFallback = fallback
+          throw error
+        }
+      }
+    }
+  }
+
+  const apiError = attempts.at(-1)?.reason ?? '経路が見つかりませんでした'
+  return { route: null, debug: createDebug(null, apiError), fallback }
 }
 
 export const getTravelInfo = async ({ origin, destination, apiKey: storedApiKey = '' }) => {
@@ -177,10 +328,9 @@ export const getTravelInfo = async ({ origin, destination, apiKey: storedApiKey 
         apiKey,
         signal: controller.signal,
       }),
-      fetchRoute({
+      fetchTransitRoute({
         origin,
         destination,
-        travelMode: 'TRANSIT',
         apiKey,
         signal: controller.signal,
       }),
@@ -190,16 +340,27 @@ export const getTravelInfo = async ({ origin, destination, apiKey: storedApiKey 
   }
 
   const car = carResult.status === 'fulfilled' ? carResult.value : null
-  const publicTransit = transitResult.status === 'fulfilled'
+  const transitPayload = transitResult.status === 'fulfilled' ? transitResult.value : null
+  const transitRoute = transitPayload?.route ?? null
+  const publicTransit = transitRoute
     ? {
-        duration: transitResult.value.duration,
-        durationMinutes: transitResult.value.durationMinutes,
-        distance: transitResult.value.distance,
-        distanceMeters: transitResult.value.distanceMeters,
-        fare: transitResult.value.fare,
-        fareAmount: transitResult.value.fareAmount,
+        duration: transitRoute.duration,
+        durationMinutes: transitRoute.durationMinutes,
+        distance: transitRoute.distance,
+        distanceMeters: transitRoute.distanceMeters,
+        searchCondition: transitRoute.searchCondition,
       }
     : null
+  const transitDebug = transitPayload?.debug ?? transitResult.reason?.transitDebug ?? {
+    originCandidates: [],
+    destinationCandidates: [],
+    departureTimeCandidates: [],
+    attempts: [],
+    usedCondition: null,
+    apiError: null,
+    lastRequest: null,
+  }
+  const transitFallback = transitPayload?.fallback ?? transitResult.reason?.transitFallback ?? null
 
   if (!car && !publicTransit) {
     const apiKeyError = [carResult, transitResult].find((result) => (
@@ -207,8 +368,11 @@ export const getTravelInfo = async ({ origin, destination, apiKey: storedApiKey 
     ))
 
     if (apiKeyError) throw apiKeyError.reason
-    throw new TravelTimeError('No routes available')
+    const noRoutesError = new TravelTimeError('No routes available')
+    noRoutesError.transitDebug = transitDebug
+    noRoutesError.transitFallback = transitFallback
+    throw noRoutesError
   }
 
-  return { status: 'success', car, publicTransit }
+  return { status: 'success', car, publicTransit, transitDebug, transitFallback }
 }

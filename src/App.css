@@ -23,7 +23,8 @@
 }
 
 .favorites-page,
-.history-page {
+.history-page,
+.calculation-page {
   background: #f8faf9;
 }
 
@@ -479,6 +480,13 @@ h1 {
   color: #163f36;
   font-size: 1.7rem;
   font-weight: 900;
+}
+
+.result-nearest-station {
+  margin: 4px 0 0;
+  color: #7f8c87;
+  font-size: 0.65rem;
+  font-weight: 600;
 }
 
 .result-city span {
@@ -1579,6 +1587,55 @@ h1 {
 .transport-recommendation-reason p {
   margin-top: 3px;
   color: #596f69;
+}
+
+.transit-fallback > dl {
+  margin-top: 8px;
+}
+
+.transit-fallback > a {
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 9px;
+  color: #fff;
+  background: #2a7d6f;
+  border-radius: 9px;
+  text-decoration: none;
+  font-size: 0.62rem;
+  font-weight: 800;
+}
+
+.transit-fallback > a:focus-visible {
+  outline: 2px solid #2a9d8f;
+  outline-offset: 2px;
+}
+
+.calculation-method-button {
+  width: 100%;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 14px;
+  color: #28786b;
+  background: #f4f9f7;
+  border: 1px solid #d7e8e2;
+  border-radius: 12px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.calculation-method-button:hover {
+  background: #eaf5f1;
+}
+
+.calculation-method-button:focus-visible {
+  outline: 2px solid #2a9d8f;
+  outline-offset: 2px;
 }
 
 .transport-comparison-item dl > div {
@@ -2772,6 +2829,184 @@ h1 {
   outline-offset: 3px;
 }
 
+.quality-check-card {
+  margin-top: 16px;
+  padding: 18px;
+  background: #fff;
+  border: 1px solid #dfe9e5;
+  border-radius: 18px;
+  box-shadow: 0 8px 24px rgba(43, 80, 71, 0.05);
+}
+
+.quality-check-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.quality-check-heading > span {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: #2a9d8f;
+  border-radius: 12px;
+  font-weight: 900;
+}
+
+.quality-check-heading p,
+.quality-check-heading h2 {
+  margin: 0;
+}
+
+.quality-check-heading p {
+  color: #2a9d8f;
+  font-size: 0.55rem;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+}
+
+.quality-check-heading h2 {
+  color: #315f55;
+  font-size: 0.92rem;
+}
+
+.quality-check-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+  margin-top: 14px;
+}
+
+.quality-check-summary > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 11px;
+  background: #f4f8f6;
+  border-radius: 11px;
+}
+
+.quality-check-summary span {
+  color: #71817c;
+  font-size: 0.62rem;
+  font-weight: 700;
+}
+
+.quality-check-summary strong {
+  color: #28786b;
+  font-size: 0.76rem;
+}
+
+.quality-check-summary .quality-warning {
+  background: #fff3ed;
+}
+
+.quality-check-summary .quality-warning strong {
+  color: #bd6448;
+}
+
+.quality-global-checks {
+  display: grid;
+  gap: 6px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.quality-global-checks li {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  color: #667a73;
+  font-size: 0.61rem;
+  line-height: 1.5;
+}
+
+.quality-global-checks li > span {
+  width: 18px;
+  height: 18px;
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  color: #fff;
+  background: #51a993;
+  border-radius: 50%;
+  font-size: 0.52rem;
+  font-weight: 900;
+}
+
+.quality-global-checks li.warning > span {
+  background: #d87455;
+}
+
+.quality-all-clear {
+  margin: 13px 0 0;
+  padding: 11px;
+  color: #347366;
+  background: #edf8f4;
+  border-radius: 10px;
+  font-size: 0.64rem;
+  line-height: 1.6;
+}
+
+.quality-warning-list {
+  display: grid;
+  gap: 9px;
+  max-height: 390px;
+  margin-top: 13px;
+  overflow-y: auto;
+}
+
+.quality-warning-item {
+  padding: 12px;
+  background: #fff8f4;
+  border: 1px solid #f0d8ce;
+  border-radius: 11px;
+}
+
+.quality-warning-item header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.quality-warning-item header strong {
+  color: #9b513d;
+  font-size: 0.72rem;
+}
+
+.quality-warning-item header span {
+  color: #947a71;
+  font-size: 0.57rem;
+}
+
+.quality-warning-item dl {
+  display: grid;
+  gap: 6px;
+  margin: 9px 0 0;
+}
+
+.quality-warning-item dl > div {
+  display: grid;
+  gap: 2px;
+}
+
+.quality-warning-item dt {
+  color: #9a756a;
+  font-size: 0.55rem;
+  font-weight: 800;
+}
+
+.quality-warning-item dd {
+  margin: 0;
+  color: #705e58;
+  font-size: 0.61rem;
+  line-height: 1.55;
+}
+
 .debug-card {
   margin-top: 12px;
   padding: 17px;
@@ -2862,6 +3097,22 @@ h1 {
   font-size: 0.64rem;
   font-weight: 700;
   line-height: 1.5;
+}
+
+.debug-details .debug-transit-attempts {
+  grid-column: 1 / -1;
+}
+
+.debug-transit-attempts ul {
+  display: grid;
+  gap: 4px;
+  margin: 5px 0 0;
+  padding-left: 16px;
+}
+
+.debug-transit-attempts li {
+  overflow-wrap: anywhere;
+  line-height: 1.45;
 }
 
 .favorite-item .restore-button {
@@ -2993,6 +3244,206 @@ h1 {
 .developer-page-header > span {
   color: #82908c;
   font-size: 0.7rem;
+}
+
+.calculation-page-icon {
+  color: #bc654a;
+  background: #fff0e9;
+}
+
+.calculation-methods {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.calculation-method-card {
+  padding: 18px;
+  background: #fff;
+  border: 1px solid #e2eae7;
+  border-radius: 18px;
+  box-shadow: 0 8px 24px rgba(43, 80, 71, 0.06);
+}
+
+.calculation-method-heading {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 12px;
+}
+
+.calculation-method-heading > span {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  background: #eef7f4;
+  border-radius: 11px;
+  font-size: 0.9rem;
+}
+
+.calculation-method-heading h2,
+.flight-comparison h3 {
+  margin: 0;
+  color: #245f55;
+}
+
+.calculation-method-heading h2 {
+  font-size: 0.95rem;
+}
+
+.calculation-method-card > p,
+.calculation-method-card li,
+.calculation-formula p,
+.flight-comparison p {
+  color: #657770;
+  font-size: 0.68rem;
+  line-height: 1.7;
+}
+
+.calculation-method-card ul {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding-left: 18px;
+}
+
+.calculation-formula,
+.calculation-assumptions,
+.calculation-rules,
+.flight-comparison {
+  margin-top: 13px;
+  padding: 13px;
+  background: #f5f8f7;
+  border-radius: 12px;
+}
+
+.calculation-formula strong {
+  display: block;
+  margin-bottom: 5px;
+  color: #28786b;
+  font-size: 0.67rem;
+}
+
+.calculation-assumptions strong,
+.verification-links h3 {
+  display: block;
+  margin: 0 0 5px;
+  color: #28786b;
+  font-size: 0.67rem;
+}
+
+.calculation-assumptions p {
+  margin: 2px 0;
+  color: #657770;
+  font-size: 0.68rem;
+  line-height: 1.6;
+}
+
+.calculation-assumptions span {
+  display: block;
+  margin-top: 7px;
+  color: #75847f;
+  font-size: 0.62rem;
+  line-height: 1.65;
+}
+
+.calculation-formula p {
+  margin: 2px 0;
+}
+
+.calculation-method-card .calculation-note {
+  margin: 13px 0 0;
+  padding: 10px 11px;
+  color: #7a6758;
+  background: #fff8ec;
+  border-radius: 10px;
+}
+
+.calculation-rules {
+  display: grid;
+  gap: 8px;
+}
+
+.calculation-rules > div {
+  display: grid;
+  gap: 2px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e1e9e6;
+}
+
+.calculation-rules > div:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.calculation-rules b {
+  color: #28786b;
+  font-size: 0.66rem;
+}
+
+.calculation-rules span {
+  color: #6e7f79;
+  font-size: 0.65rem;
+  line-height: 1.55;
+}
+
+.flight-comparison h3 {
+  font-size: 0.78rem;
+}
+
+.flight-comparison p {
+  margin: 5px 0 10px;
+}
+
+.verification-links {
+  margin-top: 13px;
+  padding: 13px;
+  background: #f5f8f7;
+  border-radius: 12px;
+}
+
+.verification-links h3 {
+  font-size: 0.75rem;
+}
+
+.verification-links > p {
+  margin: 5px 0 10px;
+  color: #657770;
+  font-size: 0.66rem;
+  line-height: 1.6;
+}
+
+.flight-link-list {
+  display: grid;
+  gap: 7px;
+}
+
+.flight-link-list a {
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  color: #fff;
+  background: #28786b;
+  border-radius: 10px;
+  text-decoration: none;
+  font-size: 0.66rem;
+  font-weight: 800;
+}
+
+.flight-link-list a::after {
+  content: '↗';
+}
+
+.flight-link-list a:hover {
+  background: #20675c;
+}
+
+.flight-link-list a:focus-visible {
+  outline: 2px solid #2a9d8f;
+  outline-offset: 2px;
 }
 
 .developer-warning {

@@ -1,4 +1,6 @@
 import rawDestinations from './destinations.json'
+import { getDestinationImages } from './destinationImages'
+import { getDestinationTransit } from './destinationTransit'
 
 // 各自治体の代表地点。Routes APIの目的地座標として利用する。
 const destinationCoordinates = {
@@ -123,7 +125,8 @@ const destinations = rawDestinations.map((destination) => {
   const address = destinationAddresses[destination.city]
     ?? `${destination.prefecture}${destination.city}`
   const seasonProfile = getSeasonProfile(destination)
-  const imageSeed = encodeURIComponent(`${destination.prefecture}-${destination.city}`)
+  const images = getDestinationImages(destination.prefecture, destination.city)
+  const transit = getDestinationTransit(destination.city)
 
   return {
     id: `${destination.prefecture}-${destination.city}`,
@@ -136,15 +139,15 @@ const destinations = rawDestinations.map((destination) => {
     googleMapsQuery: `${address} 観光`,
     tags: destination.tags,
     recommendation: destination.recommendation,
+    recommendText: destination.recommendation,
     reason: `${destination.city}は「${destination.recommendation}」をテーマにした旅行ができ、${destination.tags.join('・')}を重視する方におすすめです。`,
     budgets: destination.budget,
     plans: normalizePlans(destination.schedule, destination.city),
     highlights: destination.highlight,
     bestSeasons: seasonProfile.bestSeasons,
     seasonHighlights: seasonProfile.seasonHighlights,
-    heroImage: `https://picsum.photos/seed/${imageSeed}-hero/900/600`,
-    foodImage: `https://picsum.photos/seed/${imageSeed}-food/720/540`,
-    sceneryImage: `https://picsum.photos/seed/${imageSeed}-scenery/720/540`,
+    ...images,
+    ...transit,
   }
 })
 
