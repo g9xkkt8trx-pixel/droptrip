@@ -123,6 +123,7 @@ const destinations = rawDestinations.map((destination) => {
   const address = destinationAddresses[destination.city]
     ?? `${destination.prefecture}${destination.city}`
   const seasonProfile = getSeasonProfile(destination)
+  const imageSeed = encodeURIComponent(`${destination.prefecture}-${destination.city}`)
 
   return {
     id: `${destination.prefecture}-${destination.city}`,
@@ -141,6 +142,9 @@ const destinations = rawDestinations.map((destination) => {
     highlights: destination.highlight,
     bestSeasons: seasonProfile.bestSeasons,
     seasonHighlights: seasonProfile.seasonHighlights,
+    heroImage: `https://picsum.photos/seed/${imageSeed}-hero/900/600`,
+    foodImage: `https://picsum.photos/seed/${imageSeed}-food/720/540`,
+    sceneryImage: `https://picsum.photos/seed/${imageSeed}-scenery/720/540`,
   }
 })
 

@@ -281,7 +281,7 @@ const getRecommendedTransportReason = (recommended, evaluations, tripType) => {
     return '移動時間と料金のバランスが良く、乗車中も休めるため電車を優先しました。'
   }
   return tripType === '日帰り'
-    ? '所要時間が比較的短く、現地で自由に移動しやすいため車を優先しました。'
+    ? '目安時間が比較的短く、現地で自由に移動しやすいため車を優先しました。'
     : '人数や荷物に合わせやすく、現地移動の自由度が高いため車を優先しました。'
 }
 
@@ -555,6 +555,16 @@ function HistoryItems({ entries, favoriteCities, onShow, onFavorite, onDelete })
       ))}
     </div>
   )
+}
+
+function SafeImage({ src, alt, className = '', loading = 'lazy' }) {
+  const [hasError, setHasError] = useState(false)
+
+  if (!src || hasError) {
+    return <div className={`${className} image-placeholder`} role="img" aria-label={`${alt}（写真準備中）`}>写真準備中</div>
+  }
+
+  return <img className={className} src={src} alt={alt} loading={loading} onError={() => setHasError(true)} />
 }
 
 function App() {
@@ -1323,6 +1333,13 @@ function App() {
         {destination && (
           <div className="result-area" aria-live="polite">
             <section className="result-card" aria-label="抽選結果">
+              <SafeImage
+                key={`${destination.id}-hero`}
+                className="result-hero-image"
+                src={destination.heroImage}
+                alt={`${destination.city}の観光イメージ`}
+                loading="eager"
+              />
               <p className="result-label">YOUR DESTINATION</p>
               <div className="result-pin" aria-hidden="true">✦</div>
               <p className="result-city"><span>旅先：</span>{destination.city}</p>
@@ -1425,6 +1442,25 @@ function App() {
               <strong aria-label={`${seasonCompatibility.stars}つ星`}>{seasonCompatibility.starsLabel}</strong>
               <p>{seasonCompatibility.description}</p>
               <span>ベストシーズン：{destination.bestSeasons.join('・')}</span>
+            </section>
+
+            <section className="journey-gallery-card" aria-labelledby="journey-gallery-title">
+              <div className="journey-gallery-heading">
+                <p>TRIP INSPIRATION</p>
+                <h2 id="journey-gallery-title">旅のイメージ</h2>
+              </div>
+              <div className="journey-gallery" role="list">
+                {[
+                  { key: 'hero', src: destination.heroImage, label: '観光地写真', alt: `${destination.city}の観光イメージ` },
+                  { key: 'food', src: destination.foodImage, label: 'グルメ写真', alt: `${destination.city}のグルメイメージ` },
+                  { key: 'scenery', src: destination.sceneryImage, label: '風景写真', alt: `${destination.city}の風景イメージ` },
+                ].map((image) => (
+                  <article className="journey-image-card" role="listitem" key={`${destination.id}-${image.key}`}>
+                    <SafeImage src={image.src} alt={image.alt} className="journey-image" />
+                    <span>{image.label}</span>
+                  </article>
+                ))}
+              </div>
             </section>
 
             <section className="detail-plan" aria-labelledby="detail-plan-title">
@@ -1542,7 +1578,7 @@ function App() {
                               <>
                                 <dl>
                                   <div><dt>距離</dt><dd>{travelInfo.car.distance ?? '取得できませんでした'}</dd></div>
-                                  <div><dt>所要時間</dt><dd>{travelInfo.car.duration}</dd></div>
+                                  <div><dt>目安時間</dt><dd>{travelInfo.car.duration}</dd></div>
                                   <div><dt>料金目安</dt><dd>{formatEstimatedYen(item.estimatedCost) ?? '距離取得後に概算'}</dd></div>
                                   <div><dt>データ種別</dt><dd>距離・時間はGoogle Maps API、料金は概算</dd></div>
                                 </dl>
@@ -1556,7 +1592,7 @@ function App() {
                             travelInfo.publicTransit ? (
                               <dl>
                                 <div><dt>距離</dt><dd>{travelInfo.publicTransit.distance ?? '取得できませんでした'}</dd></div>
-                                <div><dt>所要時間</dt><dd>{travelInfo.publicTransit.duration}</dd></div>
+                                <div><dt>目安時間</dt><dd>{travelInfo.publicTransit.duration}</dd></div>
                                 <div><dt>料金目安</dt><dd>{travelInfo.publicTransit.fare ?? '料金は取得できませんでした'}</dd></div>
                                 <div><dt>データ種別</dt><dd>Google Maps API取得</dd></div>
                               </dl>
@@ -1565,7 +1601,7 @@ function App() {
                           {item.mode === '飛行機' && (
                             <>
                               <dl>
-                                <div><dt>所要時間目安</dt><dd>{item.basis?.duration ?? '距離取得後に概算'}</dd></div>
+                                <div><dt>目安時間</dt><dd>{item.basis?.duration ?? '距離取得後に概算'}</dd></div>
                                 <div><dt>料金目安</dt><dd>{getPlaneCostLabel(item.distanceKm)}</dd></div>
                                 <div><dt>データ種別</dt><dd>距離帯による概算</dd></div>
                               </dl>
