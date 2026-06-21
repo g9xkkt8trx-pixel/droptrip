@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import './App.css'
 import { getGoogleMapsApiKeySource, getTravelInfo } from './services/travelTime'
 import { createAiPlanPrompt } from './services/aiPlanPrompt'
+import { getOpenAiApiKeySource } from './services/openAiConfig'
 import destinations from './data/destinations.js'
 
 const tripTypes = ['日帰り', '1泊2日', '2泊3日']
@@ -12,6 +13,7 @@ const FAVORITES_STORAGE_KEY = 'droptrip-favorites'
 const VISITED_STORAGE_KEY = 'droptrip-visited'
 const COMPARE_STORAGE_KEY = 'droptrip-compare'
 const MAPS_API_KEY_STORAGE_KEY = 'droptrip-google-maps-api-key'
+const OPENAI_API_KEY_STORAGE_KEY = 'droptrip-openai-api-key'
 const TRAVEL_CACHE_STORAGE_KEY = 'droptrip-travel-time-cache'
 const DRAW_HISTORY_STORAGE_KEY = 'droptrip-draw-history'
 const INPUT_STATE_STORAGE_KEY = 'droptrip-input-state'
@@ -21,6 +23,7 @@ const DEBUG_STORAGE_KEYS = [
   VISITED_STORAGE_KEY,
   COMPARE_STORAGE_KEY,
   MAPS_API_KEY_STORAGE_KEY,
+  OPENAI_API_KEY_STORAGE_KEY,
   TRAVEL_CACHE_STORAGE_KEY,
   DRAW_HISTORY_STORAGE_KEY,
   INPUT_STATE_STORAGE_KEY,
@@ -296,9 +299,9 @@ const loadStoredCities = (storageKey) => {
   }
 }
 
-const loadStoredApiKey = () => {
+const loadStoredApiKey = (storageKey = MAPS_API_KEY_STORAGE_KEY) => {
   try {
-    return window.localStorage.getItem(MAPS_API_KEY_STORAGE_KEY) ?? ''
+    return window.localStorage.getItem(storageKey) ?? ''
   } catch {
     return ''
   }
@@ -462,6 +465,9 @@ function App() {
   const [savedApiKey, setSavedApiKey] = useState(loadStoredApiKey)
   const [apiKeyInput, setApiKeyInput] = useState('')
   const [apiKeyNotice, setApiKeyNotice] = useState('')
+  const [savedOpenAiApiKey, setSavedOpenAiApiKey] = useState(() => loadStoredApiKey(OPENAI_API_KEY_STORAGE_KEY))
+  const [openAiApiKeyInput, setOpenAiApiKeyInput] = useState('')
+  const [openAiApiKeyNotice, setOpenAiApiKeyNotice] = useState('')
   const [travelTimeCache, setTravelTimeCache] = useState(loadTravelTimeCache)
   const [lastDestinationId, setLastDestinationId] = useState(null)
   const [selectionMeta, setSelectionMeta] = useState(null)
@@ -469,6 +475,7 @@ function App() {
   const [showDebugPanel, setShowDebugPanel] = useState(false)
   const [currentPage, setCurrentPage] = useState('main')
   const [aiPlanPrompt, setAiPlanPrompt] = useState('')
+  const [aiPlanNotice, setAiPlanNotice] = useState('')
 
   const favoriteDestinations = favoriteCities
     .map((city) => destinations.find((place) => place.city === city))
@@ -512,6 +519,13 @@ function App() {
   const apiKeyDebugStatus = apiKeySource === 'environment'
     ? '.envで設定済み'
     : apiKeySource === 'localStorage'
+      ? '設定カードで設定済み'
+      : '未設定'
+  const openAiApiKeySource = getOpenAiApiKeySource(savedOpenAiApiKey)
+  const maskedOpenAiApiKey = savedOpenAiApiKey ? savedOpenAiApiKey.slice(-4) : ''
+  const openAiApiKeyDebugStatus = openAiApiKeySource === 'environment'
+    ? '.envで設定済み'
+    : openAiApiKeySource === 'localStorage'
       ? '設定カードで設定済み'
       : '未設定'
 
@@ -599,7 +613,6 @@ function App() {
     setCompareCities([])
     saveCities(COMPARE_STORAGE_KEY, [])
     setShowComparison(false)
-    setAiPlanPrompt('')
   }
 
   const saveApiKey = (event) => {
@@ -631,6 +644,35 @@ function App() {
     }
   }
 
+  const saveOpenAiApiKey = (event) => {
+    event.preventDefault()
+    const nextApiKey = openAiApiKeyInput.trim()
+    if (!nextApiKey) {
+      setOpenAiApiKeyNotice('OpenAI APIキーを入力してください。')
+      return
+    }
+
+    try {
+      window.localStorage.setItem(OPENAI_API_KEY_STORAGE_KEY, nextApiKey)
+      setSavedOpenAiApiKey(nextApiKey)
+      setOpenAiApiKeyInput('')
+      setOpenAiApiKeyNotice('OpenAI APIキーを保存しました。')
+    } catch {
+      setOpenAiApiKeyNotice('OpenAI APIキーを保存できませんでした。')
+    }
+  }
+
+  const deleteOpenAiApiKey = () => {
+    try {
+      window.localStorage.removeItem(OPENAI_API_KEY_STORAGE_KEY)
+      setSavedOpenAiApiKey('')
+      setOpenAiApiKeyInput('')
+      setOpenAiApiKeyNotice('保存したOpenAI APIキーを削除しました。')
+    } catch {
+      setOpenAiApiKeyNotice('OpenAI APIキーを削除できませんでした。')
+    }
+  }
+
   const resetInputConditions = () => {
     ++travelRequestId.current
     setDeparture('')
@@ -648,6 +690,8 @@ function App() {
     setCompareCities([])
     saveCities(COMPARE_STORAGE_KEY, [])
     setShowComparison(false)
+    setAiPlanPrompt('')
+    setAiPlanNotice('')
   }
 
   const switchPage = (page) => {
@@ -723,6 +767,7 @@ function App() {
     })
     setTravelInfo({ status: 'loading', car: null, publicTransit: null })
     setAiPlanPrompt('')
+    setAiPlanNotice('')
     setCurrentPage('main')
     window.scrollTo({ top: 0, behavior: 'smooth' })
 
@@ -863,6 +908,7 @@ function App() {
     })
     setTravelInfo({ status: 'loading', car: null, publicTransit: null })
     setAiPlanPrompt('')
+    setAiPlanNotice('')
 
     try {
       const routes = await getTravelInfo({
@@ -916,7 +962,13 @@ function App() {
 
   const showAiPlanSample = () => {
     if (!destination || !planContext) return
+    if (!openAiApiKeySource) {
+      setAiPlanPrompt('')
+      setAiPlanNotice('OpenAI APIキーを設定するとAIプランを生成できます')
+      return
+    }
 
+    setAiPlanNotice('')
     const season = planContext.travelSeason === '今の季節'
       ? `今の季節（${getCurrentSeason()}）`
       : planContext.travelSeason
@@ -1209,6 +1261,7 @@ function App() {
                 <span aria-hidden="true">✦</span>
                 AIでプランを作る
               </button>
+              {aiPlanNotice && <p className="ai-plan-key-notice" role="status">{aiPlanNotice}</p>}
 
               {aiPlanPrompt && (
                 <section className="ai-plan-card" aria-labelledby="ai-plan-title">
@@ -1645,6 +1698,49 @@ function App() {
           </div>
         </section>
 
+        <section className="settings-card openai-settings-card" aria-labelledby="openai-settings-title">
+          <div className="settings-heading">
+            <span aria-hidden="true">AI</span>
+            <div>
+              <p>AI SETTINGS</p>
+              <h2 id="openai-settings-title">OpenAI APIキー設定</h2>
+            </div>
+          </div>
+
+          <form onSubmit={saveOpenAiApiKey}>
+            <label htmlFor="openai-api-key">OpenAI APIキー</label>
+            <input
+              id="openai-api-key"
+              type="password"
+              value={openAiApiKeyInput}
+              onChange={(event) => {
+                setOpenAiApiKeyInput(event.target.value)
+                setOpenAiApiKeyNotice('')
+              }}
+              placeholder={savedOpenAiApiKey ? '新しいキーに変更する' : 'OpenAI APIキーを入力'}
+              autoComplete="new-password"
+              aria-describedby="openai-api-key-status openai-api-key-help"
+            />
+
+            <div className="api-key-status" id="openai-api-key-status" aria-live="polite">
+              {openAiApiKeySource === 'environment' && <span className="configured">設定済み（.envを優先して使用）</span>}
+              {openAiApiKeySource === 'localStorage' && <span className="configured">設定済み（末尾4文字：{maskedOpenAiApiKey}）</span>}
+              {!openAiApiKeySource && <span>未設定</span>}
+            </div>
+
+            <p className="settings-help" id="openai-api-key-help">
+              今回はキーの保存・読み込み準備のみです。OpenAI APIへの通信は行いません。
+              キーの全文は再表示せず、VITE_OPENAI_API_KEYがある場合は.envを優先します。
+            </p>
+            {openAiApiKeyNotice && <p className="settings-notice">{openAiApiKeyNotice}</p>}
+
+            <div className="settings-actions">
+              <button type="submit" className="save-key-button">保存</button>
+              <button type="button" className="delete-key-button" onClick={deleteOpenAiApiKey} disabled={!savedOpenAiApiKey}>削除</button>
+            </div>
+          </form>
+        </section>
+
         <section className={`debug-card ${showDebugPanel ? 'expanded' : ''}`} aria-labelledby="debug-title">
           <div className="debug-toggle-row">
             <div>
@@ -1678,6 +1774,7 @@ function App() {
               <div><dt>季節相性</dt><dd>{selectionMeta?.seasonCompatibility ?? '未算出'}</dd></div>
               <div><dt>抽選方式</dt><dd>重み付きランダム（ランダム要素あり）</dd></div>
               <div><dt>APIキー設定状態</dt><dd>{apiKeyDebugStatus}</dd></div>
+              <div><dt>OpenAI APIキー設定状態</dt><dd>{openAiApiKeyDebugStatus}</dd></div>
               <div><dt>移動情報取得状態</dt><dd>{travelStatusLabels[travelInfo.status] ?? travelInfo.status}</dd></div>
               <div><dt>localStorage保存状態</dt><dd>{getLocalStorageDebugStatus()}</dd></div>
             </dl>

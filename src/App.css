@@ -939,6 +939,17 @@ h1 {
   outline-offset: 3px;
 }
 
+.ai-plan-key-notice {
+  margin: -3px 0 12px;
+  padding: 10px 12px;
+  color: #756a45;
+  background: #fff9e7;
+  border: 1px solid #eadcae;
+  border-radius: 11px;
+  font-size: 0.66rem;
+  line-height: 1.55;
+}
+
 .ai-plan-card {
   margin: 0 0 12px;
   padding: 16px;
@@ -2668,6 +2679,16 @@ h1 {
   margin-top: 22px;
   background: #fff;
   border-radius: 20px;
+}
+
+.developer-page .openai-settings-card {
+  margin-top: 12px;
+}
+
+.openai-settings-card .settings-heading > span {
+  color: #fff;
+  background: #6666c7;
+  font-size: 0.58rem;
 }
 
 .developer-page .debug-card {
