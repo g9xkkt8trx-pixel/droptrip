@@ -1,6 +1,7 @@
 import { findMajorStation } from '../data/majorStations'
 
 const ROUTES_API_URL = 'https://routes.googleapis.com/directions/v2:computeRoutes'
+const SERVER_ROUTE_API_URL = '/api/route-time'
 const ROUTE_FIELD_MASK = 'routes.duration,routes.distanceMeters'
 const REQUEST_TIMEOUT_MS = 30000
 
@@ -19,6 +20,10 @@ export const getGoogleMapsApiKeySource = (storedApiKey = '') => {
   if (storedApiKey.trim()) return 'localStorage'
   return null
 }
+
+export const getGoogleMapsCommunicationModeLabel = (mode = 'server') => (
+  mode === 'local-direct' ? 'ローカル開発用キー' : 'サーバー経由'
+)
 
 const durationToMinutes = (duration) => (
   Math.max(1, Math.round(Number.parseFloat(duration) / 60))
@@ -138,7 +143,62 @@ const toDestinationWaypoint = (destination) => {
   throw new Error('Destination is missing')
 }
 
-const fetchRoute = async ({ origin, destination, travelMode, departureTime, apiKey, signal }) => {
+const buildRouteResult = ({ duration, distanceMeters, requestDebug, communicationMode }) => {
+  const durationMinutes = durationToMinutes(duration)
+  return {
+    duration: formatDuration(durationMinutes),
+    durationMinutes,
+    distance: Number.isFinite(distanceMeters) ? formatDistance(distanceMeters) : null,
+    distanceMeters: Number.isFinite(distanceMeters) ? distanceMeters : null,
+    requestDebug,
+    communicationMode,
+  }
+}
+
+const fetchServerRoute = async ({ origin, destination, travelMode, departureTime, signal }) => {
+  const requestDebug = {
+    origin: typeof origin === 'string' ? origin : JSON.stringify(origin),
+    destination: typeof destination === 'string' ? destination : JSON.stringify(destination),
+    travelMode,
+    departureTime: departureTime ?? null,
+    endpoint: SERVER_ROUTE_API_URL,
+    fields: ROUTE_FIELD_MASK,
+  }
+  let response
+  try {
+    response = await fetch(SERVER_ROUTE_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ origin, destination, travelMode, departureTime }),
+      signal,
+    })
+  } catch (error) {
+    error.serverUnavailable = true
+    error.requestDebug = requestDebug
+    throw error
+  }
+
+  if (!response.ok) {
+    const payload = await response.json().catch(() => ({}))
+    const error = new TravelTimeError(payload.error || 'Route server request failed', payload.code || 'ROUTE_ERROR')
+    error.serverUnavailable = response.status === 405 || (response.status === 404 && payload.code !== 'ROUTE_NOT_FOUND')
+    error.httpStatus = response.status
+    error.googleMessage = payload.error || 'サーバー経由の経路取得に失敗しました'
+    error.requestDebug = requestDebug
+    throw error
+  }
+
+  const data = await response.json()
+  return buildRouteResult({
+    duration: data.duration,
+    distanceMeters: data.distanceMeters,
+    communicationMode: 'server',
+    requestDebug: { ...requestDebug, httpStatus: response.status, googleMessage: '' },
+  })
+}
+
+// localhostでServerless Functionが動かない場合だけ使う開発専用の直接通信。
+const fetchLocalDirectRoute = async ({ origin, destination, travelMode, departureTime, apiKey, signal }) => {
   const requestBody = {
     origin: { address: appendJapan(origin) },
     destination: toDestinationWaypoint(destination),
@@ -214,14 +274,26 @@ const fetchRoute = async ({ origin, destination, travelMode, departureTime, apiK
     throw routeNotFoundError
   }
 
-  const durationMinutes = durationToMinutes(route.duration)
-
-  return {
-    duration: formatDuration(durationMinutes),
-    durationMinutes,
-    distance: Number.isFinite(route.distanceMeters) ? formatDistance(route.distanceMeters) : null,
-    distanceMeters: Number.isFinite(route.distanceMeters) ? route.distanceMeters : null,
+  return buildRouteResult({
+    duration: route.duration,
+    distanceMeters: route.distanceMeters,
+    communicationMode: 'local-direct',
     requestDebug: { ...requestDebug, httpStatus: response.status, googleMessage: '' },
+  })
+}
+
+const canUseLocalDirectFallback = () => (
+  import.meta.env.DEV
+  && typeof window !== 'undefined'
+  && ['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname)
+)
+
+const fetchRoute = async (options) => {
+  try {
+    return await fetchServerRoute(options)
+  } catch (error) {
+    if (!error.serverUnavailable || !canUseLocalDirectFallback() || !options.apiKey) throw error
+    return fetchLocalDirectRoute(options)
   }
 }
 
@@ -310,10 +382,6 @@ const fetchTransitRoute = async ({ origin, destination, apiKey, signal }) => {
 export const getTravelInfo = async ({ origin, destination, apiKey: storedApiKey = '' }) => {
   const apiKey = getEnvironmentApiKey() || storedApiKey.trim()
 
-  if (!apiKey) {
-    return { status: 'unconfigured', car: null, publicTransit: null }
-  }
-
   const controller = new AbortController()
   const timeoutId = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
   let carResult
@@ -363,6 +431,12 @@ export const getTravelInfo = async ({ origin, destination, apiKey: storedApiKey 
   const transitFallback = transitPayload?.fallback ?? transitResult.reason?.transitFallback ?? null
 
   if (!car && !publicTransit) {
+    const localConfigurationError = [carResult, transitResult].find((result) => (
+      result.status === 'rejected' && result.reason?.serverUnavailable && !apiKey
+    ))
+    if (localConfigurationError && canUseLocalDirectFallback()) {
+      return { status: 'unconfigured', car: null, publicTransit: null }
+    }
     const apiKeyError = [carResult, transitResult].find((result) => (
       result.status === 'rejected' && result.reason?.code === 'API_KEY_INVALID'
     ))
@@ -374,5 +448,12 @@ export const getTravelInfo = async ({ origin, destination, apiKey: storedApiKey 
     throw noRoutesError
   }
 
-  return { status: 'success', car, publicTransit, transitDebug, transitFallback }
+  return {
+    status: 'success',
+    car,
+    publicTransit,
+    transitDebug,
+    transitFallback,
+    communicationMode: car?.communicationMode ?? transitRoute?.communicationMode ?? 'server',
+  }
 }

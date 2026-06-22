@@ -62,7 +62,13 @@ npm run dev
 
 移動時間と距離を取得するには、Google CloudでRoutes APIと課金を有効にし、APIキーを用意してください。
 
-プロジェクト直下の `.env` に次のように設定します。
+公開版では、フロントエンドから `/api/route-time` を呼び、Vercel Serverless FunctionからGoogle Routes APIへ接続します。Vercelなどの公開環境には、次のサーバー環境変数を設定してください。
+
+```env
+GOOGLE_MAPS_API_KEY=サーバー側だけに保存するAPIキー
+```
+
+Vite開発サーバーだけを起動し、`/api/route-time` が利用できない場合のローカルフォールバックは、プロジェクト直下の `.env` に次のように設定します。
 
 ```env
 VITE_GOOGLE_MAPS_API_KEY=ここにAPIキー
@@ -70,11 +76,11 @@ VITE_GOOGLE_MAPS_API_KEY=ここにAPIキー
 
 設定後は開発サーバーを再起動してください。
 
-APIキーはアプリ下部の設定カードから保存することもできます。`.env` と設定カードの両方にキーがある場合は、`.env` のキーが優先されます。
+ローカル開発用APIキーは開発者ページから保存することもできます。`.env` と設定カードの両方にキーがある場合は、`.env` のキーが優先されます。
 
 APIキーを設定しなくても、抽選・プラン・お気に入りなどの機能は利用できます。移動情報カードには設定案内が表示されます。
 
-> `VITE_` から始まる環境変数とlocalStorageの値は、ブラウザ上で参照できます。APIキーを秘密情報として扱う用途には向きません。Google Cloud側でRoutes APIだけを許可するAPI制限、公開先ドメインの利用制限、利用上限を必ず設定してください。`.env` はGitの管理対象外です。
+> `VITE_GOOGLE_MAPS_API_KEY` と開発者ページのキー保存はlocalhostでの動作確認専用です。公開ビルドではローカル直呼びへフォールバックしません。公開版は `GOOGLE_MAPS_API_KEY` をサーバー環境変数として管理し、車の距離・時間取得を `/api/route-time` 経由で行います。Google Maps確認リンクはAPIキーを使わない外部リンクとして維持しています。
 
 ## OpenAI APIと公開時のキー管理
 
@@ -106,15 +112,17 @@ VITE_OPENAI_PLAN_MODEL=gpt-4.1-mini
 VITE_GOOGLE_MAPS_API_KEY=
 VITE_OPENAI_API_KEY=
 VITE_OPENAI_PLAN_MODEL=gpt-4.1-mini
+GOOGLE_MAPS_API_KEY=
 OPENAI_API_KEY=
 OPENAI_PLAN_MODEL=gpt-4.1-mini
 ```
 
 | 変数名 | 用途 | 公開時の扱い |
 | --- | --- | --- |
-| `VITE_GOOGLE_MAPS_API_KEY` | Google Maps Routes APIから車・公共交通情報を取得 | Google CloudでAPI制限・HTTPリファラー（公開先ドメイン）制限・利用上限を設定 |
+| `VITE_GOOGLE_MAPS_API_KEY` | localhostでGoogle Routes APIを直接検証 | 公開版では使用しない |
 | `VITE_OPENAI_API_KEY` | ローカル検証版でAI旅行プランを生成 | 公開版では使用せず、サーバー側の秘密環境変数へ移行 |
 | `VITE_OPENAI_PLAN_MODEL` | ローカル直呼びで使うモデル名 | 公開版では使用しない |
+| `GOOGLE_MAPS_API_KEY` | Serverless FunctionからGoogle Routes APIへ接続 | サーバー環境変数として設定し、Routes API制限・利用上限を設定 |
 | `OPENAI_API_KEY` | Serverless FunctionからOpenAI APIへ接続 | Vercelなどのサーバー環境変数として設定し、ブラウザへ公開しない |
 | `OPENAI_PLAN_MODEL` | サーバー経由のAIプラン生成モデル | Serverless Functionだけが参照する |
 
@@ -125,7 +133,7 @@ OPENAI_PLAN_MODEL=gpt-4.1-mini
 - 現在の実装は、ローカル開発・機能検証を目的としています。
 - OpenAI APIキーをブラウザのlocalStorage、JavaScript、`VITE_`環境変数へ保存した状態で一般公開しないでください。
 - OpenAI API通信は `/api/generate-plan` 経由です。一般公開前に、このサーバーAPIへ認証・利用回数制限・料金保護を追加してください。
-- Google Maps APIキーはブラウザから参照可能なため、Google Cloudで利用API、HTTPリファラー（公開先ドメイン）、利用量を制限してください。
+- Google Routes API通信は `/api/route-time` 経由です。`GOOGLE_MAPS_API_KEY` はサーバーだけで管理し、Routes API制限・利用量制限を設定してください。
 - プレミアム機能、ユーザー認証、決済、サーバー側の利用回数管理は今後実装予定です。現在のプレミアム切り替えは開発テスト専用です。
 - 公開前に `.env` がGit管理対象外で、`.env.example` のみに安全な設定例が含まれていることを確認してください。
 

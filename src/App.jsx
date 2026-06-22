@@ -1,6 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import './App.css'
-import { createTransitFallback, getGoogleMapsApiKeySource, getTravelInfo } from './services/travelTime'
+import {
+  createTransitFallback,
+  getGoogleMapsApiKeySource,
+  getGoogleMapsCommunicationModeLabel,
+  getTravelInfo,
+} from './services/travelTime'
 import { createAiPlanPrompt } from './services/aiPlanPrompt'
 import { getOpenAiApiKeySource } from './services/openAiConfig'
 import { generateOpenAiPlan, getOpenAiCommunicationModeLabel, OPENAI_PLAN_MODEL } from './services/openAiPlan'
@@ -44,7 +49,7 @@ const publicSecurityChecks = [
   { label: '.env がGit管理対象外', passed: true, note: '.gitignoreで .env と派生ファイルを除外しています。' },
   { label: '.env.example のみGit管理対象', passed: true, note: '変数名と安全な初期値だけを共有します。' },
   { label: 'OpenAI APIキーをサーバー側で管理', passed: false, note: '公開版へ移行する際に必須です。現在はローカル検証用です。' },
-  { label: 'Google Maps APIキーにAPI・ドメイン制限を設定', passed: false, note: 'Google Cloudで公開先に合わせて設定してください。' },
+  { label: 'Google Maps API制限と経路APIの保護を設定', passed: false, note: 'Routes API制限に加え、/api/route-timeへ認証・レート制限を追加してください。' },
 ]
 const DEBUG_STORAGE_KEYS = [
   FAVORITES_STORAGE_KEY,
@@ -1939,13 +1944,13 @@ function App() {
                   {travelInfo.status === 'error' && (
                     <div className="travel-state travel-error" role="alert">
                       <strong>移動情報を取得できませんでした。</strong>
-                      <p>出発地の入力内容やAPIキーを確認してください。</p>
+                      <p>しばらくしてから再度お試しください。</p>
                     </div>
                   )}
                   {travelInfo.status === 'api-error' && (
                     <div className="travel-state travel-error" role="alert">
-                      <strong>APIキーが無効、またはRoutes APIが有効化されていない可能性があります</strong>
-                      <p>Google CloudのAPIキー、Routes API、課金設定を確認してください。</p>
+                      <strong>移動情報を取得できませんでした。</strong>
+                      <p>しばらくしてから再度お試しください。</p>
                     </div>
                   )}
                   <button className="calculation-method-button" type="button" onClick={() => switchPage('calculation')}>
@@ -2391,7 +2396,8 @@ function App() {
             </div>
 
             <p className="settings-help" id="api-key-help">
-              キーの全文は画面に再表示しません。.envにキーがある場合はそちらが優先されます。
+              公開版はサーバー側のGOOGLE_MAPS_API_KEYを使い、/api/route-time経由で通信します。
+              この入力欄とVITE_GOOGLE_MAPS_API_KEYはlocalhostでの開発フォールバック専用です。キー全文は再表示しません。
             </p>
 
             {apiKeyNotice && <p className="settings-notice">{apiKeyNotice}</p>}
@@ -2701,6 +2707,7 @@ function App() {
               <div><dt>季節相性</dt><dd>{selectionMeta?.seasonCompatibility ?? '未算出'}</dd></div>
               <div><dt>抽選方式</dt><dd>重み付きランダム（ランダム要素あり）</dd></div>
               <div><dt>APIキー設定状態</dt><dd>{apiKeyDebugStatus}</dd></div>
+              <div><dt>Google Maps通信方式</dt><dd>{getGoogleMapsCommunicationModeLabel(travelInfo.communicationMode)}</dd></div>
               <div><dt>OpenAI APIキー設定状態</dt><dd>{openAiApiKeyDebugStatus}</dd></div>
               <div><dt>AIプランモデル</dt><dd>{OPENAI_PLAN_MODEL}</dd></div>
               <div><dt>OpenAI通信方式</dt><dd>{getOpenAiCommunicationModeLabel(openAiCommunicationMode)}</dd></div>
