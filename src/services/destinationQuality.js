@@ -7,6 +7,7 @@ import {
 
 const requiredTripTypes = ['日帰り', '1泊2日', '2泊3日']
 const allowedTags = ['温泉', '海', '山', 'グルメ', 'カップル向け']
+const prefectureTarget = 47
 const tagKeywords = {
   温泉: ['温泉', '湯'],
   海: ['海', '港', '島', 'ビーチ', '砂浜', '海鮮'],
@@ -97,6 +98,11 @@ export const runDestinationQualityChecks = (destinations) => {
   const fallbackReady = [DEFAULT_TRAVEL_IMAGE, DEFAULT_FOOD_IMAGE, DEFAULT_SCENERY_IMAGE]
     .every(isValidImageUrl)
   const warnings = results.filter((result) => result.issues.length > 0)
+  const coveredPrefectures = new Set(destinations.map((destination) => destination.prefecture).filter(Boolean)).size
+  const tagCounts = Object.fromEntries(allowedTags.map((tag) => [
+    tag,
+    destinations.filter((destination) => destination.tags?.includes(tag)).length,
+  ]))
   const imageStatus = destinations.reduce((summary, destination) => {
     const images = ['heroImage', 'foodImage', 'sceneryImage'].map((field) => destination[field])
     const allImagesValid = images.every(isValidImageUrl)
@@ -125,6 +131,7 @@ export const runDestinationQualityChecks = (destinations) => {
     warningCount: warnings.length,
     warnings,
     imageStatus,
+    coverage: { prefectures: coveredPrefectures, tagCounts },
     globalChecks: [
       {
         label: '画像URLが空・不正・読み込み失敗の場合のプレースホルダー切り替え',
@@ -133,6 +140,14 @@ export const runDestinationQualityChecks = (destinations) => {
       {
         label: '旅行先の重複チェック',
         passed: duplicateKeys.size === 0,
+      },
+      {
+        label: `旅行先件数（${destinations.length}件 / 目標80〜100件）`,
+        passed: destinations.length >= 80 && destinations.length <= 100,
+      },
+      {
+        label: `都道府県カバー（${coveredPrefectures} / ${prefectureTarget}）`,
+        passed: coveredPrefectures === prefectureTarget,
       },
     ],
   }

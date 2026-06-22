@@ -1761,7 +1761,8 @@ function App() {
                                   <div><dt>距離</dt><dd>{travelInfo.car.distance ?? '取得できませんでした'}</dd></div>
                                   <div><dt>目安時間</dt><dd>{travelInfo.car.duration}</dd></div>
                                   <div><dt>料金目安</dt><dd>{formatEstimatedYen(item.estimatedCost) ?? '距離取得後に概算'}</dd></div>
-                                  <div><dt>データ種別</dt><dd>距離・時間はGoogle Maps API、料金は概算</dd></div>
+                                  <div><dt>距離・時間</dt><dd>Google Maps API</dd></div>
+                                  <div><dt>料金</dt><dd>概算</dd></div>
                                 </dl>
                                 <p className={`transport-comment ${travelInfo.car.durationMinutes > 480 ? 'strong-warning' : ''}`}>
                                   車で{travelInfo.car.duration}のため、{getCarTravelComment(travelInfo.car.durationMinutes)}
@@ -1799,9 +1800,9 @@ function App() {
                           )}
                           <p className="transport-reliability">
                             信頼度：{item.mode === '車'
-                              ? '距離・時間 高精度 / 料金 概算'
+                              ? '距離・時間：高精度 / 料金：概算'
                               : item.mode === '電車'
-                                ? '時間は概算 / 正確な経路・料金はGoogle Mapsで確認'
+                                ? '時間：概算 / 正確な経路・料金はGoogle Maps'
                                 : '概算'}
                           </p>
                           {bestTransportEvaluation?.mode === item.mode && <b>おすすめ</b>}
@@ -1967,8 +1968,14 @@ function App() {
                           <div><dt>行けそう度</dt><dd>{latestHistory?.feasibilityStars ?? '未取得'}</dd></div>
                         </dl>
                         <div className="favorite-page-actions">
-                          <button type="button" className={compareCities.includes(place.city) ? 'selected' : ''} onClick={() => toggleComparison(place.city)}>
-                            {compareCities.includes(place.city) ? '比較中・外す' : '比較に追加'}
+                          <button
+                            type="button"
+                            className={`favorite-compare-button ${compareCities.includes(place.city) ? 'selected' : ''}`}
+                            aria-pressed={compareCities.includes(place.city)}
+                            onClick={() => toggleComparison(place.city)}
+                          >
+                            <span>{compareCities.includes(place.city) ? '比較中' : '比較に追加'}</span>
+                            {compareCities.includes(place.city) && <small>比較から外す</small>}
                           </button>
                           <button type="button" onClick={() => markAsVisited(place.city)}>行った場所にする</button>
                           <button type="button" className="danger" onClick={() => toggleFavorite(place.city)}>お気に入り削除</button>
@@ -2397,6 +2404,12 @@ function App() {
             <div><span>ライセンス未確認</span><strong>{destinationQualityReport.imageStatus.licenseUnconfirmed}件</strong></div>
             <div><span>読み込み失敗</span><strong>{imageFailures.length}件</strong></div>
             <div><span>要確認</span><strong>{destinationQualityReport.imageStatus.needsReview}件</strong></div>
+          </div>
+
+          <div className="quality-tag-balance" aria-label="旅行先タグの件数">
+            {Object.entries(destinationQualityReport.coverage.tagCounts).map(([tag, count]) => (
+              <span key={tag}>{tag} <b>{count}件</b></span>
+            ))}
           </div>
 
           {destinationQualityReport.warningCount === 0 ? (

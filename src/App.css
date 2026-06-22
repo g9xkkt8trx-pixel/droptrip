@@ -2884,6 +2884,21 @@ h1 {
 .favorite-page-actions button.selected { color: #fff; background: #2a9d8f; }
 .favorite-page-actions button.danger { color: #9a6559; background: #fff; border-color: #ead7d1; }
 
+.favorite-page-actions .favorite-compare-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+}
+
+.favorite-compare-button small {
+  color: inherit;
+  font-size: 0.48rem;
+  font-weight: 700;
+  opacity: 0.88;
+}
+
 .history-page .history-page-list {
   margin-top: 22px;
   background: #fff;
@@ -3212,6 +3227,25 @@ h1 {
 .quality-image-status strong {
   color: #28786b;
   font-size: 0.7rem;
+}
+
+.quality-tag-balance {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.quality-tag-balance span {
+  padding: 5px 8px;
+  color: #567068;
+  background: #edf6f3;
+  border-radius: 999px;
+  font-size: 0.58rem;
+}
+
+.quality-tag-balance b {
+  color: #28786b;
 }
 
 .quality-all-clear {
@@ -3985,6 +4019,45 @@ h1 {
   .calculation-method-card li,
   .calculation-formula p,
   .flight-comparison p { font-size: 0.7rem; line-height: 1.75; }
+}
+
+/* ブラウザのスクロールバー・小数ピクセル丸めを含め、430px端末を確実に対象にする。 */
+@media (max-width: 440px) {
+  .transport-comparison-list {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 12px;
+  }
+
+  .transport-comparison-item,
+  .transport-comparison-item:nth-child(3) {
+    width: 100%;
+    grid-column: auto;
+  }
+
+  .transport-comparison-item:nth-child(1) { order: 1; }
+  .transport-comparison-item:nth-child(2) { order: 2; }
+  .transport-comparison-item:nth-child(3) { order: 3; }
+
+  .transport-comparison-item {
+    padding: 16px;
+  }
+
+  .transport-comparison-item dl > div {
+    margin-top: 8px;
+    font-size: 0.72rem;
+    line-height: 1.65;
+  }
+
+  .transport-comparison-item .transport-reliability,
+  .transport-recommendation-reason p {
+    line-height: 1.7;
+  }
+
+  .transit-fallback > a {
+    min-height: 46px;
+  }
 }
 
 @media (max-width: 350px) {
