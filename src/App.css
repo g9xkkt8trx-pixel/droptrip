@@ -81,6 +81,14 @@ h1 {
   font-weight: 600;
 }
 
+.hero-description {
+  max-width: 330px;
+  margin: 12px auto 0;
+  color: #65746f;
+  font-size: 0.72rem;
+  line-height: 1.7;
+}
+
 .trip-form {
   display: grid;
   gap: 25px;
@@ -89,6 +97,66 @@ h1 {
   border: 1px solid #e5ebe8;
   border-radius: 22px;
   box-shadow: 0 5px 20px rgba(37, 67, 59, 0.055);
+}
+
+.quick-guide {
+  padding: 11px 13px;
+  background: #f4f8f6;
+  border: 1px solid #e2ebe8;
+  border-radius: 13px;
+}
+
+.quick-guide summary {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #42675e;
+  cursor: pointer;
+  font-size: 0.68rem;
+  font-weight: 800;
+  list-style: none;
+}
+
+.quick-guide summary::-webkit-details-marker { display: none; }
+
+.quick-guide summary::after {
+  content: '+';
+  margin-left: auto;
+  color: #2a9d8f;
+  font-size: 0.9rem;
+}
+
+.quick-guide[open] summary::after { content: '−'; }
+
+.quick-guide summary > span { color: #e76f51; }
+
+.quick-guide ol {
+  display: grid;
+  gap: 8px;
+  margin: 11px 0 0;
+  padding: 11px 0 0;
+  border-top: 1px solid #dce8e4;
+  list-style: none;
+}
+
+.quick-guide li {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #64766f;
+  font-size: 0.65rem;
+}
+
+.quick-guide li b {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  color: #fff;
+  background: #2a9d8f;
+  border-radius: 50%;
+  font-size: 0.58rem;
 }
 
 .field-group {
@@ -396,6 +464,14 @@ h1 {
   transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease;
 }
 
+.decide-note {
+  margin: -8px 0 -13px;
+  color: #82918c;
+  text-align: center;
+  font-size: 0.66rem;
+  line-height: 1.5;
+}
+
 .decide-button svg {
   width: 21px;
   fill: none;
@@ -646,6 +722,15 @@ h1 {
   font-size: 0.75rem;
   font-weight: 700;
   line-height: 1.6;
+}
+
+.destiny-content > .destiny-explanation {
+  margin: -3px 0 10px;
+  color: #d9f2ed;
+  font-size: 0.6rem;
+  font-weight: 500;
+  line-height: 1.55;
+  letter-spacing: 0;
 }
 
 .destiny-factors {
@@ -1432,6 +1517,13 @@ h1 {
 
 .travel-card {
   margin-top: 10px;
+}
+
+.transport-introduction {
+  margin: -4px 0 8px;
+  color: #60766f;
+  font-size: 0.68rem;
+  line-height: 1.65;
 }
 
 .travel-destination {

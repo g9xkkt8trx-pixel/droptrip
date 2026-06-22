@@ -1465,9 +1465,18 @@ function App() {
           <p className="eyebrow">WHERE TO NEXT?</p>
           <h1 id="app-title" onClick={handleDeveloperTitleClick}>DROPTRIP</h1>
           <p className="subtitle">運命の旅行先を決めよう</p>
+          <p className="hero-description">出発地と気分を選ぶだけ。今のあなたに合う旅先をランダムに提案します。</p>
         </header>
 
         <form onSubmit={chooseDestination} className="trip-form" noValidate>
+          <details className="quick-guide">
+            <summary><span aria-hidden="true">✦</span>かんたん3ステップ</summary>
+            <ol>
+              <li><b>1</b><span>出発地を入力</span></li>
+              <li><b>2</b><span>旅行タイプとこだわりを選ぶ</span></li>
+              <li><b>3</b><span>旅先を決める</span></li>
+            </ol>
+          </details>
           <div className="field-group">
             <label htmlFor="departure">出発地</label>
             <div className="input-wrap">
@@ -1586,6 +1595,7 @@ function App() {
             </div>
           </fieldset>
 
+          <p className="decide-note">思いがけない場所へ、出かけよう。</p>
           <button type="submit" className="decide-button">
             <span>旅先を決める</span>
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -1609,11 +1619,11 @@ function App() {
               />
               <p className="result-label">YOUR DESTINATION</p>
               <div className="result-pin" aria-hidden="true">✦</div>
-              <p className="result-city"><span>旅先：</span>{destination.city}</p>
+              <p className="result-city"><span>今回の旅先：</span>{destination.city}</p>
               <p className="result-nearest-station">最寄り目安：{destination.nearestStationLabel}</p>
               <div className="result-divider" />
               <p className="result-recommendation">
-                <span>おすすめ</span>
+                <span>この旅先の魅力</span>
                 {destination.recommendation}
               </p>
               <button
@@ -1647,6 +1657,7 @@ function App() {
                 <p>DESTINY MATCH</p>
                 <h2 id="destiny-title">運命度</h2>
                 <blockquote>「{destiny.comment}」</blockquote>
+                <p className="destiny-explanation">条件・季節・旅行タイプとの相性から算出しています。</p>
                 <div className="destiny-factors" aria-label="運命度の算出要素">
                   <span>条件一致 <b>{destiny.matchingCount}件</b></span>
                   <span>旅行タイプ <b>◎</b></span>
@@ -1762,7 +1773,7 @@ function App() {
                   {isPremiumUser && <b>有効</b>}
                 </div>
                 <p className="premium-guide-description">
-                  出発地・旅先・季節・交通手段・予算をもとに、あなた専用の旅行プランをAIが作成します。
+                  もっと具体的に計画したいときは、出発地・旅先・季節・交通手段・予算をもとに、AIがあなた向けの日程案を作成します。
                 </p>
                 <ul>
                   <li>AIが日程別プランを作成</li>
@@ -1826,6 +1837,7 @@ function App() {
 
               <div className="plan-card travel-card">
                   <h3><span aria-hidden="true">⌁</span>交通手段比較</h3>
+                  <p className="transport-introduction">車・電車・飛行機で、行きやすさをざっくり比較できます。</p>
                   <p className="travel-destination">目的地：{destination.address}</p>
                   {travelInfo.status === 'loading' && (
                     <div className="travel-state travel-loading" role="status">
@@ -2027,15 +2039,15 @@ function App() {
               <div className="developer-page-icon favorites-page-icon" aria-hidden="true">♥</div>
               <p>MY FAVORITES</p>
               <h1 id="favorites-page-title">お気に入り</h1>
-              <span>気になる旅先を比べて、次の旅行を考えましょう</span>
+              <span>気になる旅先を保存して、あとから季節や条件で比較できます。</span>
             </header>
 
             <aside className="comparison-guide-card" aria-labelledby="comparison-guide-title">
               <div aria-hidden="true">⇄</div>
               <section>
                 <p>COMPARE FAVORITES</p>
-                <h2 id="comparison-guide-title">気になる旅先を比較できます</h2>
-                <span>お気に入りに入れた旅先を選んで、季節・こだわり条件に合うかを比較できます。</span>
+                <h2 id="comparison-guide-title">保存した旅先を、ゆっくり比べよう</h2>
+                <span>気になる旅先を選んで、予定している季節やこだわり条件との相性を比べられます。</span>
                 <b>{favoriteDestinations.length >= 2 ? '2件以上選ぶと比較できます' : '比較するにはお気に入りを2件以上登録してください'}</b>
               </section>
             </aside>
@@ -2199,7 +2211,7 @@ function App() {
               <div className="developer-page-icon history-page-icon" aria-hidden="true">↶</div>
               <p>DRAW HISTORY</p>
               <h1 id="history-page-title">抽選履歴一覧</h1>
-              <span>保存されている履歴を最大20件まで表示します</span>
+              <span>過去に出会った旅先を、もう一度確認できます。</span>
             </header>
 
             <section className="history-section history-page-list" aria-labelledby="history-page-list-title">
