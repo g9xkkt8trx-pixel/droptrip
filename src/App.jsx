@@ -3,7 +3,7 @@ import './App.css'
 import { createTransitFallback, getGoogleMapsApiKeySource, getTravelInfo } from './services/travelTime'
 import { createAiPlanPrompt } from './services/aiPlanPrompt'
 import { getOpenAiApiKeySource } from './services/openAiConfig'
-import { generateOpenAiPlan, OPENAI_PLAN_MODEL } from './services/openAiPlan'
+import { generateOpenAiPlan, getOpenAiCommunicationModeLabel, OPENAI_PLAN_MODEL } from './services/openAiPlan'
 import {
   isPremiumEnabled,
   loadPremiumStatus,
@@ -745,6 +745,7 @@ function App() {
   const [aiPlanUsage, setAiPlanUsage] = useState(loadAiPlanUsage)
   const [isPremiumUser, setIsPremiumUser] = useState(loadPremiumStatus)
   const [drawSimulation, setDrawSimulation] = useState(null)
+  const [openAiCommunicationMode, setOpenAiCommunicationMode] = useState('server')
 
   const favoriteDestinations = favoriteCities
     .map((city) => destinations.find((place) => place.city === city))
@@ -1396,14 +1397,6 @@ function App() {
       setAiPlanNotice('プレミアム機能は今後提供予定です')
       return
     }
-    if (!openAiApiKeySource) {
-      ++aiPlanRequestId.current
-      setAiPlanResult('')
-      setAiPlanStatus('unconfigured')
-      setAiPlanNotice('OpenAI APIキーを設定するとAIプランを生成できます')
-      return
-    }
-
     if (todayAiPlanUsageCount >= DAILY_AI_PLAN_LIMIT) {
       ++aiPlanRequestId.current
       setAiPlanResult('')
@@ -1443,13 +1436,14 @@ function App() {
         storedApiKey: savedOpenAiApiKey,
       })
       if (requestId === aiPlanRequestId.current) {
-        setAiPlanResult(result)
+        setAiPlanResult(result.text)
+        setOpenAiCommunicationMode(result.mode)
         setAiPlanStatus('success')
       }
     } catch {
       if (requestId === aiPlanRequestId.current) {
         setAiPlanStatus('error')
-        setAiPlanNotice('AIプランを生成できませんでした。APIキーや通信状況を確認してください。')
+        setAiPlanNotice('AIプランを生成できませんでした。しばらくしてから再度お試しください。')
       }
     }
   }
@@ -2455,8 +2449,8 @@ function App() {
             </div>
 
             <p className="settings-help" id="openai-api-key-help">
-              今回はキーの保存・読み込み準備のみです。OpenAI APIへの通信は行いません。
-              キーの全文は再表示せず、VITE_OPENAI_API_KEYがある場合は.envを優先します。
+              公開版はサーバー側のOPENAI_API_KEYを使い、/api/generate-plan経由で通信します。
+              この入力欄とVITE_OPENAI_API_KEYはlocalhostでの開発フォールバック専用です。キー全文は再表示しません。
             </p>
             {openAiApiKeyNotice && <p className="settings-notice">{openAiApiKeyNotice}</p>}
 
@@ -2709,6 +2703,7 @@ function App() {
               <div><dt>APIキー設定状態</dt><dd>{apiKeyDebugStatus}</dd></div>
               <div><dt>OpenAI APIキー設定状態</dt><dd>{openAiApiKeyDebugStatus}</dd></div>
               <div><dt>AIプランモデル</dt><dd>{OPENAI_PLAN_MODEL}</dd></div>
+              <div><dt>OpenAI通信方式</dt><dd>{getOpenAiCommunicationModeLabel(openAiCommunicationMode)}</dd></div>
               <div><dt>AIプラン生成状態</dt><dd>{aiPlanStatus}</dd></div>
               <div><dt>本日のAI生成回数</dt><dd>{todayAiPlanUsageCount} / {DAILY_AI_PLAN_LIMIT}回</dd></div>
               <div><dt>プレミアム状態</dt><dd>{isPremiumUser ? '有効（テスト）' : '無効'}</dd></div>
