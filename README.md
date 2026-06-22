@@ -89,6 +89,33 @@ VITE_OPENAI_PLAN_MODEL=gpt-4.1-mini
 
 > 公開版では、Google Maps APIキーやOpenAI APIキーをブラウザのlocalStorageや`VITE_`環境変数へ保存しない方針です。特にOpenAI APIキーは、利用者から参照できないサーバー側で管理し、アプリからは自前のAPIエンドポイントを経由して呼び出してください。現在のブラウザ保存機能はローカル開発・動作確認専用です。
 
+## 環境変数
+
+`.env.example` をコピーして `.env` を作り、ローカル開発に必要な値だけを設定します。
+
+```env
+VITE_GOOGLE_MAPS_API_KEY=
+VITE_OPENAI_API_KEY=
+VITE_OPENAI_PLAN_MODEL=gpt-4.1-mini
+```
+
+| 変数名 | 用途 | 公開時の扱い |
+| --- | --- | --- |
+| `VITE_GOOGLE_MAPS_API_KEY` | Google Maps Routes APIから車・公共交通情報を取得 | Google CloudでAPI制限・HTTPリファラー（公開先ドメイン）制限・利用上限を設定 |
+| `VITE_OPENAI_API_KEY` | ローカル検証版でAI旅行プランを生成 | 公開版では使用せず、サーバー側の秘密環境変数へ移行 |
+| `VITE_OPENAI_PLAN_MODEL` | AIプラン生成に使うモデル名 | 未設定時はアプリ側の既定モデルを使用 |
+
+`.env` はGit管理対象外です。`.env.example` には変数名と安全な初期値だけを記載し、実際のAPIキーは絶対に追加しないでください。
+
+## 公開時の注意事項
+
+- 現在の実装は、ローカル開発・機能検証を目的としています。
+- OpenAI APIキーをブラウザのlocalStorage、JavaScript、`VITE_`環境変数へ保存した状態で一般公開しないでください。
+- OpenAI API通信は、認証・利用回数制限・料金保護を備えたサーバー経由へ移行する必要があります。
+- Google Maps APIキーはブラウザから参照可能なため、Google Cloudで利用API、HTTPリファラー（公開先ドメイン）、利用量を制限してください。
+- プレミアム機能、ユーザー認証、決済、サーバー側の利用回数管理は今後実装予定です。現在のプレミアム切り替えは開発テスト専用です。
+- 公開前に `.env` がGit管理対象外で、`.env.example` のみに安全な設定例が含まれていることを確認してください。
+
 ## 旅行先画像の利用方針
 
 - 画像は無断転載せず、出典・クレジット・ライセンス・確認状態を画像データと一緒に管理します。

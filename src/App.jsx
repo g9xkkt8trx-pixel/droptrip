@@ -39,6 +39,13 @@ const MAX_HISTORY_ITEMS = 20
 const DAILY_AI_PLAN_LIMIT = 3
 const destinationQualityReport = runDestinationQualityChecks(destinations)
 const drawBalanceReport = analyzeDrawBalance(destinations)
+const publicSecurityChecks = [
+  { label: 'APIキー全文が画面に表示されない', passed: true, note: '設定状態と末尾4文字だけを表示します。' },
+  { label: '.env がGit管理対象外', passed: true, note: '.gitignoreで .env と派生ファイルを除外しています。' },
+  { label: '.env.example のみGit管理対象', passed: true, note: '変数名と安全な初期値だけを共有します。' },
+  { label: 'OpenAI APIキーをサーバー側で管理', passed: false, note: '公開版へ移行する際に必須です。現在はローカル検証用です。' },
+  { label: 'Google Maps APIキーにAPI・ドメイン制限を設定', passed: false, note: 'Google Cloudで公開先に合わせて設定してください。' },
+]
 const DEBUG_STORAGE_KEYS = [
   FAVORITES_STORAGE_KEY,
   VISITED_STORAGE_KEY,
@@ -2351,7 +2358,8 @@ function App() {
         </header>
 
         <p className="developer-warning">
-          このページは開発者向けです。APIキーは公開版ではサーバー側で管理する必要があります。
+          <strong>公開前にAPIキー保護を確認してください。</strong>
+          ブラウザ側にOpenAI APIキーを保存した状態で一般公開しないでください。現在のキー設定はローカル開発・検証専用です。
         </p>
 
         <section className="settings-card" aria-labelledby="settings-title">
@@ -2501,6 +2509,28 @@ function App() {
               </li>
             ))}
           </ul>
+
+          <section className="security-check-section" aria-labelledby="security-check-title">
+            <div className="security-check-heading">
+              <div aria-hidden="true">⌾</div>
+              <div>
+                <p>SECURITY</p>
+                <h3 id="security-check-title">公開前セキュリティ確認</h3>
+              </div>
+            </div>
+            <ul>
+              {publicSecurityChecks.map((check) => (
+                <li className={check.passed ? 'passed' : 'action-required'} key={check.label}>
+                  <span aria-hidden="true">{check.passed ? '✓' : '!'}</span>
+                  <div>
+                    <strong>{check.label}</strong>
+                    <small>{check.note}</small>
+                  </div>
+                  <b>{check.passed ? '確認済み' : '公開前に対応'}</b>
+                </li>
+              ))}
+            </ul>
+          </section>
 
           <div className="quality-image-status" aria-label="旅行先画像の設定状態">
             <div><span>画像設定済み</span><strong>{destinationQualityReport.imageStatus.configured}件</strong></div>

@@ -3510,6 +3510,110 @@ h1 {
   background: #d87455;
 }
 
+.security-check-section {
+  margin-top: 14px;
+  padding: 12px;
+  background: #f7f9f8;
+  border: 1px solid #dfe8e5;
+  border-radius: 12px;
+}
+
+.security-check-heading {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.security-check-heading > div:first-child {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  color: #fff;
+  background: #315f55;
+  border-radius: 9px;
+  font-weight: 900;
+}
+
+.security-check-heading p,
+.security-check-heading h3 { margin: 0; }
+
+.security-check-heading p {
+  color: #2a9d8f;
+  font-size: 0.5rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.security-check-heading h3 {
+  color: #315f55;
+  font-size: 0.72rem;
+}
+
+.security-check-section ul {
+  display: grid;
+  gap: 7px;
+  margin: 11px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.security-check-section li {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 8px;
+  padding: 9px;
+  background: #fff;
+  border-radius: 9px;
+}
+
+.security-check-section li > span {
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: #51a993;
+  border-radius: 50%;
+  font-size: 0.55rem;
+  font-weight: 900;
+}
+
+.security-check-section li.action-required > span { background: #d87455; }
+
+.security-check-section li div {
+  display: grid;
+  gap: 2px;
+}
+
+.security-check-section strong {
+  color: #526b64;
+  font-size: 0.6rem;
+  line-height: 1.4;
+}
+
+.security-check-section small {
+  color: #81908b;
+  font-size: 0.54rem;
+  line-height: 1.5;
+}
+
+.security-check-section li > b {
+  padding: 3px 6px;
+  color: #317b6d;
+  background: #e9f6f2;
+  border-radius: 999px;
+  font-size: 0.5rem;
+  white-space: nowrap;
+}
+
+.security-check-section li.action-required > b {
+  color: #a85d45;
+  background: #fff0e9;
+}
+
 .quality-image-status {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -4071,6 +4175,13 @@ h1 {
   line-height: 1.65;
 }
 
+.developer-warning strong {
+  display: block;
+  margin-bottom: 3px;
+  color: #9a573f;
+  font-size: 0.7rem;
+}
+
 .developer-page .settings-card {
   margin-top: 22px;
   background: #fff;
@@ -4323,6 +4434,8 @@ h1 {
   .debug-details { grid-template-columns: 1fr; }
   .quality-check-summary { gap: 7px; }
   .quality-warning-list { max-height: 330px; }
+  .security-check-section li { grid-template-columns: 20px minmax(0, 1fr); }
+  .security-check-section li > b { grid-column: 2; justify-self: start; }
   .balance-groups,
   .simulation-rankings { grid-template-columns: 1fr; }
   .draw-simulation { align-items: stretch; flex-direction: column; }
