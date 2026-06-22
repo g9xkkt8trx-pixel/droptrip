@@ -12,9 +12,10 @@ import {
 } from './services/premium'
 import destinations from './data/destinations.js'
 import {
-  DEFAULT_FOOD_IMAGE,
-  DEFAULT_SCENERY_IMAGE,
   DEFAULT_TRAVEL_IMAGE,
+  getImageCredit,
+  getImageUrl,
+  getThemeImageFallback,
   isValidImageUrl,
 } from './data/destinationImages'
 import { runDestinationQualityChecks } from './services/destinationQuality'
@@ -635,26 +636,44 @@ function HistoryItems({ entries, favoriteCities, onShow, onFavorite, onDelete })
   )
 }
 
-function SafeImage({ src, fallbackSrc = DEFAULT_TRAVEL_IMAGE, alt, className = '', loading = 'lazy' }) {
+function SafeImage({
+  src,
+  fallbackSrc = DEFAULT_TRAVEL_IMAGE,
+  alt,
+  className = '',
+  loading = 'lazy',
+  showCredit = false,
+  onLoadFailure,
+}) {
   const [hasPrimaryError, setHasPrimaryError] = useState(false)
   const [hasFallbackError, setHasFallbackError] = useState(false)
-  const resolvedSrc = isValidImageUrl(src) && !hasPrimaryError ? src : fallbackSrc
+  const resolvedImage = isValidImageUrl(src) && !hasPrimaryError ? src : fallbackSrc
+  const resolvedSrc = getImageUrl(resolvedImage)
+  const fallbackUrl = getImageUrl(fallbackSrc)
+  const credit = getImageCredit(resolvedImage)
 
   if (!isValidImageUrl(resolvedSrc) || hasFallbackError) {
     return <div className={`${className} image-placeholder`} role="img" aria-label={`${alt}（写真準備中）`}>写真準備中</div>
   }
 
   return (
-    <img
-      className={className}
-      src={resolvedSrc}
-      alt={alt}
-      loading={loading}
-      onError={() => {
-        if (resolvedSrc === fallbackSrc) setHasFallbackError(true)
-        else setHasPrimaryError(true)
-      }}
-    />
+    <>
+      <img
+        className={className}
+        src={resolvedSrc}
+        alt={alt}
+        loading={loading}
+        onError={() => {
+          if (resolvedSrc === fallbackUrl) {
+            setHasFallbackError(true)
+          } else {
+            setHasPrimaryError(true)
+            onLoadFailure?.(fallbackSrc?.source === 'tag-fallback' ? 'tag' : 'generic')
+          }
+        }}
+      />
+      {showCredit && credit && credit !== 'DROPTRIP' && <small className="image-credit">写真：{credit}</small>}
+    </>
   )
 }
 
@@ -676,7 +695,8 @@ function App() {
   const [favoriteCities, setFavoriteCities] = useState(() => loadStoredCities(FAVORITES_STORAGE_KEY))
   const [visitedCities, setVisitedCities] = useState(() => loadStoredCities(VISITED_STORAGE_KEY))
   const [compareCities, setCompareCities] = useState(() => loadStoredCities(COMPARE_STORAGE_KEY))
-  const [showComparison, setShowComparison] = useState(false)
+  const [comparisonSeason, setComparisonSeason] = useState(restoredInputState.travelSeason)
+  const [comparisonFilters, setComparisonFilters] = useState(restoredInputState.selectedFilters)
   const [savedApiKey, setSavedApiKey] = useState(loadStoredApiKey)
   const [apiKeyInput, setApiKeyInput] = useState('')
   const [apiKeyNotice, setApiKeyNotice] = useState('')
@@ -688,6 +708,7 @@ function App() {
   const [selectionMeta, setSelectionMeta] = useState(null)
   const [drawHistory, setDrawHistory] = useState(loadDrawHistory)
   const [showDebugPanel, setShowDebugPanel] = useState(false)
+  const [imageFailures, setImageFailures] = useState([])
   const [currentPage, setCurrentPage] = useState('main')
   const [aiPlanNotice, setAiPlanNotice] = useState('')
   const [aiPlanStatus, setAiPlanStatus] = useState('idle')
@@ -707,6 +728,22 @@ function App() {
     .filter((city) => favoriteCities.includes(city))
     .map((city) => destinations.find((place) => place.city === city))
     .filter(Boolean)
+  const comparisonEvaluations = comparisonDestinations.map((place) => {
+    const matchingConditions = comparisonFilters.filter((filter) => place.tags.includes(filter))
+    const placeSeason = getSeasonCompatibility(place, comparisonSeason, tripType)
+    const placeDestiny = calculateDestiny(place, comparisonFilters, tripType)
+    const recommendationScore = placeDestiny.score + placeSeason.stars * 4 + matchingConditions.length * 6
+    const comment = matchingConditions.length === comparisonFilters.length && comparisonFilters.length > 0 && placeSeason.stars >= 4
+      ? '選んだ条件と季節の両方に強く合う候補です。'
+      : placeSeason.stars >= 5
+        ? `${placeSeason.season}の魅力が特に高い候補です。`
+        : matchingConditions.length > 0
+          ? `こだわり条件のうち${matchingConditions.join('・')}と一致します。`
+          : '条件にない魅力との新しい出会いを楽しめる候補です。'
+    return { place, matchingConditions, placeSeason, placeDestiny, recommendationScore, comment }
+  })
+  const bestComparison = [...comparisonEvaluations]
+    .sort((a, b) => b.recommendationScore - a.recommendationScore)[0] ?? null
 
   const destiny = destination && planContext
     ? calculateDestiny(destination, planContext.selectedFilters, planContext.tripType)
@@ -755,6 +792,15 @@ function App() {
       ? '設定カードで設定済み'
       : '未設定'
   const todayAiPlanUsageCount = aiPlanUsage.date === getLocalDateKey() ? aiPlanUsage.count : 0
+
+  const reportImageFailure = (destinationId, imageType, fallbackType) => {
+    const key = `${destinationId}:${imageType}`
+    setImageFailures((current) => (
+      current.some((failure) => failure.key === key)
+        ? current
+        : [...current, { key, destinationId, imageType, fallbackType }]
+    ))
+  }
 
   useEffect(() => {
     try {
@@ -808,7 +854,7 @@ function App() {
     if (nextComparison.length !== compareCities.length) {
       setCompareCities(nextComparison)
       saveCities(COMPARE_STORAGE_KEY, nextComparison)
-      if (nextComparison.length < 2) setShowComparison(false)
+      if (nextComparison.length < 2 && currentPage === 'comparison') switchPage('favorites')
     }
   }
 
@@ -833,13 +879,27 @@ function App() {
 
     setCompareCities(nextComparison)
     saveCities(COMPARE_STORAGE_KEY, nextComparison)
-    if (nextComparison.length < 2) setShowComparison(false)
+    if (nextComparison.length < 2 && currentPage === 'comparison') switchPage('favorites')
   }
 
   const clearComparison = () => {
     setCompareCities([])
     saveCities(COMPARE_STORAGE_KEY, [])
-    setShowComparison(false)
+    switchPage('favorites')
+  }
+
+  const openComparison = () => {
+    setComparisonSeason(travelSeason)
+    setComparisonFilters(selectedFilters)
+    switchPage('comparison')
+  }
+
+  const toggleComparisonFilter = (filter) => {
+    setComparisonFilters((current) => (
+      current.includes(filter)
+        ? current.filter((item) => item !== filter)
+        : [...current, filter]
+    ))
   }
 
   const saveApiKey = (event) => {
@@ -945,7 +1005,8 @@ function App() {
     setLastDestinationId(null)
     setCompareCities([])
     saveCities(COMPARE_STORAGE_KEY, [])
-    setShowComparison(false)
+    setComparisonSeason('今の季節')
+    setComparisonFilters([])
     resetAiPlanState()
   }
 
@@ -954,8 +1015,8 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  const handleDeveloperTitleClick = () => {
-    const now = Date.now()
+  const handleDeveloperTitleClick = (event) => {
+    const now = event.timeStamp
     const previous = developerTitleClicks.current
     const nextCount = now - previous.lastClickAt <= 1200 ? previous.count + 1 : 1
     developerTitleClicks.current = { count: nextCount, lastClickAt: now }
@@ -1295,8 +1356,8 @@ function App() {
   return (
     <main className="app-shell">
       <section
-        className={`trip-card ${currentPage === 'developer' ? 'developer-page' : currentPage === 'history' ? 'history-page' : currentPage === 'favorites' ? 'favorites-page' : currentPage === 'calculation' ? 'calculation-page' : 'main-page'}`}
-        aria-labelledby={currentPage === 'developer' ? 'developer-page-title' : currentPage === 'history' ? 'history-page-title' : currentPage === 'favorites' ? 'favorites-page-title' : currentPage === 'calculation' ? 'calculation-page-title' : 'app-title'}
+        className={`trip-card ${currentPage === 'developer' ? 'developer-page' : currentPage === 'history' ? 'history-page' : currentPage === 'favorites' ? 'favorites-page' : currentPage === 'comparison' ? 'comparison-page' : currentPage === 'calculation' ? 'calculation-page' : 'main-page'}`}
+        aria-labelledby={currentPage === 'developer' ? 'developer-page-title' : currentPage === 'history' ? 'history-page-title' : currentPage === 'favorites' ? 'favorites-page-title' : currentPage === 'comparison' ? 'comparison-page-title' : currentPage === 'calculation' ? 'calculation-page-title' : 'app-title'}
       >
         {currentPage === 'main' ? (
           <>
@@ -1446,8 +1507,11 @@ function App() {
                 key={`${destination.id}-hero`}
                 className="result-hero-image"
                 src={destination.heroImage}
+                fallbackSrc={getThemeImageFallback(destination.tags, 'hero')}
                 alt={`${destination.city}の観光イメージ`}
                 loading="eager"
+                showCredit
+                onLoadFailure={(fallbackType) => reportImageFailure(destination.id, 'hero', fallbackType)}
               />
               <p className="result-label">YOUR DESTINATION</p>
               <div className="result-pin" aria-hidden="true">✦</div>
@@ -1561,12 +1625,19 @@ function App() {
               </div>
               <div className="journey-gallery" role="list">
                 {[
-                  { key: 'hero', src: destination.heroImage, fallbackSrc: DEFAULT_TRAVEL_IMAGE, label: '観光地写真', alt: `${destination.city}の観光イメージ` },
-                  { key: 'food', src: destination.foodImage, fallbackSrc: DEFAULT_FOOD_IMAGE, label: 'グルメ写真', alt: `${destination.city}のグルメイメージ` },
-                  { key: 'scenery', src: destination.sceneryImage, fallbackSrc: DEFAULT_SCENERY_IMAGE, label: '風景写真', alt: `${destination.city}の風景イメージ` },
+                  { key: 'hero', src: destination.heroImage, fallbackSrc: getThemeImageFallback(destination.tags, 'hero'), label: '観光地写真', alt: `${destination.city}の観光イメージ` },
+                  { key: 'food', src: destination.foodImage, fallbackSrc: getThemeImageFallback(destination.tags, 'food'), label: 'グルメ写真', alt: `${destination.city}のグルメイメージ` },
+                  { key: 'scenery', src: destination.sceneryImage, fallbackSrc: getThemeImageFallback(destination.tags, 'scenery'), label: '風景写真', alt: `${destination.city}の風景イメージ` },
                 ].map((image) => (
                   <article className="journey-image-card" role="listitem" key={`${destination.id}-${image.key}`}>
-                    <SafeImage src={image.src} fallbackSrc={image.fallbackSrc} alt={image.alt} className="journey-image" />
+                    <SafeImage
+                      src={image.src}
+                      fallbackSrc={image.fallbackSrc}
+                      alt={image.alt}
+                      className="journey-image"
+                      showCredit
+                      onLoadFailure={(fallbackType) => reportImageFailure(destination.id, image.key, fallbackType)}
+                    />
                     <span>{image.label}</span>
                   </article>
                 ))}
@@ -1864,6 +1935,16 @@ function App() {
               <span>気になる旅先を比べて、次の旅行を考えましょう</span>
             </header>
 
+            <aside className="comparison-guide-card" aria-labelledby="comparison-guide-title">
+              <div aria-hidden="true">⇄</div>
+              <section>
+                <p>COMPARE FAVORITES</p>
+                <h2 id="comparison-guide-title">気になる旅先を比較できます</h2>
+                <span>お気に入りに入れた旅先を選んで、季節・こだわり条件に合うかを比較できます。</span>
+                <b>{favoriteDestinations.length >= 2 ? '2件以上選ぶと比較できます' : '比較するにはお気に入りを2件以上登録してください'}</b>
+              </section>
+            </aside>
+
             <section className="favorites-section favorites-page-list" aria-labelledby="favorites-page-list-title">
               <div className="favorites-heading">
                 <div><p>SAVED PLACES</p><h2 id="favorites-page-list-title">登録済みの旅先</h2></div>
@@ -1887,7 +1968,7 @@ function App() {
                         </dl>
                         <div className="favorite-page-actions">
                           <button type="button" className={compareCities.includes(place.city) ? 'selected' : ''} onClick={() => toggleComparison(place.city)}>
-                            {compareCities.includes(place.city) ? '比較対象から外す' : '比較対象に追加'}
+                            {compareCities.includes(place.city) ? '比較中・外す' : '比較に追加'}
                           </button>
                           <button type="button" onClick={() => markAsVisited(place.city)}>行った場所にする</button>
                           <button type="button" className="danger" onClick={() => toggleFavorite(place.city)}>お気に入り削除</button>
@@ -1898,8 +1979,8 @@ function App() {
                 </div>
               )}
               {comparisonDestinations.length >= 2 && (
-                <button type="button" className="compare-open-button" onClick={() => setShowComparison(true)}>
-                  選択した{comparisonDestinations.length}件を比較する <span aria-hidden="true">→</span>
+                <button type="button" className="compare-open-button" onClick={openComparison}>
+                  選択した旅先を比較する <b>{comparisonDestinations.length}件</b><span aria-hidden="true">→</span>
                 </button>
               )}
             </section>
@@ -1924,43 +2005,88 @@ function App() {
               </section>
             )}
 
-            {showComparison && comparisonDestinations.length >= 2 && (
-              <section className="comparison-section" aria-labelledby="comparison-title">
-                <div className="comparison-heading">
-                  <div><p>COMPARE TRIPS</p><h2 id="comparison-title">旅先を比較</h2></div>
-                  <button type="button" onClick={() => setShowComparison(false)}>閉じる</button>
-                </div>
-                <div className="comparison-context">
-                  <div>
-                    <span>旅行タイプ：<strong>{tripType}</strong></span>
-                    <span>旅行予定季節：<strong>{travelSeason}</strong></span>
-                  </div>
-                  <button type="button" onClick={clearComparison}>選択を解除</button>
-                </div>
-                <div className="comparison-list">
-                  {comparisonDestinations.map((place) => {
-                    const matchingConditions = selectedFilters.filter((filter) => place.tags.includes(filter))
-                    const latestEvaluation = drawHistory.find((entry) => entry.city === place.city)
-                    const placeSeason = getSeasonCompatibility(place, travelSeason, tripType)
-                    return (
-                      <article className="comparison-card" key={place.city}>
-                        <header><p>{place.prefecture}</p><h3>{place.city}</h3></header>
-                        <dl>
-                          <div><dt>タグ</dt><dd className="comparison-tags">{place.tags.map((tag) => <span key={tag}>{tag}</span>)}</dd></div>
-                          <div><dt>予算目安</dt><dd>1人あたり {place.budgets[tripType]}</dd></div>
-                          <div><dt>一致条件</dt><dd>{matchingConditions.length}件{matchingConditions.length > 0 ? `（${matchingConditions.join('、')}）` : ''}</dd></div>
-                          <div><dt>おすすめポイント</dt><dd>{place.highlights}</dd></div>
-                          <div><dt>旅行タイプとの相性</dt><dd>{tripCompatibility[tripType]}</dd></div>
-                          <div><dt>季節との相性</dt><dd>{placeSeason.starsLabel} {placeSeason.description}</dd></div>
-                          <div><dt>最適な移動手段</dt><dd>{latestEvaluation?.bestTransport ?? '未評価'}</dd></div>
-                        </dl>
-                      </article>
-                    )
-                  })}
-                </div>
-              </section>
-            )}
             <p className="footer-note">DROPTRIP Favorites</p>
+          </>
+        ) : currentPage === 'comparison' ? (
+          <>
+            <header className="developer-page-header comparison-page-header">
+              <button type="button" onClick={() => switchPage('favorites')}><span aria-hidden="true">←</span>お気に入りに戻る</button>
+              <div className="developer-page-icon comparison-page-icon" aria-hidden="true">⇄</div>
+              <p>COMPARE TRIPS</p>
+              <h1 id="comparison-page-title">旅先を比較</h1>
+              <span>季節とこだわり条件を変えて、今の旅行に合う候補を探せます</span>
+            </header>
+
+            <section className="comparison-condition-card" aria-labelledby="comparison-condition-title">
+              <div className="comparison-condition-heading">
+                <p>YOUR CONDITIONS</p><h2 id="comparison-condition-title">比較条件を選び直す</h2>
+              </div>
+              <fieldset className="comparison-fieldset">
+                <legend>旅行予定季節</legend>
+                <div className="comparison-season-options">
+                  {seasonOptions.map((season) => (
+                    <label className={comparisonSeason === season ? 'selected' : ''} key={season}>
+                      <input type="radio" name="comparison-season" value={season} checked={comparisonSeason === season} onChange={() => setComparisonSeason(season)} />
+                      {season}
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+              <fieldset className="comparison-fieldset">
+                <legend>こだわり条件</legend>
+                <div className="comparison-filter-options">
+                  {filterOptions.map((filter) => (
+                    <label className={comparisonFilters.includes(filter) ? 'selected' : ''} key={filter}>
+                      <input type="checkbox" checked={comparisonFilters.includes(filter)} onChange={() => toggleComparisonFilter(filter)} />
+                      <span aria-hidden="true">✓</span>{filter}
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+              <div className="comparison-current-condition">
+                <strong>現在の比較条件</strong>
+                <span>季節：{comparisonSeason}</span>
+                <span>こだわり条件：{comparisonFilters.length > 0 ? comparisonFilters.join('、') : '指定なし'}</span>
+              </div>
+            </section>
+
+            {bestComparison && (
+              <aside className="comparison-best-card">
+                <span>BEST MATCH</span>
+                <strong>今回の条件では「{bestComparison.place.city}」が最も相性の良い候補です。</strong>
+                <p>{bestComparison.comment}</p>
+              </aside>
+            )}
+
+            <section className="comparison-section comparison-page-results" aria-labelledby="comparison-results-title">
+              <div className="comparison-heading">
+                <div><p>RESULTS</p><h2 id="comparison-results-title">比較結果</h2></div>
+                <button type="button" onClick={clearComparison}>選択を解除</button>
+              </div>
+              <div className="comparison-list">
+                {comparisonEvaluations.map(({ place, matchingConditions, placeSeason, placeDestiny, recommendationScore, comment }) => {
+                  const latestEvaluation = drawHistory.find((entry) => entry.city === place.city)
+                  return (
+                    <article className={`comparison-card ${bestComparison?.place.city === place.city ? 'best' : ''}`} key={place.city}>
+                      <header><div><p>{place.prefecture}</p><h3>{place.city}</h3></div>{bestComparison?.place.city === place.city && <b>おすすめ</b>}</header>
+                      <dl>
+                        <div><dt>タグ</dt><dd className="comparison-tags">{place.tags.map((tag) => <span key={tag}>{tag}</span>)}</dd></div>
+                        <div><dt>予算目安</dt><dd>1人あたり {place.budgets[tripType]}</dd></div>
+                        <div><dt>条件一致数</dt><dd>{matchingConditions.length}件{matchingConditions.length > 0 ? `（${matchingConditions.join('、')}）` : ''}</dd></div>
+                        <div><dt>運命度</dt><dd>{placeDestiny.score}%</dd></div>
+                        <div><dt>おすすめ度</dt><dd>{recommendationScore}pt</dd></div>
+                        <div><dt>季節との相性</dt><dd>{placeSeason.starsLabel} {placeSeason.description}</dd></div>
+                        <div><dt>比較コメント</dt><dd>{comment}</dd></div>
+                        <div><dt>おすすめポイント</dt><dd>{place.highlights}</dd></div>
+                        <div><dt>旅行タイプとの相性</dt><dd>{tripCompatibility[tripType]}</dd></div>
+                        <div><dt>最適な移動手段</dt><dd>{latestEvaluation?.bestTransport ?? '未評価'}</dd></div>
+                      </dl>
+                    </article>
+                  )
+                })}
+              </div>
+            </section>
+            <p className="footer-note">DROPTRIP Comparison</p>
           </>
         ) : currentPage === 'history' ? (
           <>
@@ -2262,6 +2388,16 @@ function App() {
               </li>
             ))}
           </ul>
+
+          <div className="quality-image-status" aria-label="旅行先画像の設定状態">
+            <div><span>画像設定済み</span><strong>{destinationQualityReport.imageStatus.configured}件</strong></div>
+            <div><span>タグ別画像フォールバック</span><strong>{destinationQualityReport.imageStatus.tagFallback + imageFailures.filter((failure) => failure.fallbackType === 'tag').length}件</strong></div>
+            <div><span>汎用画像フォールバック</span><strong>{destinationQualityReport.imageStatus.genericFallback + imageFailures.filter((failure) => failure.fallbackType === 'generic').length}件</strong></div>
+            <div><span>クレジット未設定</span><strong>{destinationQualityReport.imageStatus.creditMissing}件</strong></div>
+            <div><span>ライセンス未確認</span><strong>{destinationQualityReport.imageStatus.licenseUnconfirmed}件</strong></div>
+            <div><span>読み込み失敗</span><strong>{imageFailures.length}件</strong></div>
+            <div><span>要確認</span><strong>{destinationQualityReport.imageStatus.needsReview}件</strong></div>
+          </div>
 
           {destinationQualityReport.warningCount === 0 ? (
             <p className="quality-all-clear">全{destinationQualityReport.total}件の旅行先データに問題は見つかりませんでした。</p>

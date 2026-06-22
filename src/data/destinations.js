@@ -1,6 +1,7 @@
 import rawDestinations from './destinations.json'
 import { getDestinationImages } from './destinationImages'
 import { getDestinationTransit } from './destinationTransit'
+import { supplementalDestinations } from './supplementalDestinations'
 
 // 各自治体の代表地点。Routes APIの目的地座標として利用する。
 const destinationCoordinates = {
@@ -120,12 +121,12 @@ const normalizePlans = (plans, city) => Object.fromEntries(
  * UIで利用する旅行先データの公開モデル。
  * 元データを追加しても、このファイルで項目名と必須値を統一できる。
  */
-const destinations = rawDestinations.map((destination) => {
+const baseDestinations = rawDestinations.map((destination) => {
   const [latitude, longitude] = destinationCoordinates[destination.city]
   const address = destinationAddresses[destination.city]
     ?? `${destination.prefecture}${destination.city}`
   const seasonProfile = getSeasonProfile(destination)
-  const images = getDestinationImages(destination.prefecture, destination.city)
+  const images = getDestinationImages(destination.prefecture, destination.city, destination.tags)
   const transit = getDestinationTransit(destination.city)
 
   return {
@@ -142,6 +143,7 @@ const destinations = rawDestinations.map((destination) => {
     recommendText: destination.recommendation,
     reason: `${destination.city}は「${destination.recommendation}」をテーマにした旅行ができ、${destination.tags.join('・')}を重視する方におすすめです。`,
     budgets: destination.budget,
+    budget: destination.budget,
     plans: normalizePlans(destination.schedule, destination.city),
     highlights: destination.highlight,
     bestSeasons: seasonProfile.bestSeasons,
@@ -150,5 +152,18 @@ const destinations = rawDestinations.map((destination) => {
     ...transit,
   }
 })
+
+const expandedDestinations = supplementalDestinations.map((destination) => {
+  const images = getDestinationImages(destination.prefecture, destination.city, destination.tags)
+  return {
+    ...destination,
+    id: `${destination.prefecture}-${destination.city}`,
+    googleMapsQuery: `${destination.address} 観光`,
+    reason: `${destination.city}は「${destination.recommendText}」をテーマにした旅行ができ、${destination.tags.join('・')}を重視する方におすすめです。`,
+    ...images,
+  }
+})
+
+const destinations = [...baseDestinations, ...expandedDestinations]
 
 export default destinations

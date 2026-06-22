@@ -97,12 +97,34 @@ export const runDestinationQualityChecks = (destinations) => {
   const fallbackReady = [DEFAULT_TRAVEL_IMAGE, DEFAULT_FOOD_IMAGE, DEFAULT_SCENERY_IMAGE]
     .every(isValidImageUrl)
   const warnings = results.filter((result) => result.issues.length > 0)
+  const imageStatus = destinations.reduce((summary, destination) => {
+    const images = ['heroImage', 'foodImage', 'sceneryImage'].map((field) => destination[field])
+    const allImagesValid = images.every(isValidImageUrl)
+    if (allImagesValid && destination.imageSourceType === 'individual') summary.configured += 1
+    else if (destination.imageSourceType === 'tag') summary.tagFallback += 1
+    else if (destination.imageSourceType === 'generic') summary.genericFallback += 1
+    else summary.needsReview += 1
+    if (images.some((image) => !(image?.credit ?? image?.imageCredit))) summary.creditMissing += 1
+    if (images.some((image) => (
+      !(image?.license ?? image?.imageLicense)
+      || (image?.status ?? image?.imageStatus) !== 'confirmed'
+    ))) summary.licenseUnconfirmed += 1
+    return summary
+  }, {
+    configured: 0,
+    tagFallback: 0,
+    genericFallback: 0,
+    creditMissing: 0,
+    licenseUnconfirmed: 0,
+    needsReview: 0,
+  })
 
   return {
     total: results.length,
     passed: results.length - warnings.length,
     warningCount: warnings.length,
     warnings,
+    imageStatus,
     globalChecks: [
       {
         label: '画像URLが空・不正・読み込み失敗の場合のプレースホルダー切り替え',

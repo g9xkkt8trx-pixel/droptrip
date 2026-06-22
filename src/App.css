@@ -24,6 +24,7 @@
 
 .favorites-page,
 .history-page,
+.comparison-page,
 .calculation-page {
   background: #f8faf9;
 }
@@ -439,6 +440,14 @@ h1 {
   object-fit: cover;
 }
 
+.result-card > .image-credit {
+  display: block;
+  margin: -10px 0 12px;
+  color: #9a8177;
+  text-align: right;
+  font-size: 0.52rem;
+}
+
 .image-placeholder {
   display: grid;
   place-items: center;
@@ -846,6 +855,22 @@ h1 {
   border-radius: 999px;
   font-size: 0.58rem;
   font-weight: 700;
+  backdrop-filter: blur(5px);
+}
+
+.journey-image-card .image-credit {
+  position: absolute;
+  bottom: 9px;
+  left: 9px;
+  max-width: 58%;
+  overflow: hidden;
+  padding: 4px 7px;
+  color: #fff;
+  background: rgba(25, 47, 42, 0.66);
+  border-radius: 999px;
+  font-size: 0.5rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   backdrop-filter: blur(5px);
 }
 
@@ -2132,12 +2157,220 @@ h1 {
   background: #d45c3e;
 }
 
+.compare-open-button b {
+  padding: 3px 7px;
+  color: #d45c3e;
+  background: #fff;
+  border-radius: 999px;
+  font-size: 0.62rem;
+}
+
+.comparison-guide-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  margin-top: 18px;
+  padding: 16px;
+  color: #496d65;
+  background: linear-gradient(135deg, #edf8f4, #fff7ee);
+  border: 1px solid #d8e8e2;
+  border-radius: 17px;
+}
+
+.comparison-guide-card > div {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: #2a9d8f;
+  border-radius: 13px;
+  font-weight: 900;
+}
+
+.comparison-guide-card p,
+.comparison-guide-card h2,
+.comparison-guide-card section > span {
+  margin: 0;
+}
+
+.comparison-guide-card p {
+  color: #2a9d8f;
+  font-size: 0.52rem;
+  font-weight: 900;
+  letter-spacing: 0.13em;
+}
+
+.comparison-guide-card h2 {
+  color: #28584e;
+  font-size: 0.9rem;
+}
+
+.comparison-guide-card section > span {
+  display: block;
+  margin-top: 5px;
+  font-size: 0.67rem;
+  line-height: 1.65;
+}
+
+.comparison-guide-card b {
+  display: inline-block;
+  margin-top: 9px;
+  padding: 5px 8px;
+  color: #b75f45;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 999px;
+  font-size: 0.6rem;
+}
+
 .comparison-section {
   margin-top: 20px;
   padding: 20px;
   background: #fff7ed;
   border: 1px solid #f1d8c5;
   border-radius: 18px;
+}
+
+.comparison-condition-card {
+  margin-top: 20px;
+  padding: 18px;
+  background: #fff;
+  border: 1px solid #dfe9e5;
+  border-radius: 18px;
+}
+
+.comparison-condition-heading p,
+.comparison-condition-heading h2 {
+  margin: 0;
+}
+
+.comparison-condition-heading p {
+  color: #2a9d8f;
+  font-size: 0.54rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+}
+
+.comparison-condition-heading h2 {
+  color: #28584e;
+  font-size: 0.95rem;
+}
+
+.comparison-fieldset {
+  margin: 15px 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.comparison-fieldset legend {
+  margin-bottom: 8px;
+  color: #496a62;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.comparison-season-options,
+.comparison-filter-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.comparison-season-options label,
+.comparison-filter-options label {
+  position: relative;
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 10px;
+  color: #687d76;
+  background: #f3f7f5;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.65rem;
+  font-weight: 800;
+}
+
+.comparison-season-options label.selected,
+.comparison-filter-options label.selected {
+  color: #fff;
+  background: #2a9d8f;
+  border-color: #2a9d8f;
+}
+
+.comparison-season-options input,
+.comparison-filter-options input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.comparison-filter-options label > span {
+  color: transparent;
+}
+
+.comparison-filter-options label.selected > span {
+  color: #fff;
+}
+
+.comparison-season-options label:has(input:focus-visible),
+.comparison-filter-options label:has(input:focus-visible) {
+  outline: 2px solid #2a9d8f;
+  outline-offset: 2px;
+}
+
+.comparison-current-condition {
+  display: grid;
+  gap: 4px;
+  margin-top: 15px;
+  padding: 12px;
+  color: #60766f;
+  background: #f0f7f4;
+  border-radius: 11px;
+  font-size: 0.66rem;
+  line-height: 1.55;
+}
+
+.comparison-current-condition strong {
+  color: #28786b;
+}
+
+.comparison-best-card {
+  margin-top: 14px;
+  padding: 16px;
+  color: #fff;
+  background: linear-gradient(135deg, #1f7669, #35a38f);
+  border-radius: 17px;
+  box-shadow: 0 9px 24px rgba(31, 118, 105, 0.2);
+}
+
+.comparison-best-card > span {
+  display: block;
+  color: #c8f0e7;
+  font-size: 0.52rem;
+  font-weight: 900;
+  letter-spacing: 0.15em;
+}
+
+.comparison-best-card strong {
+  display: block;
+  margin-top: 3px;
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+
+.comparison-best-card p {
+  margin: 6px 0 0;
+  color: #e4f6f2;
+  font-size: 0.66rem;
+  line-height: 1.6;
+}
+
+.comparison-page-results {
+  background: #f8faf9;
+  border-color: #dfe9e5;
 }
 
 .comparison-heading,
@@ -2206,10 +2439,24 @@ h1 {
   border-radius: 14px;
 }
 
+.comparison-card.best {
+  background: #f1faf7;
+  border-color: #75bcae;
+  box-shadow: 0 6px 18px rgba(42, 125, 111, 0.1);
+}
+
 .comparison-card header {
   margin-bottom: 12px;
   padding-bottom: 10px;
   border-bottom: 1px solid #f0e3da;
+}
+
+.comparison-card header > b {
+  padding: 4px 7px;
+  color: #fff;
+  background: #e76f51;
+  border-radius: 999px;
+  font-size: 0.56rem;
 }
 
 .comparison-card header p {
@@ -2939,6 +3186,32 @@ h1 {
 
 .quality-global-checks li.warning > span {
   background: #d87455;
+}
+
+.quality-image-status {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+  margin-top: 12px;
+}
+
+.quality-image-status > div {
+  display: grid;
+  gap: 3px;
+  padding: 9px;
+  background: #f5f8f7;
+  border-radius: 9px;
+}
+
+.quality-image-status span {
+  color: #7b8a85;
+  font-size: 0.55rem;
+  line-height: 1.4;
+}
+
+.quality-image-status strong {
+  color: #28786b;
+  font-size: 0.7rem;
 }
 
 .quality-all-clear {
@@ -3681,6 +3954,16 @@ h1 {
   .history-actions button { min-height: 44px; line-height: 1.35; }
   .history-item dd { overflow: visible; text-overflow: clip; white-space: normal; }
   .favorite-item button { min-width: 44px; min-height: 44px; }
+  .comparison-guide-card { grid-template-columns: 1fr; padding: 14px; }
+  .comparison-guide-card > div { width: 38px; height: 38px; }
+  .comparison-condition-card,
+  .comparison-section { padding: 15px; }
+  .comparison-season-options label,
+  .comparison-filter-options label { min-height: 44px; }
+  .comparison-card { padding: 14px; }
+  .comparison-card dl > div { grid-template-columns: 1fr; gap: 3px; }
+  .comparison-heading { align-items: flex-start; }
+  .comparison-heading button { min-height: 44px; }
 
   .developer-page-header { padding-top: 62px; }
   .developer-page-header > button { min-height: 44px; }
