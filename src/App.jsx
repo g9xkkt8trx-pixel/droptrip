@@ -18,9 +18,9 @@ import {
 import destinations from './data/destinations.js'
 import {
   DEFAULT_TRAVEL_IMAGE,
+  getDestinationImageCandidates,
   getImageCredit,
   getImageUrl,
-  getThemeImageFallback,
   isValidImageUrl,
 } from './data/destinationImages'
 import { runDestinationQualityChecks } from './services/destinationQuality'
@@ -671,22 +671,28 @@ function HistoryItems({ entries, favoriteCities, onShow, onFavorite, onDelete })
 }
 
 function SafeImage({
+  destination,
+  imageType = 'hero',
   src,
   fallbackSrc = DEFAULT_TRAVEL_IMAGE,
+  genericFallbackSrc = DEFAULT_TRAVEL_IMAGE,
   alt,
   className = '',
   loading = 'lazy',
   showCredit = false,
   onLoadFailure,
 }) {
-  const [hasPrimaryError, setHasPrimaryError] = useState(false)
-  const [hasFallbackError, setHasFallbackError] = useState(false)
-  const resolvedImage = isValidImageUrl(src) && !hasPrimaryError ? src : fallbackSrc
+  const [imageIndex, setImageIndex] = useState(0)
+  const candidates = destination
+    ? getDestinationImageCandidates(destination, imageType)
+    : [src, fallbackSrc, genericFallbackSrc]
+      .filter(isValidImageUrl)
+      .filter((image, index, images) => images.findIndex((candidate) => getImageUrl(candidate) === getImageUrl(image)) === index)
+  const resolvedImage = candidates[imageIndex]
   const resolvedSrc = getImageUrl(resolvedImage)
-  const fallbackUrl = getImageUrl(fallbackSrc)
   const credit = getImageCredit(resolvedImage)
 
-  if (!isValidImageUrl(resolvedSrc) || hasFallbackError) {
+  if (!isValidImageUrl(resolvedSrc)) {
     return <div className={`${className} image-placeholder`} role="img" aria-label={`${alt}（写真準備中）`}>写真準備中</div>
   }
 
@@ -698,12 +704,10 @@ function SafeImage({
         alt={alt}
         loading={loading}
         onError={() => {
-          if (resolvedSrc === fallbackUrl) {
-            setHasFallbackError(true)
-          } else {
-            setHasPrimaryError(true)
-            onLoadFailure?.(fallbackSrc?.source === 'tag-fallback' ? 'tag' : 'generic')
-          }
+          const nextImage = candidates[imageIndex + 1]
+          const nextSource = nextImage?.source ?? nextImage?.imageSource
+          onLoadFailure?.(nextSource === 'fallback' ? 'tag' : 'generic')
+          setImageIndex((current) => current + 1)
         }}
       />
       {showCredit && credit && credit !== 'DROPTRIP' && <small className="image-credit">写真：{credit}</small>}
@@ -1631,9 +1635,9 @@ function App() {
             <section className="result-card" aria-label="抽選結果">
               <SafeImage
                 key={`${destination.id}-hero`}
+                destination={destination}
+                imageType="hero"
                 className="result-hero-image"
-                src={destination.heroImage}
-                fallbackSrc={getThemeImageFallback(destination.tags, 'hero')}
                 alt={`${destination.city}の観光イメージ`}
                 loading="eager"
                 showCredit
@@ -1752,14 +1756,14 @@ function App() {
               </div>
               <div className="journey-gallery" role="list">
                 {[
-                  { key: 'hero', src: destination.heroImage, fallbackSrc: getThemeImageFallback(destination.tags, 'hero'), label: '観光地写真', alt: `${destination.city}の観光イメージ` },
-                  { key: 'food', src: destination.foodImage, fallbackSrc: getThemeImageFallback(destination.tags, 'food'), label: 'グルメ写真', alt: `${destination.city}のグルメイメージ` },
-                  { key: 'scenery', src: destination.sceneryImage, fallbackSrc: getThemeImageFallback(destination.tags, 'scenery'), label: '風景写真', alt: `${destination.city}の風景イメージ` },
+                  { key: 'hero', label: '観光地写真', alt: `${destination.city}の観光イメージ` },
+                  { key: 'food', label: 'グルメ写真', alt: `${destination.city}のグルメイメージ` },
+                  { key: 'scenery', label: '風景写真', alt: `${destination.city}の風景イメージ` },
                 ].map((image) => (
                   <article className="journey-image-card" role="listitem" key={`${destination.id}-${image.key}`}>
                     <SafeImage
-                      src={image.src}
-                      fallbackSrc={image.fallbackSrc}
+                      destination={destination}
+                      imageType={image.key}
                       alt={image.alt}
                       className="journey-image"
                       showCredit
@@ -2557,9 +2561,12 @@ function App() {
           </section>
 
           <div className="quality-image-status" aria-label="旅行先画像の設定状態">
-            <div><span>画像設定済み</span><strong>{destinationQualityReport.imageStatus.configured}件</strong></div>
-            <div><span>タグ別画像フォールバック</span><strong>{destinationQualityReport.imageStatus.tagFallback + imageFailures.filter((failure) => failure.fallbackType === 'tag').length}件</strong></div>
-            <div><span>汎用画像フォールバック</span><strong>{destinationQualityReport.imageStatus.genericFallback + imageFailures.filter((failure) => failure.fallbackType === 'generic').length}件</strong></div>
+            <div><span>個別画像あり</span><strong>{destinationQualityReport.imageStatus.configured}件</strong></div>
+            <div><span>カテゴリ画像使用</span><strong>{destinationQualityReport.imageStatus.tagFallback + imageFailures.filter((failure) => failure.fallbackType === 'tag').length}件</strong></div>
+            <div><span>汎用画像使用</span><strong>{destinationQualityReport.imageStatus.genericFallback + imageFailures.filter((failure) => failure.fallbackType === 'generic').length}件</strong></div>
+            <div><span>外部URL使用</span><strong>{destinationQualityReport.imageStatus.external}件</strong></div>
+            <div><span>画像URL不正</span><strong>{destinationQualityReport.imageStatus.invalid}件</strong></div>
+            <div><span>イラスト画像使用中</span><strong>{destinationQualityReport.imageStatus.illustration}件</strong></div>
             <div><span>クレジット未設定</span><strong>{destinationQualityReport.imageStatus.creditMissing}件</strong></div>
             <div><span>ライセンス未確認</span><strong>{destinationQualityReport.imageStatus.licenseUnconfirmed}件</strong></div>
             <div><span>読み込み失敗</span><strong>{imageFailures.length}件</strong></div>

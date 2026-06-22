@@ -2,6 +2,8 @@ import {
   DEFAULT_FOOD_IMAGE,
   DEFAULT_SCENERY_IMAGE,
   DEFAULT_TRAVEL_IMAGE,
+  isExternalImage,
+  isIllustrationImage,
   isValidImageUrl,
 } from '../data/destinationImages'
 
@@ -71,6 +73,12 @@ export const runDestinationQualityChecks = (destinations) => {
     ;['heroImage', 'foodImage', 'sceneryImage'].forEach((field) => {
       if (!destination[field]) addIssue(issues, field, `${field}がありません`)
       else if (!isValidImageUrl(destination[field])) addIssue(issues, field, `${field}のURLが不正です`)
+      else if (isExternalImage(destination[field])) {
+        addIssue(issues, field, `${field}が外部URLを使用しています`, '公開表示はローカルの個別画像・カテゴリ画像・汎用画像へ移行してください')
+      }
+      else if (isIllustrationImage(destination[field])) {
+        addIssue(issues, field, `${field}にイラスト画像が使われています`, '権利確認済みの実写真または実写真風フォールバックへ変更してください')
+      }
     })
 
     if (!destination.nearestStation?.trim()) addIssue(issues, 'nearestStation', '最寄り駅がありません')
@@ -127,10 +135,15 @@ export const runDestinationQualityChecks = (destinations) => {
   const imageStatus = destinations.reduce((summary, destination) => {
     const images = ['heroImage', 'foodImage', 'sceneryImage'].map((field) => destination[field])
     const allImagesValid = images.every(isValidImageUrl)
-    if (allImagesValid && destination.imageSourceType === 'individual') summary.configured += 1
-    else if (destination.imageSourceType === 'tag') summary.tagFallback += 1
-    else if (destination.imageSourceType === 'generic') summary.genericFallback += 1
-    else summary.needsReview += 1
+    const hasIllustration = images.some(isIllustrationImage)
+    const sources = images.map((image) => image?.source ?? image?.imageSource ?? '')
+    if (sources.includes('curated')) summary.configured += 1
+    else if (sources.includes('fallback')) summary.tagFallback += 1
+    else if (sources.includes('placeholder')) summary.genericFallback += 1
+    if (images.some(isExternalImage)) summary.external += 1
+    if (!allImagesValid) summary.invalid += 1
+    if (!allImagesValid || hasIllustration) summary.needsReview += 1
+    if (hasIllustration) summary.illustration += 1
     if (images.some((image) => !(image?.credit ?? image?.imageCredit))) summary.creditMissing += 1
     if (images.some((image) => (
       !(image?.license ?? image?.imageLicense)
@@ -141,6 +154,9 @@ export const runDestinationQualityChecks = (destinations) => {
     configured: 0,
     tagFallback: 0,
     genericFallback: 0,
+    illustration: 0,
+    external: 0,
+    invalid: 0,
     creditMissing: 0,
     licenseUnconfirmed: 0,
     needsReview: 0,

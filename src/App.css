@@ -516,7 +516,7 @@ h1 {
 
 .result-hero-image {
   width: calc(100% + 44px);
-  height: 210px;
+  height: 250px;
   display: block;
   margin: -25px -22px 18px;
   object-fit: cover;
@@ -4387,6 +4387,7 @@ h1 {
 
   .result-card { margin-top: 22px; padding: 20px 16px 18px; }
   .result-hero-image { margin: -20px -16px 18px; width: calc(100% + 32px); }
+  .result-hero-image { height: 220px; }
   .favorite-button { min-height: 44px; }
   .destiny-card { gap: 13px; padding: 16px; }
   .destiny-score { width: 82px; height: 82px; }
