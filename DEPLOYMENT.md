@@ -43,6 +43,17 @@ GOOGLE_MAPS_API_KEY=サーバー側だけに保存するAPIキー
 
 公開版では `VITE_GOOGLE_MAPS_API_KEY` を設定せず、フロントエンドからGoogle Routes APIを直接呼びません。Google Maps確認リンクはAPIキー不要の外部リンクとして、そのまま利用できます。Google Cloud Consoleでは次の制限を設定してください。
 
+### VercelでGoogle Routes APIが動かない場合
+
+1. Project Settings → Environment Variables に `GOOGLE_MAPS_API_KEY` が登録されているか確認します。
+2. 変数の適用先にProductionとPreviewの両方が含まれているか確認します。
+3. 環境変数を追加・変更した後は必ずRedeployします。既存のDeploymentは変更前の環境変数を使い続けます。
+4. `api/route-time.js` が `process.env.GOOGLE_MAPS_API_KEY` を参照しているか確認します。
+5. Google Cloud側でRoutes APIが有効化されているか確認します。
+6. APIキーのAPI制限にRoutes APIが含まれているか確認します。
+
+公開URLで失敗した場合、一般画面には安全な共通エラーだけが表示されます。詳しい状態は開発者ページの「Google Routes API診断」で確認してください。キー本体は診断レスポンスや画面へ返しません。
+
 - 使用するAPIだけを許可するAPI制限
 - 1日あたりの利用上限と請求アラート
 - 開発用キーと公開用キーの分離

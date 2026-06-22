@@ -27,34 +27,46 @@ const COMMON_PATHS = {
 }
 
 const CATEGORY_PATHS = {
-  温泉: '/images/categories/onsen.jpg',
-  海: '/images/categories/sea.jpg',
-  山: '/images/categories/mountain.jpg',
-  グルメ: '/images/categories/gourmet.jpg',
-  カップル向け: '/images/categories/couple.jpg',
-  city: '/images/categories/city.jpg',
-  history: '/images/categories/history.jpg',
-  nature: '/images/categories/nature.jpg',
+  温泉: ['/images/categories/onsen-1.jpg', '/images/categories/onsen-2.jpg'],
+  海: ['/images/categories/sea-1.jpg', '/images/categories/sea-2.jpg'],
+  山: ['/images/categories/mountain-1.jpg', '/images/categories/mountain-2.jpg'],
+  グルメ: ['/images/categories/gourmet-1.jpg', '/images/categories/gourmet-2.jpg'],
+  カップル向け: ['/images/categories/couple-1.jpg', '/images/categories/couple-2.jpg'],
+  city: ['/images/categories/city-1.jpg', '/images/categories/city-2.jpg'],
+  history: ['/images/categories/history-1.jpg', '/images/categories/history-2.jpg'],
+  nature: ['/images/categories/nature-1.jpg', '/images/categories/nature-2.jpg'],
 }
 
 // 権利確認済みの個別画像を追加したときは、この対応表へ登録する。
 const DESTINATION_LOCAL_IMAGES = {
-  京都市: { hero: '/images/destinations/kyoto.jpg' },
-  箱根町: { hero: '/images/destinations/hakone.jpg' },
-  小樽市: { hero: '/images/destinations/otaru.jpg' },
-  金沢市: { hero: '/images/destinations/kanazawa.jpg' },
-  那覇市: { hero: '/images/destinations/naha.jpg' },
+  京都市: { hero: '/images/destinations/kyoto-hero.jpg' }, 奈良市: { hero: '/images/destinations/nara-hero.jpg' },
+  小樽市: { hero: '/images/destinations/otaru-hero.jpg' }, 札幌市: { hero: '/images/destinations/sapporo-hero.jpg' },
+  函館市: { hero: '/images/destinations/hakodate-hero.jpg' }, 金沢市: { hero: '/images/destinations/kanazawa-hero.jpg' },
+  箱根町: { hero: '/images/destinations/hakone-hero.jpg' }, 熱海市: { hero: '/images/destinations/atami-hero.jpg' },
+  草津町: { hero: '/images/destinations/kusatsu-hero.jpg' }, 日光市: { hero: '/images/destinations/nikko-hero.jpg' },
+  鎌倉市: { hero: '/images/destinations/kamakura-hero.jpg' }, 横浜市: { hero: '/images/destinations/yokohama-hero.jpg' },
+  松島町: { hero: '/images/destinations/matsushima-hero.jpg' }, 仙台市: { hero: '/images/destinations/sendai-hero.jpg' },
+  福岡市: { hero: '/images/destinations/fukuoka-hero.jpg' }, 長崎市: { hero: '/images/destinations/nagasaki-hero.jpg' },
+  広島市: { hero: '/images/destinations/hiroshima-hero.jpg' }, 廿日市市: { hero: '/images/destinations/miyajima-hero.jpg' },
+  那覇市: { hero: '/images/destinations/naha-hero.jpg' }, 石垣市: { hero: '/images/destinations/ishigaki-hero.jpg' },
+  高山市: { hero: '/images/destinations/takayama-hero.jpg' }, 伊勢市: { hero: '/images/destinations/ise-hero.jpg' },
+  白浜町: { hero: '/images/destinations/shirahama-hero.jpg' }, 軽井沢町: { hero: '/images/destinations/karuizawa-hero.jpg' },
+  富良野市: { hero: '/images/destinations/furano-hero.jpg' }, 会津若松市: { hero: '/images/destinations/aizuwakamatsu-hero.jpg' },
+  尾道市: { hero: '/images/destinations/onomichi-hero.jpg' }, 倉敷市: { hero: '/images/destinations/kurashiki-hero.jpg' },
+  松江市: { hero: '/images/destinations/matsue-hero.jpg' }, 別府市: { hero: '/images/destinations/beppu-hero.jpg' },
 }
+
+export const MAJOR_DESTINATION_CITIES = Object.freeze(Object.keys(DESTINATION_LOCAL_IMAGES))
 
 const PHOTO_LICENSE = 'DROPTRIP生成素材・本プロジェクト内で利用可能'
 
-const createLocalAsset = (url, type, source, credit) => createImageAsset({
+const createLocalAsset = (url, type, source, credit, status = 'confirmed') => createImageAsset({
   url,
   type,
   source,
   credit,
   license: PHOTO_LICENSE,
-  status: 'confirmed',
+  status,
 })
 
 export const DEFAULT_TRAVEL_IMAGE = createLocalAsset(COMMON_PATHS.hero, 'hero', 'placeholder', 'イメージ画像')
@@ -100,16 +112,23 @@ const getCommonAsset = (imageType) => {
 }
 
 const getPreferredCategory = (tags = [], imageType = 'hero') => {
-  if (imageType === 'food') return tags.includes('グルメ') ? 'グルメ' : tags.includes('海') ? '海' : 'グルメ'
+  if (imageType === 'food') return 'グルメ'
+  if (imageType === 'scenery' && tags.length === 1 && tags[0] === 'グルメ') return 'nature'
   const priorities = imageType === 'scenery'
     ? ['海', '山', '温泉', 'カップル向け', 'グルメ']
     : ['温泉', '海', '山', 'カップル向け', 'グルメ']
   return priorities.find((tag) => tags.includes(tag)) ?? (imageType === 'scenery' ? 'nature' : 'city')
 }
 
-export const getThemeImageFallback = (tags = [], imageType = 'hero') => {
+const stableHash = (value = '') => [...String(value)].reduce((hash, character) => (
+  ((hash * 31) + character.codePointAt(0)) >>> 0
+), 7)
+
+export const getThemeImageFallback = (tags = [], imageType = 'hero', seed = '') => {
   const category = getPreferredCategory(tags, imageType)
-  const url = CATEGORY_PATHS[category]
+  const variants = CATEGORY_PATHS[category] ?? []
+  const typeOffset = imageType === 'hero' ? 0 : 1
+  const url = variants[(stableHash(seed) + typeOffset) % Math.max(variants.length, 1)]
   return url
     ? createLocalAsset(url, imageType, 'fallback', 'カテゴリ画像')
     : getCommonAsset(imageType)
@@ -137,18 +156,19 @@ export const getDestinationImage = (destination = {}, imageType = 'hero') => {
   const configured = normalizeImageAsset(destination[field], imageType)
   const configuredUrl = getImageUrl(configured)
   const mappedUrl = DESTINATION_LOCAL_IMAGES[destination.city]?.[imageType]
+  const seed = destination.id ?? destination.city ?? destination.prefecture ?? ''
 
-  if (mappedUrl) return createLocalAsset(mappedUrl, imageType, 'curated', 'イメージ画像')
+  if (mappedUrl) return createLocalAsset(mappedUrl, imageType, 'curated', 'イメージ画像', 'temporary')
   if (configuredUrl.startsWith('/images/destinations/') && isValidImageUrl(configured)) return configured
 
-  const categoryAsset = getThemeImageFallback(destination.tags ?? [], imageType)
+  const categoryAsset = getThemeImageFallback(destination.tags ?? [], imageType, seed)
   if (isValidImageUrl(categoryAsset)) return categoryAsset
   return getCommonAsset(imageType)
 }
 
 export const getDestinationImageCandidates = (destination = {}, imageType = 'hero') => {
   const primary = getDestinationImage(destination, imageType)
-  const category = getThemeImageFallback(destination.tags ?? [], imageType)
+  const category = getThemeImageFallback(destination.tags ?? [], imageType, destination.id ?? destination.city ?? '')
   const common = getCommonAsset(imageType)
   return [primary, category, common]
     .filter(isValidImageUrl)

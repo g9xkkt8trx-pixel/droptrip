@@ -25,23 +25,58 @@ const toWaypoint = (value) => {
     : null
 }
 
+const describeWaypoint = (waypoint) => {
+  if (waypoint?.address) return waypoint.address
+  const coordinates = waypoint?.location?.latLng
+  return coordinates ? `${coordinates.latitude},${coordinates.longitude}` : 'unknown'
+}
+
+const getGoogleErrorSummary = (body, status) => {
+  try {
+    return JSON.parse(body)?.error?.message?.slice(0, 240) || `Google Routes API returned ${status}`
+  } catch {
+    return `Google Routes API returned ${status}`
+  }
+}
+
 export default async function handler(request, response) {
   if (request.method !== 'POST') {
     response.setHeader('Allow', 'POST')
     return response.status(405).json({ error: 'Method not allowed' })
   }
 
+  const rawApiKey = process.env.GOOGLE_MAPS_API_KEY
+  const hasGoogleMapsApiKey = typeof rawApiKey === 'string' && rawApiKey.trim().length > 0
+  const apiKey = hasGoogleMapsApiKey ? rawApiKey.trim() : ''
   const origin = toWaypoint(request.body?.origin)
   const destination = toWaypoint(request.body?.destination)
   const travelMode = request.body?.travelMode
   const departureTime = request.body?.departureTime
 
   if (!origin || !destination || !['DRIVE', 'TRANSIT'].includes(travelMode)) {
-    return response.status(400).json({ error: 'Invalid request' })
+    return response.status(400).json({
+      error: 'Invalid request',
+      code: 'INVALID_REQUEST',
+      hasGoogleMapsApiKey,
+    })
   }
 
-  const apiKey = process.env.GOOGLE_MAPS_API_KEY?.trim()
-  if (!apiKey) return response.status(503).json({ error: 'Information could not be retrieved' })
+  if (!hasGoogleMapsApiKey) {
+    console.error('[route-time] Server environment variable is missing', {
+      httpStatus: 503,
+      errorType: 'SERVER_API_KEY_MISSING',
+      origin: describeWaypoint(origin),
+      destination: describeWaypoint(destination),
+      travelMode,
+      hasGoogleMapsApiKey,
+    })
+    return response.status(503).json({
+      error: 'Information could not be retrieved',
+      code: 'SERVER_API_KEY_MISSING',
+      hasGoogleMapsApiKey,
+      errorSummary: 'GOOGLE_MAPS_API_KEY is not configured on the server',
+    })
+  }
 
   // 一般公開時は、ここへ認証・レート制限・利用回数管理を必ず追加する。
 
@@ -71,21 +106,66 @@ export default async function handler(request, response) {
     })
 
     if (!googleResponse.ok) {
+      const errorBody = await googleResponse.text()
+      const errorSummary = getGoogleErrorSummary(errorBody, googleResponse.status)
       const code = [401, 403].includes(googleResponse.status) ? 'API_KEY_INVALID' : 'ROUTE_ERROR'
-      console.error('[route-time] Google Routes request failed', { status: googleResponse.status, travelMode })
-      return response.status(googleResponse.status >= 500 ? 502 : 400).json({ error: 'Information could not be retrieved', code })
+      console.error('[route-time] Google Routes request failed', {
+        httpStatus: googleResponse.status,
+        googleError: errorSummary,
+        origin: describeWaypoint(origin),
+        destination: describeWaypoint(destination),
+        travelMode,
+        hasGoogleMapsApiKey,
+      })
+      return response.status(googleResponse.status >= 500 ? 502 : 400).json({
+        error: 'Information could not be retrieved',
+        code,
+        hasGoogleMapsApiKey,
+        googleHttpStatus: googleResponse.status,
+        errorSummary,
+      })
     }
 
     const route = (await googleResponse.json()).routes?.[0]
-    if (!route?.duration) return response.status(404).json({ error: 'Route not found', code: 'ROUTE_NOT_FOUND' })
+    if (!route?.duration) {
+      console.error('[route-time] Route not found', {
+        httpStatus: 404,
+        errorType: 'ROUTE_NOT_FOUND',
+        origin: describeWaypoint(origin),
+        destination: describeWaypoint(destination),
+        travelMode,
+        hasGoogleMapsApiKey,
+      })
+      return response.status(404).json({
+        error: 'Information could not be retrieved',
+        code: 'ROUTE_NOT_FOUND',
+        hasGoogleMapsApiKey,
+        googleHttpStatus: googleResponse.status,
+        errorSummary: 'Route not found',
+      })
+    }
 
     return response.status(200).json({
       duration: route.duration,
       distanceMeters: Number.isFinite(route.distanceMeters) ? route.distanceMeters : null,
+      hasGoogleMapsApiKey,
+      googleHttpStatus: googleResponse.status,
     })
   } catch (error) {
-    console.error('[route-time] Request error', { name: error?.name ?? 'Error', travelMode })
-    return response.status(502).json({ error: 'Information could not be retrieved', code: 'ROUTE_ERROR' })
+    console.error('[route-time] Request error', {
+      httpStatus: 502,
+      errorType: error?.name ?? 'ROUTE_ERROR',
+      origin: describeWaypoint(origin),
+      destination: describeWaypoint(destination),
+      travelMode,
+      hasGoogleMapsApiKey,
+    })
+    return response.status(502).json({
+      error: 'Information could not be retrieved',
+      code: 'ROUTE_ERROR',
+      hasGoogleMapsApiKey,
+      errorSummary: error?.name === 'AbortError' ? 'Route request timed out' : 'Route request failed',
+    })
   } finally {
     clearTimeout(timeoutId)
   }

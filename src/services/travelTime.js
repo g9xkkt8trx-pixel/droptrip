@@ -143,7 +143,7 @@ const toDestinationWaypoint = (destination) => {
   throw new Error('Destination is missing')
 }
 
-const buildRouteResult = ({ duration, distanceMeters, requestDebug, communicationMode }) => {
+const buildRouteResult = ({ duration, distanceMeters, requestDebug, communicationMode, routeDiagnostics }) => {
   const durationMinutes = durationToMinutes(duration)
   return {
     duration: formatDuration(durationMinutes),
@@ -152,8 +152,24 @@ const buildRouteResult = ({ duration, distanceMeters, requestDebug, communicatio
     distanceMeters: Number.isFinite(distanceMeters) ? distanceMeters : null,
     requestDebug,
     communicationMode,
+    routeDiagnostics,
   }
 }
+
+const createRouteDiagnostics = ({ payload = {}, responseStatus, requestDebug, result }) => ({
+  communicationMode: 'server',
+  apiResponse: result,
+  hasGoogleMapsApiKey: typeof payload.hasGoogleMapsApiKey === 'boolean'
+    ? payload.hasGoogleMapsApiKey
+    : null,
+  routeTimeHttpStatus: responseStatus ?? null,
+  httpStatus: payload.googleHttpStatus ?? responseStatus ?? null,
+  errorType: payload.code ?? null,
+  errorSummary: payload.errorSummary ?? (result === 'error' ? payload.error ?? '' : ''),
+  origin: requestDebug.origin,
+  destination: requestDebug.destination,
+  travelMode: requestDebug.travelMode,
+})
 
 const fetchServerRoute = async ({ origin, destination, travelMode, departureTime, signal }) => {
   const requestDebug = {
@@ -175,6 +191,18 @@ const fetchServerRoute = async ({ origin, destination, travelMode, departureTime
   } catch (error) {
     error.serverUnavailable = true
     error.requestDebug = requestDebug
+    error.routeDiagnostics = {
+      communicationMode: 'server',
+      apiResponse: 'network-error',
+      hasGoogleMapsApiKey: null,
+      routeTimeHttpStatus: null,
+      httpStatus: null,
+      errorType: error?.name ?? 'NETWORK_ERROR',
+      errorSummary: 'route-time API request failed',
+      origin: requestDebug.origin,
+      destination: requestDebug.destination,
+      travelMode: requestDebug.travelMode,
+    }
     throw error
   }
 
@@ -185,6 +213,12 @@ const fetchServerRoute = async ({ origin, destination, travelMode, departureTime
     error.httpStatus = response.status
     error.googleMessage = payload.error || 'サーバー経由の経路取得に失敗しました'
     error.requestDebug = requestDebug
+    error.routeDiagnostics = createRouteDiagnostics({
+      payload,
+      responseStatus: response.status,
+      requestDebug,
+      result: 'error',
+    })
     throw error
   }
 
@@ -194,6 +228,12 @@ const fetchServerRoute = async ({ origin, destination, travelMode, departureTime
     distanceMeters: data.distanceMeters,
     communicationMode: 'server',
     requestDebug: { ...requestDebug, httpStatus: response.status, googleMessage: '' },
+    routeDiagnostics: createRouteDiagnostics({
+      payload: data,
+      responseStatus: response.status,
+      requestDebug,
+      result: 'success',
+    }),
   })
 }
 
@@ -279,6 +319,18 @@ const fetchLocalDirectRoute = async ({ origin, destination, travelMode, departur
     distanceMeters: route.distanceMeters,
     communicationMode: 'local-direct',
     requestDebug: { ...requestDebug, httpStatus: response.status, googleMessage: '' },
+    routeDiagnostics: {
+      communicationMode: 'local-direct',
+      apiResponse: 'success',
+      hasGoogleMapsApiKey: true,
+      routeTimeHttpStatus: null,
+      httpStatus: response.status,
+      errorType: null,
+      errorSummary: '',
+      origin: requestDebug.origin,
+      destination: requestDebug.destination,
+      travelMode: requestDebug.travelMode,
+    },
   })
 }
 
@@ -348,7 +400,7 @@ const fetchTransitRoute = async ({ origin, destination, apiKey, signal }) => {
       } catch (error) {
         const reason = error?.name === 'AbortError'
           ? '検索がタイムアウトしました'
-          : error?.code === 'API_KEY_INVALID'
+          : ['API_KEY_INVALID', 'SERVER_API_KEY_MISSING'].includes(error?.code)
             ? 'APIキーまたはRoutes API設定エラー'
             : error?.message ?? '経路が見つかりませんでした'
         const failedAttempt = {
@@ -366,7 +418,7 @@ const fetchTransitRoute = async ({ origin, destination, apiKey, signal }) => {
           googleMessage: error?.googleMessage ?? reason,
         }
         attempts.push(failedAttempt)
-        if (error?.code === 'API_KEY_INVALID' || error?.name === 'AbortError') {
+        if (['API_KEY_INVALID', 'SERVER_API_KEY_MISSING'].includes(error?.code) || error?.name === 'AbortError') {
           error.transitDebug = createDebug(null, reason, failedAttempt)
           error.transitFallback = fallback
           throw error
@@ -438,13 +490,16 @@ export const getTravelInfo = async ({ origin, destination, apiKey: storedApiKey 
       return { status: 'unconfigured', car: null, publicTransit: null }
     }
     const apiKeyError = [carResult, transitResult].find((result) => (
-      result.status === 'rejected' && result.reason?.code === 'API_KEY_INVALID'
+      result.status === 'rejected' && ['API_KEY_INVALID', 'SERVER_API_KEY_MISSING'].includes(result.reason?.code)
     ))
 
     if (apiKeyError) throw apiKeyError.reason
     const noRoutesError = new TravelTimeError('No routes available')
     noRoutesError.transitDebug = transitDebug
     noRoutesError.transitFallback = transitFallback
+    noRoutesError.routeDiagnostics = [carResult, transitResult]
+      .find((result) => result.status === 'rejected' && result.reason?.routeDiagnostics)
+      ?.reason?.routeDiagnostics ?? null
     throw noRoutesError
   }
 
@@ -455,5 +510,6 @@ export const getTravelInfo = async ({ origin, destination, apiKey: storedApiKey 
     transitDebug,
     transitFallback,
     communicationMode: car?.communicationMode ?? transitRoute?.communicationMode ?? 'server',
+    routeDiagnostics: car?.routeDiagnostics ?? transitRoute?.routeDiagnostics ?? null,
   }
 }

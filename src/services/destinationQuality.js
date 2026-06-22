@@ -2,9 +2,11 @@ import {
   DEFAULT_FOOD_IMAGE,
   DEFAULT_SCENERY_IMAGE,
   DEFAULT_TRAVEL_IMAGE,
+  getImageUrl,
   isExternalImage,
   isIllustrationImage,
   isValidImageUrl,
+  MAJOR_DESTINATION_CITIES,
 } from '../data/destinationImages'
 
 const requiredTripTypes = ['日帰り', '1泊2日', '2泊3日']
@@ -132,6 +134,19 @@ export const runDestinationQualityChecks = (destinations) => {
     tag,
     destinations.filter((destination) => destination.tags?.includes(tag)).length,
   ]))
+  const categoryUsage = {}
+  destinations.forEach((destination) => {
+    ;['heroImage', 'foodImage', 'sceneryImage'].forEach((field) => {
+      const url = getImageUrl(destination[field])
+      if (url.startsWith('/images/categories/')) categoryUsage[url] = (categoryUsage[url] ?? 0) + 1
+    })
+  })
+  const categoryUsageEntries = Object.entries(categoryUsage).sort(([, left], [, right]) => right - left)
+  const overusedCategoryImages = categoryUsageEntries.filter(([, count]) => count > 20)
+  const missingMajorImages = MAJOR_DESTINATION_CITIES.filter((city) => {
+    const destination = destinations.find((item) => item.city === city)
+    return !destination || !getImageUrl(destination.heroImage).startsWith('/images/destinations/')
+  })
   const imageStatus = destinations.reduce((summary, destination) => {
     const images = ['heroImage', 'foodImage', 'sceneryImage'].map((field) => destination[field])
     const allImagesValid = images.every(isValidImageUrl)
@@ -144,10 +159,11 @@ export const runDestinationQualityChecks = (destinations) => {
     if (!allImagesValid) summary.invalid += 1
     if (!allImagesValid || hasIllustration) summary.needsReview += 1
     if (hasIllustration) summary.illustration += 1
+    if (images.some((image) => (image?.status ?? image?.imageStatus) === 'temporary')) summary.temporary += 1
     if (images.some((image) => !(image?.credit ?? image?.imageCredit))) summary.creditMissing += 1
     if (images.some((image) => (
       !(image?.license ?? image?.imageLicense)
-      || (image?.status ?? image?.imageStatus) !== 'confirmed'
+      || ['unconfirmed', 'official_pending'].includes(image?.status ?? image?.imageStatus)
     ))) summary.licenseUnconfirmed += 1
     return summary
   }, {
@@ -157,6 +173,7 @@ export const runDestinationQualityChecks = (destinations) => {
     illustration: 0,
     external: 0,
     invalid: 0,
+    temporary: 0,
     creditMissing: 0,
     licenseUnconfirmed: 0,
     needsReview: 0,
@@ -168,6 +185,11 @@ export const runDestinationQualityChecks = (destinations) => {
     warningCount: warnings.length,
     warnings,
     imageStatus,
+    imageReuse: {
+      categoryUsage: categoryUsageEntries,
+      overusedCategoryImages,
+      missingMajorImages,
+    },
     coverage: { prefectures: coveredPrefectures, tagCounts },
     globalChecks: [
       {
@@ -185,6 +207,14 @@ export const runDestinationQualityChecks = (destinations) => {
       {
         label: `都道府県カバー（${coveredPrefectures} / ${prefectureTarget}）`,
         passed: coveredPrefectures === prefectureTarget,
+      },
+      {
+        label: 'カテゴリ画像の使い回し（1画像20回以下）',
+        passed: overusedCategoryImages.length === 0,
+      },
+      {
+        label: `主要旅行先の個別画像（${MAJOR_DESTINATION_CITIES.length - missingMajorImages.length} / ${MAJOR_DESTINATION_CITIES.length}）`,
+        passed: missingMajorImages.length === 0,
       },
     ],
   }

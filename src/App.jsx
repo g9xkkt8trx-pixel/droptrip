@@ -621,7 +621,7 @@ const travelStatusLabels = {
   idle: '未取得',
   loading: '取得中',
   success: '取得成功',
-  unconfigured: 'APIキー未設定',
+  unconfigured: '移動情報取得エラー',
   error: '取得失敗',
   'api-error': 'API設定エラー',
 }
@@ -1183,11 +1183,12 @@ function App() {
     } catch (error) {
       if (requestId === travelRequestId.current) {
         setTravelInfo({
-          status: error?.code === 'API_KEY_INVALID' ? 'api-error' : 'error',
+          status: ['API_KEY_INVALID', 'SERVER_API_KEY_MISSING'].includes(error?.code) ? 'api-error' : 'error',
           car: null,
           publicTransit: null,
           transitDebug: error?.transitDebug,
           transitFallback: error?.transitFallback,
+          routeDiagnostics: error?.routeDiagnostics,
         })
       }
     } finally {
@@ -1395,11 +1396,12 @@ function App() {
     } catch (error) {
       if (requestId === travelRequestId.current) {
         setTravelInfo({
-          status: error?.code === 'API_KEY_INVALID' ? 'api-error' : 'error',
+          status: ['API_KEY_INVALID', 'SERVER_API_KEY_MISSING'].includes(error?.code) ? 'api-error' : 'error',
           car: null,
           publicTransit: null,
           transitDebug: error?.transitDebug,
           transitFallback: error?.transitFallback,
+          routeDiagnostics: error?.routeDiagnostics,
         })
       }
     } finally {
@@ -1949,16 +1951,8 @@ function App() {
                   </div>
                   {travelInfo.status === 'unconfigured' && (
                     <div className="travel-state travel-unconfigured">
-                      <strong><span aria-hidden="true">!</span>APIキー未設定</strong>
-                      <p>Google Maps APIキーを設定すると、実際の移動時間と距離が表示されます。</p>
-                      <div className="travel-preview">
-                        <b>取得予定</b>
-                        <ul>
-                          <li>車の移動時間</li>
-                          <li>車の移動距離</li>
-                          <li>公共交通機関の移動時間</li>
-                        </ul>
-                      </div>
+                      <strong>移動情報を取得できませんでした。</strong>
+                      <p>しばらくしてから再度お試しください。</p>
                     </div>
                   )}
                   {travelInfo.status === 'error' && (
@@ -2552,7 +2546,7 @@ function App() {
             </ul>
             <dl className="api-protection-status">
               <div><dt>OpenAI通信</dt><dd>{getOpenAiCommunicationModeLabel(openAiCommunicationMode)}</dd></div>
-              <div><dt>Google Routes通信</dt><dd>{getGoogleMapsCommunicationModeLabel(travelInfo.communicationMode)}</dd></div>
+              <div><dt>Google Routes通信</dt><dd>{getGoogleMapsCommunicationModeLabel(travelInfo.routeDiagnostics?.communicationMode ?? travelInfo.communicationMode)}</dd></div>
               <div><dt>メソッド制限</dt><dd className="enabled">有効（POSTのみ）</dd></div>
               <div><dt>入力バリデーション</dt><dd className="enabled">有効</dd></div>
               <div><dt>最大出力制限</dt><dd className="enabled">有効（1,200トークン）</dd></div>
@@ -2567,11 +2561,37 @@ function App() {
             <div><span>外部URL使用</span><strong>{destinationQualityReport.imageStatus.external}件</strong></div>
             <div><span>画像URL不正</span><strong>{destinationQualityReport.imageStatus.invalid}件</strong></div>
             <div><span>イラスト画像使用中</span><strong>{destinationQualityReport.imageStatus.illustration}件</strong></div>
+            <div><span>仮画像（temporary）</span><strong>{destinationQualityReport.imageStatus.temporary}件</strong></div>
             <div><span>クレジット未設定</span><strong>{destinationQualityReport.imageStatus.creditMissing}件</strong></div>
             <div><span>ライセンス未確認</span><strong>{destinationQualityReport.imageStatus.licenseUnconfirmed}件</strong></div>
             <div><span>読み込み失敗</span><strong>{imageFailures.length}件</strong></div>
             <div><span>要確認</span><strong>{destinationQualityReport.imageStatus.needsReview}件</strong></div>
           </div>
+
+          <details className="image-reuse-details">
+            <summary>カテゴリ画像の使用回数を見る</summary>
+            <div className="image-reuse-grid">
+              {destinationQualityReport.imageReuse.categoryUsage.map(([url, count]) => (
+                <span className={count > 20 ? 'warning' : ''} key={url}>
+                  {url.split('/').at(-1)} <b>{count}回</b>
+                </span>
+              ))}
+            </div>
+          </details>
+
+          {destinationQualityReport.imageReuse.overusedCategoryImages.length > 0 && (
+            <ul className="image-reuse-warnings">
+              {destinationQualityReport.imageReuse.overusedCategoryImages.map(([url, count]) => (
+                <li key={url}>{url.split('/').at(-1)} が{count}件で使用されています。画像バリエーション追加を検討してください。</li>
+              ))}
+            </ul>
+          )}
+
+          {destinationQualityReport.imageReuse.missingMajorImages.length > 0 && (
+            <p className="image-major-warning">
+              個別画像未設定の主要旅行先：{destinationQualityReport.imageReuse.missingMajorImages.join('、')}
+            </p>
+          )}
 
           <div className="quality-tag-balance" aria-label="旅行先タグの件数">
             {Object.entries(destinationQualityReport.coverage.tagCounts).map(([tag, count]) => (
@@ -2737,8 +2757,17 @@ function App() {
               <div><dt>旅行タイプ相性</dt><dd>{selectionMeta?.tripCompatibilityLabel ?? '未算出'}</dd></div>
               <div><dt>季節相性</dt><dd>{selectionMeta?.seasonCompatibility ?? '未算出'}</dd></div>
               <div><dt>抽選方式</dt><dd>重み付きランダム（ランダム要素あり）</dd></div>
-              <div><dt>APIキー設定状態</dt><dd>{apiKeyDebugStatus}</dd></div>
-              <div><dt>Google Maps通信方式</dt><dd>{getGoogleMapsCommunicationModeLabel(travelInfo.communicationMode)}</dd></div>
+              <div><dt>ローカル開発用Google Mapsキー</dt><dd>{apiKeyDebugStatus}</dd></div>
+              <div><dt>Google Routes API診断</dt><dd>{travelInfo.routeDiagnostics ? '取得済み' : '未実行'}</dd></div>
+              <div><dt>通信方式</dt><dd>{getGoogleMapsCommunicationModeLabel(travelInfo.routeDiagnostics?.communicationMode ?? travelInfo.communicationMode)}</dd></div>
+              <div><dt>route-time API応答</dt><dd>{travelInfo.routeDiagnostics?.routeTimeHttpStatus ? `HTTP ${travelInfo.routeDiagnostics.routeTimeHttpStatus}` : '未確認'}</dd></div>
+              <div><dt>環境変数</dt><dd>{travelInfo.routeDiagnostics?.hasGoogleMapsApiKey === true ? '設定済み' : travelInfo.routeDiagnostics?.hasGoogleMapsApiKey === false ? 'Google Maps APIキー未設定：GOOGLE_MAPS_API_KEY がサーバー環境変数にありません' : '未確認'}</dd></div>
+              <div><dt>最終HTTPステータス</dt><dd>{travelInfo.routeDiagnostics?.httpStatus ?? '未確認'}</dd></div>
+              <div><dt>最終エラー種別</dt><dd>{travelInfo.routeDiagnostics?.errorType ?? 'なし'}</dd></div>
+              <div><dt>最終エラー概要</dt><dd>{travelInfo.routeDiagnostics?.errorSummary || 'なし'}</dd></div>
+              <div><dt>最後に試したorigin</dt><dd>{travelInfo.routeDiagnostics?.origin ?? '未実行'}</dd></div>
+              <div><dt>最後に試したdestination</dt><dd>{travelInfo.routeDiagnostics?.destination ?? '未実行'}</dd></div>
+              <div><dt>最後に試したtravelMode</dt><dd>{travelInfo.routeDiagnostics?.travelMode ?? '未実行'}</dd></div>
               <div><dt>OpenAI APIキー設定状態</dt><dd>{openAiApiKeyDebugStatus}</dd></div>
               <div><dt>AIプランモデル</dt><dd>{OPENAI_PLAN_MODEL}</dd></div>
               <div><dt>OpenAI通信方式</dt><dd>{getOpenAiCommunicationModeLabel(openAiCommunicationMode)}</dd></div>
