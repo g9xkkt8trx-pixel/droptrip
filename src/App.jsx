@@ -714,6 +714,8 @@ function SafeImage({
 function App() {
   const travelRequestId = useRef(0)
   const aiPlanRequestId = useRef(0)
+  const travelRequestInFlight = useRef(false)
+  const aiPlanRequestInFlight = useRef(false)
   const developerTitleClicks = useRef({ count: 0, lastClickAt: 0 })
   const [restoredInputState] = useState(loadInputState)
   const [departure, setDeparture] = useState(restoredInputState.departure)
@@ -1095,6 +1097,7 @@ function App() {
   }
 
   const showHistoryEntry = async (entry) => {
+    if (travelRequestInFlight.current) return
     const place = destinations.find((item) => (
       item.id === entry.destinationId || item.city === entry.city
     ))
@@ -1129,6 +1132,7 @@ function App() {
       seasonCompatibility: entry.seasonCompatibility ?? '標準',
       visitedPolicy: entry.visitedPolicy ?? '履歴から再表示',
     })
+    travelRequestInFlight.current = true
     setTravelInfo({ status: 'loading', car: null, publicTransit: null })
     resetAiPlanState()
     setCurrentPage('main')
@@ -1182,6 +1186,8 @@ function App() {
           transitFallback: error?.transitFallback,
         })
       }
+    } finally {
+      travelRequestInFlight.current = false
     }
 
   }
@@ -1259,6 +1265,7 @@ function App() {
 
   const chooseDestination = async (event) => {
     event.preventDefault()
+    if (travelRequestInFlight.current) return
     const normalizedDeparture = departure.trim()
 
     if (!normalizedDeparture) {
@@ -1340,6 +1347,7 @@ function App() {
       travelSeason,
       selectedFilters: [...selectedFilters],
     })
+    travelRequestInFlight.current = true
     setTravelInfo({ status: 'loading', car: null, publicTransit: null })
     resetAiPlanState()
 
@@ -1390,10 +1398,13 @@ function App() {
           transitFallback: error?.transitFallback,
         })
       }
+    } finally {
+      travelRequestInFlight.current = false
     }
   }
 
   const generateAiPlan = async () => {
+    if (aiPlanRequestInFlight.current) return
     if (!destination || !planContext) return
     if (!isPremiumEnabled(isPremiumUser)) {
       ++aiPlanRequestId.current
@@ -1410,6 +1421,7 @@ function App() {
       return
     }
 
+    aiPlanRequestInFlight.current = true
     const requestId = ++aiPlanRequestId.current
     saveAiPlanUsage({
       date: getLocalDateKey(),
@@ -1438,6 +1450,8 @@ function App() {
     try {
       const result = await generateOpenAiPlan({
         prompt,
+        destination: { city: destination.city, prefecture: destination.prefecture },
+        travelType: planContext.tripType,
         storedApiKey: savedOpenAiApiKey,
       })
       if (requestId === aiPlanRequestId.current) {
@@ -1450,6 +1464,8 @@ function App() {
         setAiPlanStatus('error')
         setAiPlanNotice('AIプランを生成できませんでした。しばらくしてから再度お試しください。')
       }
+    } finally {
+      aiPlanRequestInFlight.current = false
     }
   }
 
@@ -1602,8 +1618,8 @@ function App() {
           </fieldset>
 
           <p className="decide-note">思いがけない場所へ、出かけよう。</p>
-          <button type="submit" className="decide-button">
-            <span>旅先を決める</span>
+          <button type="submit" className="decide-button" disabled={travelInfo.status === 'loading'}>
+            <span>{travelInfo.status === 'loading' ? '移動情報を取得中...' : '旅先を決める'}</span>
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="m5 12 14-7-4 14-3-6-7-1Z" />
             </svg>
@@ -2530,6 +2546,14 @@ function App() {
                 </li>
               ))}
             </ul>
+            <dl className="api-protection-status">
+              <div><dt>OpenAI通信</dt><dd>{getOpenAiCommunicationModeLabel(openAiCommunicationMode)}</dd></div>
+              <div><dt>Google Routes通信</dt><dd>{getGoogleMapsCommunicationModeLabel(travelInfo.communicationMode)}</dd></div>
+              <div><dt>メソッド制限</dt><dd className="enabled">有効（POSTのみ）</dd></div>
+              <div><dt>入力バリデーション</dt><dd className="enabled">有効</dd></div>
+              <div><dt>最大出力制限</dt><dd className="enabled">有効（1,200トークン）</dd></div>
+              <div><dt>本番レート制限</dt><dd className="pending">未実装</dd></div>
+            </dl>
           </section>
 
           <div className="quality-image-status" aria-label="旅行先画像の設定状態">

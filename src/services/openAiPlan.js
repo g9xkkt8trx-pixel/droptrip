@@ -24,13 +24,13 @@ const extractOutputText = (response) => {
   return text
 }
 
-const requestServerPlan = async (prompt, signal) => {
+const requestServerPlan = async ({ prompt, destination, travelType, signal }) => {
   let response
   try {
     response = await fetch(SERVER_PLAN_API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt }),
+      body: JSON.stringify({ prompt, destination, travelType }),
       signal,
     })
   } catch (error) {
@@ -70,7 +70,7 @@ const requestLocalDirectPlan = async (prompt, storedApiKey, signal) => {
     body: JSON.stringify({
       model: OPENAI_PLAN_MODEL,
       input: prompt,
-      max_output_tokens: 1800,
+      max_output_tokens: 1200,
     }),
     signal,
   })
@@ -83,13 +83,13 @@ export const getOpenAiCommunicationModeLabel = (mode = 'server') => (
   mode === 'local-direct' ? 'ローカル開発用キー' : 'サーバー経由'
 )
 
-export const generateOpenAiPlan = async ({ prompt, storedApiKey = '' }) => {
+export const generateOpenAiPlan = async ({ prompt, destination, travelType, storedApiKey = '' }) => {
   const controller = new AbortController()
   const timeoutId = globalThis.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
 
   try {
     try {
-      return await requestServerPlan(prompt, controller.signal)
+      return await requestServerPlan({ prompt, destination, travelType, signal: controller.signal })
     } catch (error) {
       if (!error.serverUnavailable || !canUseLocalDirectFallback()) throw error
       return await requestLocalDirectPlan(prompt, storedApiKey, controller.signal)
