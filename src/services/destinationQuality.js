@@ -16,7 +16,9 @@ const tagKeywords = {
   カップル向け: ['夜景', '街並み', '散策', 'ロマン', 'デート', '景色', '絶景', '温泉'],
 }
 
-const addIssue = (issues, field, message) => issues.push({ field, message })
+const addIssue = (issues, field, message, recommendation = `${field}の設定内容を確認してください`) => (
+  issues.push({ field, message, recommendation })
+)
 
 const validateBudget = (budgets) => {
   if (!budgets || typeof budgets !== 'object') return false
@@ -60,7 +62,11 @@ export const runDestinationQualityChecks = (destinations) => {
     } else if (destination.tags.some((tag) => !allowedTags.includes(tag))) {
       addIssue(issues, 'tags', '未定義のタグが含まれています')
     }
-    if (!destination.recommendText?.trim()) addIssue(issues, 'recommendText', 'おすすめ文がありません')
+    if (!destination.recommendText?.trim()) {
+      addIssue(issues, 'recommendText', 'おすすめ文がありません', '旅先の特徴が伝わるおすすめ文を追加してください')
+    } else if (destination.recommendText.trim().length < 10) {
+      addIssue(issues, 'recommendText', 'おすすめ文が短く、魅力が伝わりにくい可能性があります', '特徴を含む10文字以上の自然な文章にしてください')
+    }
 
     ;['heroImage', 'foodImage', 'sceneryImage'].forEach((field) => {
       if (!destination[field]) addIssue(issues, field, `${field}がありません`)
@@ -68,22 +74,36 @@ export const runDestinationQualityChecks = (destinations) => {
     })
 
     if (!destination.nearestStation?.trim()) addIssue(issues, 'nearestStation', '最寄り駅がありません')
-    if (!destination.nearestStationLabel?.trim()) addIssue(issues, 'nearestStationLabel', '最寄り駅表示がありません')
-    if (!Number.isFinite(destination.stationAccessMinutes) || destination.stationAccessMinutes < 0) {
-      addIssue(issues, 'stationAccessMinutes', '現地アクセス時間が不正です')
+    if (!destination.nearestStationLabel?.trim()) addIssue(issues, 'nearestStationLabel', '最寄り駅表示がありません', '路線・事業者を含む自然な駅名表示を追加してください')
+    else if (/JRJR|駅\s*駅/.test(destination.nearestStationLabel)) {
+      addIssue(issues, 'nearestStationLabel', '最寄り駅表示が不自然です', '重複した事業者名や「駅」を整理してください')
+    }
+    if (!Number.isFinite(destination.stationAccessMinutes) || destination.stationAccessMinutes < 0 || destination.stationAccessMinutes > 180) {
+      addIssue(issues, 'stationAccessMinutes', '現地アクセス時間が欠損または極端です', '0〜180分の現実的な所要時間に修正してください')
     }
     if (!Array.isArray(destination.bestSeasons) || destination.bestSeasons.length === 0) {
       addIssue(issues, 'bestSeasons', 'ベストシーズンがありません')
     }
     if (!destination.seasonHighlights || typeof destination.seasonHighlights !== 'object') {
-      addIssue(issues, 'seasonHighlights', '季節の見どころがありません')
+      addIssue(issues, 'seasonHighlights', '季節の見どころがありません', '春・夏・秋・冬の見どころを設定してください')
+    } else {
+      const missingSeasonHighlights = ['春', '夏', '秋', '冬'].filter((season) => !destination.seasonHighlights[season]?.trim())
+      if (missingSeasonHighlights.length > 0) {
+        addIssue(issues, 'seasonHighlights', `${missingSeasonHighlights.join('・')}の見どころがありません`, '全季節の説明を追加してください')
+      }
     }
-    if (!validateBudget(destination.budgets)) addIssue(issues, 'budgets', '予算の欠損または極端な値があります')
+    if (!validateBudget(destination.budgets)) addIssue(issues, 'budgets', '予算の欠損または極端な値があります', '各旅行タイプを1,000〜500,000円の昇順範囲で設定してください')
     if (duplicateKeys.has(`${destination.prefecture}::${destination.city}`)) {
       addIssue(issues, 'city / prefecture', '同じ旅行先が重複しています')
     }
     if (!validateTagRecommendationMatch(destination)) {
-      addIssue(issues, 'tags / recommendText', 'タグとおすすめ文の関連性を確認してください')
+      addIssue(issues, 'tags / recommendText', 'タグとおすすめ文の関連性が弱い可能性があります', 'タグに対応する魅力をおすすめ文へ含めてください')
+    }
+    if (destination.tags?.includes('海') && !destination.bestSeasons?.includes('夏')) {
+      addIssue(issues, 'bestSeasons', '海タグがありますが夏がベストシーズンに含まれていません', '地域特性に問題がなければ夏を追加してください')
+    }
+    if (destination.tags?.includes('温泉') && !destination.bestSeasons?.some((season) => ['秋', '冬'].includes(season))) {
+      addIssue(issues, 'bestSeasons', '温泉タグと秋・冬の季節設定が一致していません', '秋または冬をベストシーズンに追加してください')
     }
 
     return {
@@ -92,6 +112,7 @@ export const runDestinationQualityChecks = (destinations) => {
       prefecture: destination.prefecture || '都道府県未設定',
       issues,
       fields: [...new Set(issues.map((issue) => issue.field))],
+      recommendations: [...new Set(issues.map((issue) => issue.recommendation))],
     }
   })
 

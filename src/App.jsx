@@ -19,6 +19,7 @@ import {
   isValidImageUrl,
 } from './data/destinationImages'
 import { runDestinationQualityChecks } from './services/destinationQuality'
+import { analyzeDrawBalance } from './services/drawBalance'
 
 const tripTypes = ['日帰り', '1泊2日', '2泊3日']
 const primaryTransportModes = ['車', '電車', '飛行機']
@@ -37,6 +38,7 @@ const INPUT_STATE_STORAGE_KEY = 'droptrip-input-state'
 const MAX_HISTORY_ITEMS = 20
 const DAILY_AI_PLAN_LIMIT = 3
 const destinationQualityReport = runDestinationQualityChecks(destinations)
+const drawBalanceReport = analyzeDrawBalance(destinations)
 const DEBUG_STORAGE_KEYS = [
   FAVORITES_STORAGE_KEY,
   VISITED_STORAGE_KEY,
@@ -402,6 +404,24 @@ const getTravelCacheKey = (origin, destinationId) => (
   `${origin.trim().toLowerCase()}::${destinationId}`
 )
 
+const getTripSuitability = (destination, tripType) => {
+  const expectedDays = expectedTripDays[tripType]
+  const planDays = destination.plans[tripType]?.length ?? 0
+  const planRatio = Math.min(planDays / expectedDays, 1)
+  const accessMinutes = Number.isFinite(destination.stationAccessMinutes)
+    ? destination.stationAccessMinutes
+    : 30
+
+  if (tripType === '日帰り') {
+    const accessFactor = accessMinutes <= 30 ? 1 : accessMinutes <= 60 ? 0.85 : 0.6
+    return planRatio * accessFactor
+  }
+  if (tripType === '1泊2日') {
+    return planRatio * (accessMinutes <= 90 ? 1 : 0.82)
+  }
+  return planRatio
+}
+
 const scoreDestination = ({
   destination,
   selectedFilters,
@@ -412,22 +432,24 @@ const scoreDestination = ({
   isPrevious,
 }) => {
   const matchingCount = selectedFilters.filter((filter) => destination.tags.includes(filter)).length
-  const expectedDays = expectedTripDays[tripType]
-  const planDays = destination.plans[tripType]?.length ?? 0
-  const tripRatio = Math.min(planDays / expectedDays, 1)
+  const tripRatio = getTripSuitability(destination, tripType)
   const tripCompatibilityLabel = tripRatio >= 1 ? '良い' : tripRatio >= 0.66 ? '普通' : '低い'
   const cachedFeasibility = cachedDurationMinutes
     ? calculateFeasibility(cachedDurationMinutes, tripType, '車')
     : null
   const season = resolveSeason(travelSeason)
-  const seasonPoints = season && destination.bestSeasons.includes(season) ? 18 : season ? 2 : 8
+  const seasonPoints = season && destination.bestSeasons.includes(season) ? 24 : season ? 3 : 10
+  const conditionRatio = selectedFilters.length > 0 ? matchingCount / selectedFilters.length : 1
+  const conditionPoints = selectedFilters.length > 0
+    ? matchingCount * 22 + conditionRatio * 18
+    : 18
 
   const score = Math.max(1, Math.round(
-    10
-    + matchingCount * 20
-    + tripRatio * 18
+    8
+    + conditionPoints
+    + tripRatio * 22
     + (isVisited ? -12 : 8)
-    + Math.min(destination.tags.length, 5) * 2
+    + Math.min(destination.tags.length, 5) * 1.5
     + seasonPoints
     + (cachedFeasibility ? cachedFeasibility.stars * 4 : 0),
   ))
@@ -441,7 +463,7 @@ const scoreDestination = ({
       ? 'おまかせ'
       : destination.bestSeasons.includes(season) ? 'とても良い' : '標準',
     score,
-    weight: Math.pow(score, 1.35) * (isPrevious ? 0.35 : 1),
+    weight: Math.pow(score, 1.28) * (isPrevious ? 0.22 : 1),
   }
 }
 
@@ -715,6 +737,7 @@ function App() {
   const [aiPlanResult, setAiPlanResult] = useState('')
   const [aiPlanUsage, setAiPlanUsage] = useState(loadAiPlanUsage)
   const [isPremiumUser, setIsPremiumUser] = useState(loadPremiumStatus)
+  const [drawSimulation, setDrawSimulation] = useState(null)
 
   const favoriteDestinations = favoriteCities
     .map((city) => destinations.find((place) => place.city === city))
@@ -1148,6 +1171,77 @@ function App() {
       }
     }
 
+  }
+
+  const runDrawSimulation = () => {
+    const normalizedDeparture = departure.trim()
+    const matchingDestinations = destinations.filter((place) => (
+      selectedFilters.length === 0
+      || selectedFilters.some((filter) => place.tags.includes(filter))
+    ))
+    const candidates = matchingDestinations.filter((place) => (
+      includeVisited || !visitedCities.includes(place.city)
+    ))
+
+    if (candidates.length === 0) {
+      setDrawSimulation({ error: '現在の条件ではシミュレーション対象がありません。' })
+      return
+    }
+
+    const cityCounts = {}
+    const prefectureCounts = {}
+    const tagCounts = Object.fromEntries(filterOptions.map((tag) => [tag, 0]))
+    let destinyTotal = 0
+    let conditionRatioTotal = 0
+    let previousId = lastDestinationId
+
+    for (let index = 0; index < 100; index += 1) {
+      const scoredDestinations = candidates.map((place) => scoreDestination({
+        destination: place,
+        selectedFilters,
+        tripType,
+        travelSeason,
+        isVisited: visitedCities.includes(place.city),
+        cachedDurationMinutes: normalizedDeparture
+          ? travelTimeCache[getTravelCacheKey(normalizedDeparture, place.id)]
+          : null,
+        isPrevious: place.id === previousId,
+      }))
+      const selected = pickWeightedDestination(scoredDestinations)
+      const place = selected.destination
+      const destinyScore = calculateDestiny(place, selectedFilters, tripType).score
+
+      cityCounts[place.city] = (cityCounts[place.city] ?? 0) + 1
+      prefectureCounts[place.prefecture] = (prefectureCounts[place.prefecture] ?? 0) + 1
+      place.tags.forEach((tag) => {
+        if (tag in tagCounts) tagCounts[tag] += 1
+      })
+      destinyTotal += destinyScore
+      conditionRatioTotal += selectedFilters.length > 0
+        ? selected.matchingCount / selectedFilters.length
+        : 1
+      previousId = place.id
+    }
+
+    const sortCounts = (counts) => Object.entries(counts).sort(([, left], [, right]) => right - left)
+    const destinationRanking = sortCounts(cityCounts)
+    const mostFrequentCount = destinationRanking[0]?.[1] ?? 0
+    setDrawSimulation({
+      candidateCount: candidates.length,
+      destinationRanking: destinationRanking.slice(0, 5),
+      prefectureRanking: sortCounts(prefectureCounts).slice(0, 5),
+      tagRanking: sortCounts(tagCounts),
+      averageDestiny: Math.round(destinyTotal / 100),
+      conditionMatchRate: Math.round((conditionRatioTotal / 100) * 100),
+      repetitionWarning: mostFrequentCount >= 15,
+      mostFrequentCount,
+      conditions: {
+        tripType,
+        season: resolveSeason(travelSeason) ?? 'おまかせ',
+        filters: selectedFilters.length > 0 ? selectedFilters.join('、') : '指定なし',
+        visited: includeVisited ? '含める' : '除外',
+      },
+    })
   }
 
   const chooseDestination = async (event) => {
@@ -2422,9 +2516,118 @@ function App() {
                   <dl>
                     <div><dt>問題内容</dt><dd>{result.issues.map((issue) => issue.message).join(' / ')}</dd></div>
                     <div><dt>修正が必要な項目</dt><dd>{result.fields.join('、')}</dd></div>
+                    <div><dt>修正推奨内容</dt><dd>{result.recommendations.join(' / ')}</dd></div>
                   </dl>
                 </article>
               ))}
+            </div>
+          )}
+        </section>
+
+        <section className="draw-balance-card" aria-labelledby="draw-balance-title">
+          <div className="quality-check-heading">
+            <span aria-hidden="true">⚖</span>
+            <div>
+              <p>DRAW BALANCE</p>
+              <h2 id="draw-balance-title">抽選バランスチェック</h2>
+            </div>
+          </div>
+
+          <div className="balance-overview">
+            <div><span>旅行先</span><strong>{drawBalanceReport.total}件</strong></div>
+            <div><span>都道府県</span><strong>{drawBalanceReport.prefectureCounts.length}件</strong></div>
+            <div className={drawBalanceReport.warnings.length > 0 ? 'quality-warning' : 'quality-passed'}>
+              <span>要確認</span><strong>{drawBalanceReport.warnings.length}件</strong>
+            </div>
+          </div>
+
+          {drawBalanceReport.warnings.length > 0 ? (
+            <ul className="balance-warning-list">
+              {drawBalanceReport.warnings.map((warning) => <li key={warning}>{warning}</li>)}
+            </ul>
+          ) : (
+            <p className="quality-all-clear">大きな分布の偏りは見つかりませんでした。</p>
+          )}
+
+          <div className="balance-groups">
+            <article>
+              <h3>タグ別</h3>
+              <div className="balance-chips">
+                {Object.entries(drawBalanceReport.tagCounts).map(([label, count]) => <span key={label}>{label} <b>{count}</b></span>)}
+              </div>
+            </article>
+            <article>
+              <h3>旅行タイプ別</h3>
+              <div className="balance-chips">
+                {Object.entries(drawBalanceReport.tripTypeCounts).map(([label, count]) => <span key={label}>{label} <b>{count}</b></span>)}
+              </div>
+            </article>
+            <article>
+              <h3>季節別</h3>
+              <div className="balance-chips">
+                {Object.entries(drawBalanceReport.seasonCounts).map(([label, count]) => <span key={label}>{label} <b>{count}</b></span>)}
+              </div>
+            </article>
+            <article>
+              <h3>地域別</h3>
+              <div className="balance-chips">
+                {Object.entries(drawBalanceReport.regionCounts).map(([label, count]) => <span key={label}>{label} <b>{count}</b></span>)}
+              </div>
+            </article>
+            <article>
+              <h3>駅からのアクセス</h3>
+              <div className="balance-chips">
+                {Object.entries(drawBalanceReport.stationAccessCounts).map(([label, count]) => <span key={label}>{label} <b>{count}</b></span>)}
+              </div>
+            </article>
+            <article>
+              <h3>予算帯（1泊2日の下限）</h3>
+              <div className="balance-chips">
+                {Object.entries(drawBalanceReport.budgetCounts).map(([label, count]) => <span key={label}>{label} <b>{count}</b></span>)}
+              </div>
+            </article>
+          </div>
+
+          <details className="prefecture-balance-details">
+            <summary>都道府県別の件数を見る</summary>
+            <div className="balance-chips">
+              {drawBalanceReport.prefectureCounts.map(([label, count]) => <span key={label}>{label} <b>{count}</b></span>)}
+            </div>
+          </details>
+
+          <div className="draw-simulation">
+            <div>
+              <p>SIMULATION</p>
+              <h3>抽選シミュレーション</h3>
+              <span>現在の条件で100回だけ仮抽選します。抽選履歴には保存されません。</span>
+            </div>
+            <button type="button" onClick={runDrawSimulation}>100回シミュレーション</button>
+          </div>
+
+          {drawSimulation?.error && <p className="settings-notice">{drawSimulation.error}</p>}
+          {drawSimulation && !drawSimulation.error && (
+            <div className="simulation-results" aria-live="polite">
+              <p className="simulation-conditions">
+                条件：{drawSimulation.conditions.tripType} / {drawSimulation.conditions.season} / {drawSimulation.conditions.filters} / 訪問済みを{drawSimulation.conditions.visited}
+              </p>
+              <div className="simulation-summary">
+                <div><span>候補数</span><strong>{drawSimulation.candidateCount}件</strong></div>
+                <div><span>平均運命度</span><strong>{drawSimulation.averageDestiny}%</strong></div>
+                <div><span>条件一致率</span><strong>{drawSimulation.conditionMatchRate}%</strong></div>
+                <div className={drawSimulation.repetitionWarning ? 'quality-warning' : 'quality-passed'}>
+                  <span>最多出現</span><strong>{drawSimulation.mostFrequentCount}回</strong>
+                </div>
+              </div>
+              <div className="simulation-rankings">
+                <article><h4>よく出た旅先</h4><ol>{drawSimulation.destinationRanking.map(([label, count]) => <li key={label}><span>{label}</span><b>{count}回</b></li>)}</ol></article>
+                <article><h4>都道府県の傾向</h4><ol>{drawSimulation.prefectureRanking.map(([label, count]) => <li key={label}><span>{label}</span><b>{count}回</b></li>)}</ol></article>
+                <article><h4>タグの傾向</h4><ol>{drawSimulation.tagRanking.map(([label, count]) => <li key={label}><span>{label}</span><b>{count}回</b></li>)}</ol></article>
+              </div>
+              <p className={drawSimulation.repetitionWarning ? 'simulation-alert' : 'simulation-ok'}>
+                {drawSimulation.repetitionWarning
+                  ? '同じ旅先の出現が多めです。候補数や条件の絞り込みを確認してください。'
+                  : '同じ旅先への極端な集中は見つかりませんでした。'}
+              </p>
             </div>
           )}
         </section>
