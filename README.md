@@ -166,7 +166,7 @@ npm run preview
 
 ## デプロイ準備
 
-Vercel、Netlify、Cloudflare Pagesなどで公開する前の手順とAPIキー保護については、[DEPLOYMENT.md](./DEPLOYMENT.md) を確認してください。現在のβ版をそのまま一般公開せず、特にOpenAI API通信のサーバー移行とGoogle Maps APIキーの制限を先に行ってください。
+Vercel、Netlify、Cloudflare Pagesなどで公開する前の手順とAPIキー保護については、[DEPLOYMENT.md](./DEPLOYMENT.md) を確認してください。Vercelで自分だけが確認する限定公開テストも、同ファイルの「Vercel限定公開テスト手順」に沿って設定してください。現在のβ版をアクセス保護なしで一般公開しないでください。
 
 ## 主なファイル
 
