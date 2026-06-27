@@ -616,18 +616,40 @@ h1 {
   font-size: 0.52rem;
 }
 
+.result-source-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 auto 8px;
+}
+
 .result-source-label {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   min-height: 26px;
-  margin: 0 auto 8px;
+  margin: 0;
   padding: 0 10px;
   color: #8f6f43;
   background: rgba(255, 255, 255, 0.76);
   border: 1px solid rgba(210, 160, 98, 0.28);
   border-radius: 999px;
   font-size: 0.58rem;
+  font-weight: 900;
+}
+
+.result-source-row button {
+  min-height: 36px;
+  padding: 0 12px;
+  color: #2d6f64;
+  background: #fff;
+  border: 1px solid #cfe3dd;
+  border-radius: 999px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.6rem;
   font-weight: 900;
 }
 
@@ -3324,6 +3346,14 @@ h1 {
   font-weight: 800;
 }
 
+.destination-browser-actions button small {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.52rem;
+  line-height: 1.2;
+  opacity: 0.86;
+}
+
 .destination-browser-actions button.selected {
   color: #fff;
   background: #2a9d8f;
@@ -5035,6 +5065,7 @@ h1 {
   .result-card { margin-top: 22px; padding: 20px 16px 18px; }
   .result-hero-image { margin: -20px -16px 18px; width: calc(100% + 32px); }
   .result-hero-image { height: 220px; }
+  .result-source-row button { min-height: 44px; }
   .favorite-button { min-height: 44px; }
   .destiny-card { gap: 13px; padding: 16px; }
   .destiny-score { width: 82px; height: 82px; }

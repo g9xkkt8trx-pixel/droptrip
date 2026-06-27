@@ -1006,6 +1006,7 @@ function App() {
   const travelRequestInFlight = useRef(false)
   const aiPlanRequestInFlight = useRef(false)
   const developerTitleClicks = useRef({ count: 0, lastClickAt: 0 })
+  const destinationListScrollY = useRef(0)
   const [restoredInputState] = useState(loadInputState)
   const [departure, setDeparture] = useState(restoredInputState.departure)
   const [departureError, setDepartureError] = useState('')
@@ -1444,6 +1445,13 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
+  const backToDestinationList = () => {
+    setCurrentPage('destinations')
+    window.setTimeout(() => {
+      window.scrollTo({ top: destinationListScrollY.current, behavior: 'auto' })
+    }, 0)
+  }
+
   const handleDeveloperTitleClick = (event) => {
     const now = event.timeStamp
     const previous = developerTitleClicks.current
@@ -1594,6 +1602,7 @@ function App() {
 
   const showDestinationFromList = async (place) => {
     if (travelRequestInFlight.current) return
+    destinationListScrollY.current = window.scrollY
     const normalizedDeparture = departure.trim()
     const requestId = ++travelRequestId.current
     const detailFilters = [...selectedFilters]
@@ -2216,7 +2225,10 @@ function App() {
                 onLoadFailure={(fallbackType) => reportImageFailure(destination.id, 'hero', fallbackType)}
               />
               {(selectionMeta?.source === 'destination-list' || selectionMeta?.visitedPolicy === '一覧から表示') && (
-                <p className="result-source-label">旅行先一覧から表示中</p>
+                <div className="result-source-row">
+                  <p className="result-source-label">旅行先一覧から表示中</p>
+                  <button type="button" onClick={backToDestinationList}>旅行先一覧に戻る</button>
+                </div>
               )}
               <p className="result-label">YOUR DESTINATION</p>
               <div className="result-pin" aria-hidden="true">✦</div>
@@ -2769,9 +2781,15 @@ function App() {
                             <button
                               type="button"
                               className={isCompared ? 'selected' : ''}
+                              aria-pressed={isCompared}
                               onClick={() => toggleComparison(place.city)}
                             >
-                              {isCompared ? '比較中' : '比較に追加'}
+                              {isCompared ? (
+                                <>
+                                  <span>比較中</span>
+                                  <small>比較から外す</small>
+                                </>
+                              ) : '比較に追加'}
                             </button>
                             <button type="button" className="primary" onClick={() => showDestinationFromList(place)}>
                               詳細を見る
