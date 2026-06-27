@@ -1054,6 +1054,7 @@ function App() {
   const [destinationSeasonFilter, setDestinationSeasonFilter] = useState('all')
   const [destinationRangeFilter, setDestinationRangeFilter] = useState('auto')
   const [destinationFavoritesOnly, setDestinationFavoritesOnly] = useState(false)
+  const [destinationFiltersOpen, setDestinationFiltersOpen] = useState(false)
 
   const favoriteDestinations = favoriteCities
     .map((city) => destinations.find((place) => place.city === city))
@@ -2652,7 +2653,18 @@ function App() {
                 気になる旅先を探して、お気に入りや比較に追加できます。
               </p>
 
-              <div className="destination-browser-filters">
+              <button
+                type="button"
+                className="destination-filter-toggle"
+                onClick={() => setDestinationFiltersOpen((current) => !current)}
+                aria-expanded={destinationFiltersOpen}
+                aria-controls="destination-browser-filters"
+              >
+                {destinationFiltersOpen ? '絞り込み条件を閉じる' : '絞り込み条件を開く'}
+              </button>
+
+              {destinationFiltersOpen && (
+              <div className="destination-browser-filters" id="destination-browser-filters">
                 <label>
                   <span>キーワード</span>
                   <input
@@ -2705,6 +2717,7 @@ function App() {
                   <span>お気に入りのみ</span>
                 </label>
               </div>
+              )}
 
               <p className="movement-range-note">
                 移動範囲は概算で判定しています。正確な移動時間は詳細表示後に取得します。
@@ -2736,14 +2749,6 @@ function App() {
                     const isCompared = compareCities.includes(place.city)
                     return (
                       <article className="destination-browser-item" key={place.id}>
-                        <SafeImage
-                          destination={place}
-                          imageType="hero"
-                          className="destination-browser-image"
-                          alt={`${place.city}の旅行イメージ`}
-                          showCredit
-                          onLoadFailure={(fallbackType) => reportImageFailure(place.id, 'hero-list', fallbackType)}
-                        />
                         <div className="destination-browser-body">
                           <header>
                             <div><p>{place.prefecture}</p><h3>{place.city}</h3></div>

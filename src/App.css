@@ -3077,6 +3077,20 @@ h1 {
   line-height: 1.7;
 }
 
+.destination-filter-toggle {
+  width: 100%;
+  min-height: 46px;
+  margin-top: 13px;
+  color: #2d6f64;
+  background: #f4faf8;
+  border: 1px solid #cfe3dd;
+  border-radius: 13px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 900;
+}
+
 .destination-browser-filters {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -3178,7 +3192,9 @@ h1 {
 
 .destination-browser-item {
   overflow: hidden;
-  background: #f8fbfa;
+  background:
+    radial-gradient(circle at top right, rgba(42, 157, 143, 0.1), transparent 38%),
+    #f8fbfa;
   border: 1px solid #e2ebe8;
   border-radius: 17px;
 }
@@ -3192,8 +3208,8 @@ h1 {
 
 .destination-browser-body {
   display: grid;
-  gap: 10px;
-  padding: 13px;
+  gap: 11px;
+  padding: 15px;
 }
 
 .destination-browser-body header {
@@ -3209,15 +3225,22 @@ h1 {
 }
 
 .destination-browser-body header p {
-  color: #82908c;
-  font-size: 0.58rem;
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 9px;
+  color: #28786b;
+  background: #eaf5f2;
+  border-radius: 999px;
+  font-size: 0.56rem;
   font-weight: 800;
 }
 
 .destination-browser-body header h3 {
-  margin-top: 2px;
+  margin-top: 8px;
   color: #244f45;
-  font-size: 1rem;
+  font-size: 1.1rem;
+  letter-spacing: 0.01em;
 }
 
 .destination-browser-body header > span {
@@ -3276,6 +3299,10 @@ h1 {
   color: #60766f;
   font-size: 0.68rem;
   line-height: 1.65;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
 }
 
 .destination-browser-actions {
