@@ -1126,6 +1126,26 @@ function App() {
       && matchesRange
       && matchesFavorite
   })
+  const destinationRangeLabel = movementRangeOptions.find((option) => option.value === destinationRangeFilter)?.label ?? 'おまかせ'
+  const activeDestinationFilters = [
+    destinationSearch.trim() && `キーワード：${destinationSearch.trim()}`,
+    destinationPrefectureFilter !== 'all' && `都道府県：${destinationPrefectureFilter}`,
+    destinationTagFilter !== 'all' && `タグ：${destinationTagFilter}`,
+    destinationTripTypeFilter !== 'all' && `旅行タイプ：${destinationTripTypeFilter}`,
+    destinationSeasonFilter !== 'all' && `季節：${destinationSeasonFilter}`,
+    destinationRangeFilter !== 'auto' && `移動範囲：${destinationRangeLabel}`,
+    destinationFavoritesOnly && 'お気に入りのみ',
+  ].filter(Boolean)
+
+  const resetDestinationFilters = () => {
+    setDestinationSearch('')
+    setDestinationPrefectureFilter('all')
+    setDestinationTagFilter('all')
+    setDestinationTripTypeFilter('all')
+    setDestinationSeasonFilter('all')
+    setDestinationRangeFilter('auto')
+    setDestinationFavoritesOnly(false)
+  }
 
   const destiny = destination && planContext
     ? calculateDestiny(destination, planContext.selectedFilters, planContext.tripType)
@@ -1601,6 +1621,7 @@ function App() {
       score: detailScore.score,
       seasonCompatibility: detailScore.seasonCompatibility,
       movementRangeEstimate: movementEstimate,
+      source: 'destination-list',
       visitedPolicy: '一覧から表示',
     })
     setPlanContext({
@@ -1772,12 +1793,15 @@ function App() {
     })
 
     if (candidates.length === 0) {
+      const strictRangeNoMatch = strictMovementRange && movementRange !== 'auto' && movementRange !== 'unlimited'
       setDestination(null)
       setPlanContext(null)
       setTravelInfo({ status: 'idle', car: null, publicTransit: null })
       setSelectionMeta(null)
       setNoMatchMessage(
-        matchingDestinations.length > 0
+        strictRangeNoMatch
+          ? '条件に合う旅先が見つかりませんでした。移動範囲を広げるか、厳密絞り込みをOFFにしてください。'
+          : matchingDestinations.length > 0
           ? '条件に合う未訪問の旅先がありません。「行った場所も含める」を選んでください。'
           : '条件に合う旅先が見つかりませんでした。条件を減らしてください。',
       )
@@ -2136,8 +2160,11 @@ function App() {
               />
               <span>厳密に絞り込む</span>
             </label>
+            <p className="movement-strict-note">
+              ONにすると条件外の旅先を除外します。候補が少なくなる場合があります。
+            </p>
             <p className="movement-range-note">
-              移動範囲は概算で判定しています。正確な移動時間は抽選後に表示されます。
+              移動範囲は概算で判定します。正確な移動時間は旅先決定後に表示されます。
             </p>
           </fieldset>
 
@@ -2187,6 +2214,9 @@ function App() {
                 showCredit
                 onLoadFailure={(fallbackType) => reportImageFailure(destination.id, 'hero', fallbackType)}
               />
+              {(selectionMeta?.source === 'destination-list' || selectionMeta?.visitedPolicy === '一覧から表示') && (
+                <p className="result-source-label">旅行先一覧から表示中</p>
+              )}
               <p className="result-label">YOUR DESTINATION</p>
               <div className="result-pin" aria-hidden="true">✦</div>
               <p className="result-city"><span>今回の旅先：</span>{destination.city}</p>
@@ -2610,14 +2640,17 @@ function App() {
               <div className="developer-page-icon destinations-page-icon" aria-hidden="true">□</div>
               <p>DESTINATIONS</p>
               <h1 id="destinations-page-title">旅行先一覧</h1>
-              <span>ランダム抽選だけでなく、写真や条件から気になる旅先を探せます。</span>
+              <span>気になる旅先を探して、お気に入りや比較に追加できます。</span>
             </header>
 
             <section className="destination-browser-card" aria-labelledby="destination-browser-title">
               <div className="favorites-heading">
                 <div><p>SEARCH</p><h2 id="destination-browser-title">旅行先を絞り込む</h2></div>
-                <span>{filteredDestinations.length}件</span>
+                <span>{destinations.length}件中 {filteredDestinations.length}件を表示中</span>
               </div>
+              <p className="destination-browser-description">
+                気になる旅先を探して、お気に入りや比較に追加できます。
+              </p>
 
               <div className="destination-browser-filters">
                 <label>
@@ -2676,6 +2709,21 @@ function App() {
               <p className="movement-range-note">
                 移動範囲は概算で判定しています。正確な移動時間は詳細表示後に取得します。
               </p>
+              <div className="destination-filter-summary" aria-live="polite">
+                <div className="destination-active-filters">
+                  {activeDestinationFilters.length > 0
+                    ? activeDestinationFilters.map((filter) => <span key={filter}>{filter}</span>)
+                    : <span className="empty">条件指定なし</span>}
+                </div>
+                <button
+                  type="button"
+                  className="destination-filter-reset"
+                  onClick={resetDestinationFilters}
+                  disabled={activeDestinationFilters.length === 0}
+                >
+                  条件をリセット
+                </button>
+              </div>
             </section>
 
             <section className="destination-list-section" aria-label="旅行先一覧">

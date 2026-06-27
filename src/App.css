@@ -524,6 +524,13 @@ h1 {
   line-height: 1.6;
 }
 
+.movement-strict-note {
+  margin: 7px 2px 0;
+  color: #9a7b54;
+  font-size: 0.61rem;
+  line-height: 1.55;
+}
+
 .decide-button {
   height: 58px;
   display: flex;
@@ -607,6 +614,21 @@ h1 {
   color: #9a8177;
   text-align: right;
   font-size: 0.52rem;
+}
+
+.result-source-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 26px;
+  margin: 0 auto 8px;
+  padding: 0 10px;
+  color: #8f6f43;
+  background: rgba(255, 255, 255, 0.76);
+  border: 1px solid rgba(210, 160, 98, 0.28);
+  border-radius: 999px;
+  font-size: 0.58rem;
+  font-weight: 900;
 }
 
 .image-placeholder {
@@ -3048,6 +3070,13 @@ h1 {
   box-shadow: 0 8px 24px rgba(43, 80, 71, 0.05);
 }
 
+.destination-browser-description {
+  margin: 9px 0 0;
+  color: #72837e;
+  font-size: 0.7rem;
+  line-height: 1.7;
+}
+
 .destination-browser-filters {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -3088,6 +3117,57 @@ h1 {
   background: #f3f8f6;
   border: 1px solid #dfe9e5;
   border-radius: 11px;
+}
+
+.destination-filter-summary {
+  display: grid;
+  gap: 10px;
+  margin-top: 13px;
+}
+
+.destination-active-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.destination-active-filters span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  color: #276c60;
+  background: #eaf5f2;
+  border: 1px solid #cfe8e1;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 800;
+}
+
+.destination-active-filters .empty {
+  color: #8a9893;
+  background: #f6f8f7;
+  border-color: #e2ebe8;
+}
+
+.destination-filter-reset {
+  min-height: 44px;
+  justify-self: start;
+  padding: 0 14px;
+  color: #2d6f64;
+  background: #fff;
+  border: 1px solid #cfe3dd;
+  border-radius: 999px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.66rem;
+  font-weight: 900;
+}
+
+.destination-filter-reset:disabled {
+  color: #a3b0ac;
+  background: #f7f9f8;
+  cursor: not-allowed;
 }
 
 .destination-card-grid {
@@ -4984,6 +5064,7 @@ h1 {
   .destination-card-grid,
   .movement-range-custom { grid-template-columns: 1fr; }
   .movement-range-options { grid-template-columns: 1fr; }
+  .destination-filter-reset { width: 100%; justify-self: stretch; }
   .destination-browser-image { height: 190px; }
   .destination-browser-actions { grid-template-columns: 1fr; }
   .destination-browser-actions button.primary { grid-column: auto; }
