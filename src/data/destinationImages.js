@@ -90,6 +90,16 @@ const EXTENDED_DESTINATION_IMAGE_SLUGS = new Set([
   'nagasaki',
   'takayama',
   'ise',
+  'nikko',
+  'karuizawa',
+  'furano',
+  'aizuwakamatsu',
+  'onomichi',
+  'kurashiki',
+  'matsue',
+  'beppu',
+  'naha',
+  'shirahama',
 ])
 
 const getDestinationImageSlug = (mappedImages = {}) => {

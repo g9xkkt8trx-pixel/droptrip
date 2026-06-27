@@ -31,6 +31,13 @@ const primaryTransportModes = ['車', '電車', '飛行機']
 const transportModes = [...primaryTransportModes]
 const seasonOptions = ['今の季節', '春', '夏', '秋', '冬', 'おまかせ']
 const filterOptions = ['温泉', '海', '山', 'グルメ', 'カップル向け']
+const movementRangeOptions = [
+  { value: 'auto', label: 'おまかせ', maxHours: null, maxKm: null },
+  { value: 'near', label: '近場：2時間以内', maxHours: 2, maxKm: 120 },
+  { value: 'middle', label: '中距離：4時間以内', maxHours: 4, maxKm: 260 },
+  { value: 'far', label: '遠出：8時間以内', maxHours: 8, maxKm: 560 },
+  { value: 'unlimited', label: '制限なし', maxHours: null, maxKm: null },
+]
 const FAVORITES_STORAGE_KEY = 'droptrip-favorites'
 const VISITED_STORAGE_KEY = 'droptrip-visited'
 const COMPARE_STORAGE_KEY = 'droptrip-compare'
@@ -119,6 +126,115 @@ const getSeasonCompatibility = (destination, travelSeason, tripType) => {
     starsLabel: `${'★'.repeat(stars)}${'☆'.repeat(5 - stars)}`,
     isBest,
     description: `${season}の${destination.city}は${destination.seasonHighlights[season]}ため、${tripType}の旅行先として${isBest ? '特に魅力が高い' : '新しい魅力を見つけやすい'}です。`,
+  }
+}
+
+const originCoordinateHints = [
+  { keyword: '札幌', latitude: 43.0618, longitude: 141.3545 },
+  { keyword: '北海道', latitude: 43.0618, longitude: 141.3545 },
+  { keyword: '仙台', latitude: 38.2682, longitude: 140.8694 },
+  { keyword: '宮城', latitude: 38.2682, longitude: 140.8694 },
+  { keyword: '水戸', latitude: 36.3659, longitude: 140.4714 },
+  { keyword: '茨城', latitude: 36.3659, longitude: 140.4714 },
+  { keyword: '高崎', latitude: 36.3222, longitude: 139.0033 },
+  { keyword: '群馬', latitude: 36.3912, longitude: 139.0609 },
+  { keyword: '東京', latitude: 35.6812, longitude: 139.7671 },
+  { keyword: '新宿', latitude: 35.6909, longitude: 139.7003 },
+  { keyword: '神奈川', latitude: 35.4437, longitude: 139.6380 },
+  { keyword: '横浜', latitude: 35.4437, longitude: 139.6380 },
+  { keyword: '名古屋', latitude: 35.1709, longitude: 136.8815 },
+  { keyword: '愛知', latitude: 35.1709, longitude: 136.8815 },
+  { keyword: '金沢', latitude: 36.5781, longitude: 136.6480 },
+  { keyword: '京都', latitude: 34.9858, longitude: 135.7588 },
+  { keyword: '大阪', latitude: 34.7025, longitude: 135.4959 },
+  { keyword: '新大阪', latitude: 34.7335, longitude: 135.5002 },
+  { keyword: '神戸', latitude: 34.6901, longitude: 135.1955 },
+  { keyword: '広島', latitude: 34.3973, longitude: 132.4756 },
+  { keyword: '高松', latitude: 34.3503, longitude: 134.0467 },
+  { keyword: '松山', latitude: 33.8402, longitude: 132.7516 },
+  { keyword: '博多', latitude: 33.5902, longitude: 130.4206 },
+  { keyword: '福岡', latitude: 33.5902, longitude: 130.4206 },
+  { keyword: '長崎', latitude: 32.7520, longitude: 129.8707 },
+  { keyword: '熊本', latitude: 32.7898, longitude: 130.7417 },
+  { keyword: '鹿児島', latitude: 31.5841, longitude: 130.5410 },
+  { keyword: '那覇', latitude: 26.2124, longitude: 127.6809 },
+  { keyword: '沖縄', latitude: 26.2124, longitude: 127.6809 },
+]
+
+const toRadians = (degrees) => degrees * (Math.PI / 180)
+
+const getDistanceKm = (origin, destination) => {
+  if (!origin || !destination) return null
+  const earthRadiusKm = 6371
+  const latitudeDistance = toRadians(destination.latitude - origin.latitude)
+  const longitudeDistance = toRadians(destination.longitude - origin.longitude)
+  const startLatitude = toRadians(origin.latitude)
+  const endLatitude = toRadians(destination.latitude)
+  const a = Math.sin(latitudeDistance / 2) ** 2
+    + Math.cos(startLatitude) * Math.cos(endLatitude) * Math.sin(longitudeDistance / 2) ** 2
+  return earthRadiusKm * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+}
+
+const inferOriginCoordinates = (departure = '') => {
+  const normalized = departure.trim()
+  const destinationMatch = destinations.find((place) => (
+    normalized.includes(place.city) || normalized.includes(place.prefecture)
+  ))
+  if (destinationMatch?.latitude && destinationMatch?.longitude) {
+    return { latitude: destinationMatch.latitude, longitude: destinationMatch.longitude, label: `${destinationMatch.prefecture}${destinationMatch.city}` }
+  }
+  const hint = originCoordinateHints.find((item) => normalized.includes(item.keyword))
+  if (hint) return { latitude: hint.latitude, longitude: hint.longitude, label: hint.keyword }
+  return { latitude: 35.6812, longitude: 139.7671, label: '東京駅（概算）' }
+}
+
+const getMovementRangeConfig = ({ movementRange, customRangeHours, customRangeKm }) => {
+  const selected = movementRangeOptions.find((option) => option.value === movementRange) ?? movementRangeOptions[0]
+  const customHours = Number(customRangeHours)
+  const customKm = Number(customRangeKm)
+  return {
+    ...selected,
+    maxHours: Number.isFinite(customHours) && customHours > 0 ? customHours : selected.maxHours,
+    maxKm: Number.isFinite(customKm) && customKm > 0 ? customKm : selected.maxKm,
+  }
+}
+
+const estimateMovementRange = (destination, departure, rangeSettings) => {
+  const origin = inferOriginCoordinates(departure)
+  const directDistanceKm = getDistanceKm(origin, destination)
+  if (!Number.isFinite(directDistanceKm)) {
+    return {
+      originLabel: origin?.label ?? '未判定',
+      estimatedKm: null,
+      estimatedHours: null,
+      isWithinRange: true,
+      scoreEffect: 0,
+      label: '概算不可',
+    }
+  }
+
+  const estimatedKm = Math.round(directDistanceKm * 1.35)
+  const estimatedHours = Math.round(((estimatedKm / 55) + 0.5) * 10) / 10
+  const maxHours = rangeSettings.maxHours
+  const maxKm = rangeSettings.maxKm
+  const hasLimit = Number.isFinite(maxHours) || Number.isFinite(maxKm)
+  const hourOver = Number.isFinite(maxHours) ? estimatedHours - maxHours : 0
+  const kmOver = Number.isFinite(maxKm) ? estimatedKm - maxKm : 0
+  const isWithinRange = !hasLimit || (hourOver <= 0 && kmOver <= 0)
+  const isFarOver = hasLimit && (hourOver > 2 || kmOver > 220)
+  const scoreEffect = !hasLimit
+    ? 0
+    : isWithinRange
+      ? 18
+      : isFarOver ? -18 : -8
+
+  return {
+    originLabel: origin.label,
+    estimatedKm,
+    estimatedHours,
+    isWithinRange,
+    scoreEffect,
+    label: `${estimatedHours}時間 / ${estimatedKm}km目安`,
   }
 }
 
@@ -442,6 +558,7 @@ const scoreDestination = ({
   cachedDurationMinutes,
   travelSeason,
   isPrevious,
+  movementRangeEstimate = null,
 }) => {
   const matchingCount = selectedFilters.filter((filter) => destination.tags.includes(filter)).length
   const tripRatio = getTripSuitability(destination, tripType)
@@ -463,7 +580,8 @@ const scoreDestination = ({
     + (isVisited ? -12 : 8)
     + Math.min(destination.tags.length, 5) * 1.5
     + seasonPoints
-    + (cachedFeasibility ? cachedFeasibility.stars * 4 : 0),
+    + (cachedFeasibility ? cachedFeasibility.stars * 4 : 0)
+    + (movementRangeEstimate?.scoreEffect ?? 0),
   ))
 
   return {
@@ -474,6 +592,7 @@ const scoreDestination = ({
     seasonCompatibility: !season
       ? 'おまかせ'
       : destination.bestSeasons.includes(season) ? 'とても良い' : '標準',
+    movementRangeEstimate,
     score,
     weight: Math.pow(score, 1.28) * (isPrevious ? 0.22 : 1),
   }
@@ -555,6 +674,10 @@ const loadDrawHistory = () => {
                 ? '電車'
                 : transportModes.includes(entry.transportMode) ? entry.transportMode : null,
           travelSeason: seasonOptions.includes(entry.travelSeason) ? entry.travelSeason : '今の季節',
+          movementRange: movementRangeOptions.some((option) => option.value === entry.movementRange)
+            ? entry.movementRange
+            : 'auto',
+          strictMovementRange: Boolean(entry.strictMovementRange),
           selectedFilters: Array.isArray(entry.selectedFilters)
             ? entry.selectedFilters.filter((filter) => filterOptions.includes(filter))
             : [],
@@ -584,6 +707,10 @@ const loadInputState = () => {
     travelSeason: '今の季節',
     selectedFilters: [],
     includeVisited: false,
+    movementRange: 'auto',
+    strictMovementRange: false,
+    customRangeHours: '',
+    customRangeKm: '',
   }
 
   try {
@@ -600,6 +727,18 @@ const loadInputState = () => {
       includeVisited: typeof saved.includeVisited === 'boolean'
         ? saved.includeVisited
         : initialState.includeVisited,
+      movementRange: movementRangeOptions.some((option) => option.value === saved.movementRange)
+        ? saved.movementRange
+        : initialState.movementRange,
+      strictMovementRange: typeof saved.strictMovementRange === 'boolean'
+        ? saved.strictMovementRange
+        : initialState.strictMovementRange,
+      customRangeHours: typeof saved.customRangeHours === 'string'
+        ? saved.customRangeHours
+        : initialState.customRangeHours,
+      customRangeKm: typeof saved.customRangeKm === 'string'
+        ? saved.customRangeKm
+        : initialState.customRangeKm,
     }
   } catch {
     return initialState
@@ -626,6 +765,118 @@ const travelStatusLabels = {
   'api-error': 'API設定エラー',
 }
 
+const imagePreviewFilters = [
+  { value: 'all', label: 'すべて' },
+  { value: 'individual', label: '個別画像あり' },
+  { value: 'category', label: 'カテゴリ画像使用' },
+  { value: 'common', label: '共通画像使用' },
+  { value: 'temporary', label: 'status: temporary' },
+  { value: 'confirmed', label: 'status: confirmed' },
+  { value: 'duplicate', label: '画像重複あり' },
+  { value: 'credit-missing', label: 'クレジット未設定' },
+]
+
+const getImageMetaValue = (image, key, fallback = '') => (
+  typeof image === 'object' && image
+    ? image[key] ?? image[`image${key[0].toUpperCase()}${key.slice(1)}`] ?? fallback
+    : fallback
+)
+
+const getImageDisplayType = (image) => {
+  const url = getImageUrl(image)
+  const source = getImageMetaValue(image, 'source')
+  if (source === 'curated' || url.startsWith('/images/destinations/')) return '個別画像'
+  if (source === 'fallback' || url.startsWith('/images/categories/')) return 'カテゴリ画像'
+  return '共通画像'
+}
+
+const getImageCategoryFromUrl = (image) => (
+  getImageUrl(image).match(/\/images\/categories\/([a-z]+)-\d+\.jpg$/)?.[1] ?? ''
+)
+
+const getExpectedImageCategories = (tags = [], imageType = 'hero') => {
+  const categories = new Set(['city', 'history', 'nature'])
+  if (imageType === 'food') categories.add('gourmet')
+  if (tags.includes(filterOptions[0])) categories.add('onsen')
+  if (tags.includes(filterOptions[1])) categories.add('sea')
+  if (tags.includes(filterOptions[2])) {
+    categories.add('mountain')
+    categories.add('nature')
+  }
+  if (tags.includes(filterOptions[3])) categories.add('gourmet')
+  if (tags.includes(filterOptions[4])) {
+    categories.add('couple')
+    categories.add('city')
+  }
+  return categories
+}
+
+const createImagePreviewData = (destinationList) => {
+  const imageFields = [
+    { key: 'heroImage', type: 'hero', label: 'hero' },
+    { key: 'foodImage', type: 'food', label: 'food' },
+    { key: 'sceneryImage', type: 'scenery', label: 'scenery' },
+  ]
+  const usageCounts = {}
+
+  destinationList.forEach((destination) => {
+    imageFields.forEach(({ key }) => {
+      const url = getImageUrl(destination[key])
+      if (url) usageCounts[url] = (usageCounts[url] ?? 0) + 1
+    })
+  })
+
+  return destinationList.map((destination) => {
+    const images = imageFields.map(({ key, type, label }) => {
+      const image = destination[key]
+      const url = getImageUrl(image)
+      const category = getImageCategoryFromUrl(image)
+      const expectedCategories = getExpectedImageCategories(destination.tags, type)
+
+      return {
+        key,
+        type,
+        label,
+        image,
+        url,
+        displayType: getImageDisplayType(image),
+        source: getImageMetaValue(image, 'source', '未設定'),
+        credit: getImageMetaValue(image, 'credit'),
+        status: getImageMetaValue(image, 'status', '未設定'),
+        usageCount: usageCounts[url] ?? 0,
+        categoryMismatch: Boolean(category && !expectedCategories.has(category)),
+      }
+    })
+    const urls = images.map((image) => image.url).filter(Boolean)
+    const duplicateWithinDestination = new Set(urls).size < urls.length
+
+    return {
+      destination,
+      images,
+      duplicateWithinDestination,
+      hasDuplicateUsage: images.some((image) => image.usageCount > 1),
+      hasCreditMissing: images.some((image) => !image.credit),
+      hasCategoryMismatch: images.some((image) => image.categoryMismatch),
+      hasIndividual: images.some((image) => image.displayType === '個別画像'),
+      hasCategory: images.some((image) => image.displayType === 'カテゴリ画像'),
+      hasCommon: images.some((image) => image.displayType === '共通画像'),
+      hasTemporary: images.some((image) => image.status === 'temporary'),
+      hasConfirmed: images.some((image) => image.status === 'confirmed'),
+    }
+  })
+}
+
+const filterImagePreviewItems = (items, filter) => items.filter((item) => {
+  if (filter === 'individual') return item.hasIndividual
+  if (filter === 'category') return item.hasCategory
+  if (filter === 'common') return item.hasCommon
+  if (filter === 'temporary') return item.hasTemporary
+  if (filter === 'confirmed') return item.hasConfirmed
+  if (filter === 'duplicate') return item.hasDuplicateUsage || item.duplicateWithinDestination
+  if (filter === 'credit-missing') return item.hasCreditMissing
+  return true
+})
+
 function HistoryItems({ entries, favoriteCities, onShow, onFavorite, onDelete }) {
   return (
     <div className="history-list">
@@ -639,6 +890,7 @@ function HistoryItems({ entries, favoriteCities, onShow, onFavorite, onDelete })
             <div><dt>出発地</dt><dd>{entry.departure}</dd></div>
             <div><dt>旅行タイプ</dt><dd>{entry.tripType}</dd></div>
             <div><dt>旅行予定季節</dt><dd>{entry.travelSeason ?? '今の季節'}</dd></div>
+            <div><dt>移動範囲</dt><dd>{entry.movementRangeLabel ?? movementRangeOptions.find((option) => option.value === entry.movementRange)?.label ?? 'おまかせ'}</dd></div>
             <div><dt>最適な移動手段</dt><dd>{entry.bestTransport ?? '未評価'}</dd></div>
             <div><dt>選択条件</dt><dd>{entry.selectedFilters?.length > 0 ? entry.selectedFilters.join('、') : '指定なし'}</dd></div>
             <div><dt>運命度</dt><dd>{entry.destinyScore}%</dd></div>
@@ -715,9 +967,42 @@ function SafeImage({
   )
 }
 
+function DeveloperImagePreviewImage({ item, image }) {
+  const [failed, setFailed] = useState(false)
+
+  return (
+    <div className={`image-preview-shot ${failed ? 'failed' : ''}`}>
+      <div className="image-preview-shot-header">
+        <strong>{image.label}</strong>
+        <span>{image.displayType}</span>
+      </div>
+      {failed || !isValidImageUrl(image.image) ? (
+        <div className="image-preview-failed" role="img" aria-label={`${item.destination.city} ${image.label} 読み込み失敗`}>
+          読み込み失敗
+        </div>
+      ) : (
+        <img
+          src={image.url}
+          alt={`${item.destination.city}の${image.label}画像`}
+          loading="lazy"
+          onError={() => setFailed(true)}
+        />
+      )}
+      <dl>
+        <div><dt>source</dt><dd>{image.source}</dd></div>
+        <div><dt>credit</dt><dd>{image.credit || '未設定'}</dd></div>
+        <div><dt>status</dt><dd>{image.status}</dd></div>
+        <div><dt>使用回数</dt><dd>{image.usageCount > 1 ? `この画像は ${image.usageCount} 件で使用中` : '1件'}</dd></div>
+      </dl>
+      {image.categoryMismatch && <p className="image-preview-warning">タグと画像カテゴリが合っているか要確認</p>}
+    </div>
+  )
+}
+
 function App() {
   const travelRequestId = useRef(0)
   const aiPlanRequestId = useRef(0)
+  const historyIdFallback = useRef(0)
   const travelRequestInFlight = useRef(false)
   const aiPlanRequestInFlight = useRef(false)
   const developerTitleClicks = useRef({ count: 0, lastClickAt: 0 })
@@ -727,6 +1012,10 @@ function App() {
   const [tripType, setTripType] = useState(restoredInputState.tripType)
   const [travelSeason, setTravelSeason] = useState(restoredInputState.travelSeason)
   const [selectedFilters, setSelectedFilters] = useState(restoredInputState.selectedFilters)
+  const [movementRange, setMovementRange] = useState(restoredInputState.movementRange)
+  const [strictMovementRange, setStrictMovementRange] = useState(restoredInputState.strictMovementRange)
+  const [customRangeHours, setCustomRangeHours] = useState(restoredInputState.customRangeHours)
+  const [customRangeKm, setCustomRangeKm] = useState(restoredInputState.customRangeKm)
   const [destination, setDestination] = useState(null)
   const [planContext, setPlanContext] = useState(null)
   const [travelInfo, setTravelInfo] = useState({ status: 'idle', car: null, publicTransit: null })
@@ -749,6 +1038,7 @@ function App() {
   const [drawHistory, setDrawHistory] = useState(loadDrawHistory)
   const [showDebugPanel, setShowDebugPanel] = useState(false)
   const [imageFailures, setImageFailures] = useState([])
+  const [imagePreviewFilter, setImagePreviewFilter] = useState('all')
   const [currentPage, setCurrentPage] = useState('main')
   const [aiPlanNotice, setAiPlanNotice] = useState('')
   const [aiPlanStatus, setAiPlanStatus] = useState('idle')
@@ -757,6 +1047,13 @@ function App() {
   const [isPremiumUser, setIsPremiumUser] = useState(loadPremiumStatus)
   const [drawSimulation, setDrawSimulation] = useState(null)
   const [openAiCommunicationMode, setOpenAiCommunicationMode] = useState('server')
+  const [destinationSearch, setDestinationSearch] = useState('')
+  const [destinationPrefectureFilter, setDestinationPrefectureFilter] = useState('all')
+  const [destinationTagFilter, setDestinationTagFilter] = useState('all')
+  const [destinationTripTypeFilter, setDestinationTripTypeFilter] = useState('all')
+  const [destinationSeasonFilter, setDestinationSeasonFilter] = useState('all')
+  const [destinationRangeFilter, setDestinationRangeFilter] = useState('auto')
+  const [destinationFavoritesOnly, setDestinationFavoritesOnly] = useState(false)
 
   const favoriteDestinations = favoriteCities
     .map((city) => destinations.find((place) => place.city === city))
@@ -765,6 +1062,16 @@ function App() {
   const visitedDestinations = visitedCities
     .map((city) => destinations.find((place) => place.city === city))
     .filter(Boolean)
+
+  const prefectureOptions = [...new Set(destinations.map((place) => place.prefecture))]
+    .filter(Boolean)
+    .sort((left, right) => left.localeCompare(right, 'ja'))
+  const movementRangeSettings = getMovementRangeConfig({ movementRange, customRangeHours, customRangeKm })
+  const movementRangeDebugItems = destinations.map((place) => (
+    estimateMovementRange(place, departure, movementRangeSettings)
+  ))
+  const movementRangeBoostedCount = movementRangeDebugItems.filter((item) => item.scoreEffect > 0).length
+  const movementRangePenalizedCount = movementRangeDebugItems.filter((item) => item.scoreEffect < 0).length
 
   const comparisonDestinations = compareCities
     .filter((city) => favoriteCities.includes(city))
@@ -786,6 +1093,39 @@ function App() {
   })
   const bestComparison = [...comparisonEvaluations]
     .sort((a, b) => b.recommendationScore - a.recommendationScore)[0] ?? null
+  const destinationListRangeSettings = getMovementRangeConfig({
+    movementRange: destinationRangeFilter,
+    customRangeHours,
+    customRangeKm,
+  })
+  const filteredDestinations = destinations.filter((place) => {
+    const keyword = destinationSearch.trim().toLowerCase()
+    const matchesKeyword = !keyword || [
+      place.city,
+      place.prefecture,
+      place.recommendation,
+      place.recommendText,
+      place.nearestStationLabel,
+      place.tags.join(' '),
+    ].some((value) => String(value ?? '').toLowerCase().includes(keyword))
+    const matchesPrefecture = destinationPrefectureFilter === 'all' || place.prefecture === destinationPrefectureFilter
+    const matchesTag = destinationTagFilter === 'all' || place.tags.includes(destinationTagFilter)
+    const matchesTripType = destinationTripTypeFilter === 'all' || Boolean(place.plans[destinationTripTypeFilter])
+    const resolvedListSeason = destinationSeasonFilter === 'all' ? null : resolveSeason(destinationSeasonFilter)
+    const matchesSeason = !resolvedListSeason || place.bestSeasons.includes(resolvedListSeason)
+    const rangeEstimate = estimateMovementRange(place, departure, destinationListRangeSettings)
+    const matchesRange = destinationRangeFilter === 'auto'
+      || destinationRangeFilter === 'unlimited'
+      || rangeEstimate.isWithinRange
+    const matchesFavorite = !destinationFavoritesOnly || favoriteCities.includes(place.city)
+    return matchesKeyword
+      && matchesPrefecture
+      && matchesTag
+      && matchesTripType
+      && matchesSeason
+      && matchesRange
+      && matchesFavorite
+  })
 
   const destiny = destination && planContext
     ? calculateDestiny(destination, planContext.selectedFilters, planContext.tripType)
@@ -834,6 +1174,8 @@ function App() {
       ? '設定カードで設定済み'
       : '未設定'
   const todayAiPlanUsageCount = aiPlanUsage.date === getLocalDateKey() ? aiPlanUsage.count : 0
+  const imagePreviewItems = createImagePreviewData(destinations)
+  const filteredImagePreviewItems = filterImagePreviewItems(imagePreviewItems, imagePreviewFilter)
 
   const reportImageFailure = (destinationId, imageType, fallbackType) => {
     const key = `${destinationId}:${imageType}`
@@ -852,11 +1194,25 @@ function App() {
         travelSeason,
         selectedFilters,
         includeVisited,
+        movementRange,
+        strictMovementRange,
+        customRangeHours,
+        customRangeKm,
       }))
     } catch {
       // 保存できない環境でも入力操作は継続する
     }
-  }, [departure, tripType, travelSeason, selectedFilters, includeVisited])
+  }, [
+    departure,
+    tripType,
+    travelSeason,
+    selectedFilters,
+    includeVisited,
+    movementRange,
+    strictMovementRange,
+    customRangeHours,
+    customRangeKm,
+  ])
 
   const saveCities = (storageKey, cities) => {
     try {
@@ -915,6 +1271,12 @@ function App() {
   }
 
   const toggleComparison = (city) => {
+    const isAdding = !compareCities.includes(city)
+    if (isAdding && !favoriteCities.includes(city)) {
+      const nextFavorites = [...favoriteCities, city]
+      setFavoriteCities(nextFavorites)
+      saveCities(FAVORITES_STORAGE_KEY, nextFavorites)
+    }
     const nextComparison = compareCities.includes(city)
       ? compareCities.filter((compareCity) => compareCity !== city)
       : [...compareCities, city]
@@ -1038,6 +1400,10 @@ function App() {
     setTripType('日帰り')
     setTravelSeason('今の季節')
     setSelectedFilters([])
+    setMovementRange('auto')
+    setStrictMovementRange(false)
+    setCustomRangeHours('')
+    setCustomRangeKm('')
     setIncludeVisited(false)
     setDestination(null)
     setPlanContext(null)
@@ -1111,6 +1477,9 @@ function App() {
     const restoredDeparture = typeof entry.departure === 'string' ? entry.departure : ''
     const restoredTripType = tripTypes.includes(entry.tripType) ? entry.tripType : '日帰り'
     const restoredSeason = seasonOptions.includes(entry.travelSeason) ? entry.travelSeason : '今の季節'
+    const restoredMovementRange = movementRangeOptions.some((option) => option.value === entry.movementRange)
+      ? entry.movementRange
+      : 'auto'
     const restoredFilters = Array.isArray(entry.selectedFilters) ? entry.selectedFilters : []
     const matchingCount = restoredFilters.filter((filter) => place.tags.includes(filter)).length
 
@@ -1118,6 +1487,8 @@ function App() {
     setDepartureError('')
     setTripType(restoredTripType)
     setTravelSeason(restoredSeason)
+    setMovementRange(restoredMovementRange)
+    setStrictMovementRange(Boolean(entry.strictMovementRange))
     setSelectedFilters(restoredFilters)
     setDestination(place)
     setLastDestinationId(place.id)
@@ -1127,6 +1498,8 @@ function App() {
       tripType: restoredTripType,
       travelSeason: restoredSeason,
       selectedFilters: restoredFilters,
+      movementRange: restoredMovementRange,
+      strictMovementRange: Boolean(entry.strictMovementRange),
     })
     setSelectionMeta({
       matchingCount,
@@ -1134,6 +1507,7 @@ function App() {
       feasibilityStars: entry.feasibilityStars ?? null,
       score: entry.selectionScore ?? 0,
       seasonCompatibility: entry.seasonCompatibility ?? '標準',
+      movementRangeEstimate: entry.movementRangeEstimate ?? null,
       visitedPolicy: entry.visitedPolicy ?? '履歴から再表示',
     })
     travelRequestInFlight.current = true
@@ -1197,15 +1571,118 @@ function App() {
 
   }
 
+  const showDestinationFromList = async (place) => {
+    if (travelRequestInFlight.current) return
+    const normalizedDeparture = departure.trim()
+    const requestId = ++travelRequestId.current
+    const detailFilters = [...selectedFilters]
+    const movementEstimate = estimateMovementRange(place, normalizedDeparture, movementRangeSettings)
+    const detailScore = scoreDestination({
+      destination: place,
+      selectedFilters: detailFilters,
+      tripType,
+      travelSeason,
+      isVisited: visitedCities.includes(place.city),
+      cachedDurationMinutes: normalizedDeparture
+        ? travelTimeCache[getTravelCacheKey(normalizedDeparture, place.id)]
+        : null,
+      isPrevious: place.id === lastDestinationId,
+      movementRangeEstimate: movementEstimate,
+    })
+
+    setDepartureError('')
+    setDestination(place)
+    setLastDestinationId(place.id)
+    setNoMatchMessage('')
+    setSelectionMeta({
+      matchingCount: detailScore.matchingCount,
+      tripCompatibilityLabel: detailScore.tripCompatibilityLabel,
+      feasibilityStars: detailScore.feasibilityStars,
+      score: detailScore.score,
+      seasonCompatibility: detailScore.seasonCompatibility,
+      movementRangeEstimate: movementEstimate,
+      visitedPolicy: '一覧から表示',
+    })
+    setPlanContext({
+      departure: normalizedDeparture || '出発地未設定',
+      tripType,
+      travelSeason,
+      selectedFilters: detailFilters,
+      movementRange,
+      strictMovementRange,
+    })
+    resetAiPlanState()
+    switchPage('main')
+
+    if (!normalizedDeparture) {
+      setTravelInfo({ status: 'idle', car: null, publicTransit: null })
+      return
+    }
+
+    travelRequestInFlight.current = true
+    setTravelInfo({ status: 'loading', car: null, publicTransit: null })
+
+    try {
+      const routes = await getTravelInfo({
+        origin: normalizedDeparture,
+        destination: {
+          address: place.address,
+          latitude: place.latitude,
+          longitude: place.longitude,
+          googleMapsQuery: place.googleMapsQuery,
+          nearestStation: place.nearestStation,
+          nearestStationLabel: place.nearestStationLabel,
+          transitQuery: place.transitQuery,
+          prefecture: place.prefecture,
+          city: place.city,
+        },
+        apiKey: savedApiKey,
+      })
+
+      if (requestId === travelRequestId.current) {
+        setTravelInfo(routes)
+        if (routes.car?.durationMinutes) {
+          const cacheKey = getTravelCacheKey(normalizedDeparture, place.id)
+          const nextCache = { ...travelTimeCache, [cacheKey]: routes.car.durationMinutes }
+          setTravelTimeCache(nextCache)
+          saveCities(TRAVEL_CACHE_STORAGE_KEY, nextCache)
+        }
+        const listEvaluations = getTransportEvaluations(routes, tripType, place)
+        const listBest = getBestPrimaryTransport(listEvaluations)
+        if (listBest) {
+          setSelectionMeta((current) => current
+            ? { ...current, feasibilityStars: listBest.feasibility.starsLabel }
+            : current)
+        }
+      }
+    } catch (error) {
+      if (requestId === travelRequestId.current) {
+        setTravelInfo({
+          status: ['API_KEY_INVALID', 'SERVER_API_KEY_MISSING'].includes(error?.code) ? 'api-error' : 'error',
+          car: null,
+          publicTransit: null,
+          transitDebug: error?.transitDebug,
+          transitFallback: error?.transitFallback,
+          routeDiagnostics: error?.routeDiagnostics,
+        })
+      }
+    } finally {
+      travelRequestInFlight.current = false
+    }
+  }
+
   const runDrawSimulation = () => {
     const normalizedDeparture = departure.trim()
     const matchingDestinations = destinations.filter((place) => (
       selectedFilters.length === 0
       || selectedFilters.some((filter) => place.tags.includes(filter))
     ))
-    const candidates = matchingDestinations.filter((place) => (
-      includeVisited || !visitedCities.includes(place.city)
-    ))
+    const currentRangeSettings = getMovementRangeConfig({ movementRange, customRangeHours, customRangeKm })
+    const candidates = matchingDestinations.filter((place) => {
+      const rangeEstimate = estimateMovementRange(place, normalizedDeparture, currentRangeSettings)
+      return (includeVisited || !visitedCities.includes(place.city))
+        && (!strictMovementRange || movementRange === 'auto' || movementRange === 'unlimited' || rangeEstimate.isWithinRange)
+    })
 
     if (candidates.length === 0) {
       setDrawSimulation({ error: '現在の条件ではシミュレーション対象がありません。' })
@@ -1230,6 +1707,7 @@ function App() {
           ? travelTimeCache[getTravelCacheKey(normalizedDeparture, place.id)]
           : null,
         isPrevious: place.id === previousId,
+        movementRangeEstimate: estimateMovementRange(place, normalizedDeparture, currentRangeSettings),
       }))
       const selected = pickWeightedDestination(scoredDestinations)
       const place = selected.destination
@@ -1264,6 +1742,7 @@ function App() {
         season: resolveSeason(travelSeason) ?? 'おまかせ',
         filters: selectedFilters.length > 0 ? selectedFilters.join('、') : '指定なし',
         visited: includeVisited ? '含める' : '除外',
+        movementRange: movementRangeOptions.find((option) => option.value === movementRange)?.label ?? 'おまかせ',
       },
     })
   }
@@ -1285,9 +1764,12 @@ function App() {
       selectedFilters.length === 0
       || selectedFilters.some((filter) => place.tags.includes(filter))
     ))
-    const candidates = matchingDestinations.filter((place) => (
-      includeVisited || !visitedCities.includes(place.city)
-    ))
+    const currentRangeSettings = getMovementRangeConfig({ movementRange, customRangeHours, customRangeKm })
+    const candidates = matchingDestinations.filter((place) => {
+      const rangeEstimate = estimateMovementRange(place, normalizedDeparture, currentRangeSettings)
+      return (includeVisited || !visitedCities.includes(place.city))
+        && (!strictMovementRange || movementRange === 'auto' || movementRange === 'unlimited' || rangeEstimate.isWithinRange)
+    })
 
     if (candidates.length === 0) {
       setDestination(null)
@@ -1310,12 +1792,13 @@ function App() {
       isVisited: visitedCities.includes(place.city),
       cachedDurationMinutes: travelTimeCache[getTravelCacheKey(normalizedDeparture, place.id)],
       isPrevious: place.id === lastDestinationId,
+      movementRangeEstimate: estimateMovementRange(place, normalizedDeparture, currentRangeSettings),
     }))
     const selected = pickWeightedDestination(scoredDestinations)
     const next = selected.destination
     const selectedDestiny = calculateDestiny(next, selectedFilters, tripType)
     const historyEntryId = globalThis.crypto?.randomUUID?.()
-      ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`
+      ?? `history-${historyIdFallback.current += 1}`
     addHistoryEntry({
       id: historyEntryId,
       destinationId: next.id,
@@ -1324,6 +1807,9 @@ function App() {
       departure: normalizedDeparture,
       tripType,
       travelSeason,
+      movementRange,
+      strictMovementRange,
+      movementRangeLabel: movementRangeOptions.find((option) => option.value === movementRange)?.label ?? 'おまかせ',
       selectedFilters: [...selectedFilters],
       destinyScore: selectedDestiny.score,
       feasibilityStars: selected.feasibilityStars,
@@ -1332,6 +1818,7 @@ function App() {
       drawnAt: new Date().toISOString(),
       selectionScore: selected.score,
       seasonCompatibility: selected.seasonCompatibility,
+      movementRangeEstimate: selected.movementRangeEstimate,
       tripCompatibilityLabel: selected.tripCompatibilityLabel,
       visitedPolicy: includeVisited ? '含める（訪問済みは減点）' : '除外',
     })
@@ -1351,6 +1838,8 @@ function App() {
       tripType,
       travelSeason,
       selectedFilters: [...selectedFilters],
+      movementRange,
+      strictMovementRange,
     })
     travelRequestInFlight.current = true
     setTravelInfo({ status: 'loading', car: null, publicTransit: null })
@@ -1478,8 +1967,8 @@ function App() {
   return (
     <main className="app-shell">
       <section
-        className={`trip-card ${currentPage === 'developer' ? 'developer-page' : currentPage === 'history' ? 'history-page' : currentPage === 'favorites' ? 'favorites-page' : currentPage === 'comparison' ? 'comparison-page' : currentPage === 'calculation' ? 'calculation-page' : 'main-page'}`}
-        aria-labelledby={currentPage === 'developer' ? 'developer-page-title' : currentPage === 'history' ? 'history-page-title' : currentPage === 'favorites' ? 'favorites-page-title' : currentPage === 'comparison' ? 'comparison-page-title' : currentPage === 'calculation' ? 'calculation-page-title' : 'app-title'}
+        className={`trip-card ${currentPage === 'developer' ? 'developer-page' : currentPage === 'history' ? 'history-page' : currentPage === 'favorites' ? 'favorites-page' : currentPage === 'comparison' ? 'comparison-page' : currentPage === 'calculation' ? 'calculation-page' : currentPage === 'destinations' ? 'destinations-page' : 'main-page'}`}
+        aria-labelledby={currentPage === 'developer' ? 'developer-page-title' : currentPage === 'history' ? 'history-page-title' : currentPage === 'favorites' ? 'favorites-page-title' : currentPage === 'comparison' ? 'comparison-page-title' : currentPage === 'calculation' ? 'calculation-page-title' : currentPage === 'destinations' ? 'destinations-page-title' : 'app-title'}
       >
         {currentPage === 'main' ? (
           <>
@@ -1597,6 +2086,59 @@ function App() {
                 行った場所を除外する
               </label>
             </div>
+          </fieldset>
+
+          <fieldset className="field-group movement-range-field">
+            <legend>移動範囲</legend>
+            <div className="movement-range-options">
+              {movementRangeOptions.map((option) => (
+                <label key={option.value} className={movementRange === option.value ? 'selected' : ''}>
+                  <input
+                    type="radio"
+                    name="movementRange"
+                    value={option.value}
+                    checked={movementRange === option.value}
+                    onChange={(event) => setMovementRange(event.target.value)}
+                  />
+                  <span>{option.label}</span>
+                </label>
+              ))}
+            </div>
+            <div className="movement-range-custom">
+              <label>
+                <span>何時間以内</span>
+                <input
+                  type="number"
+                  min="1"
+                  step="0.5"
+                  value={customRangeHours}
+                  onChange={(event) => setCustomRangeHours(event.target.value)}
+                  placeholder="例：3"
+                />
+              </label>
+              <label>
+                <span>何km以内</span>
+                <input
+                  type="number"
+                  min="10"
+                  step="10"
+                  value={customRangeKm}
+                  onChange={(event) => setCustomRangeKm(event.target.value)}
+                  placeholder="例：200"
+                />
+              </label>
+            </div>
+            <label className={`movement-strict-toggle ${strictMovementRange ? 'selected' : ''}`}>
+              <input
+                type="checkbox"
+                checked={strictMovementRange}
+                onChange={(event) => setStrictMovementRange(event.target.checked)}
+              />
+              <span>厳密に絞り込む</span>
+            </label>
+            <p className="movement-range-note">
+              移動範囲は概算で判定しています。正確な移動時間は抽選後に表示されます。
+            </p>
           </fieldset>
 
           <fieldset className="field-group">
@@ -2050,7 +2592,152 @@ function App() {
           <button type="button" onClick={() => switchPage('history')}>一覧を見る <span aria-hidden="true">→</span></button>
         </nav>
 
+        <nav className="favorites-entry-card destination-list-entry-card" aria-label="旅行先一覧ページへの移動">
+          <div>
+            <span aria-hidden="true">□</span>
+            <p>旅行先一覧 <b>{destinations.length}件</b></p>
+            <small>写真と条件から探せます</small>
+          </div>
+          <button type="button" onClick={() => switchPage('destinations')}>旅行先一覧を見る <span aria-hidden="true">→</span></button>
+        </nav>
+
         <p className="footer-note">思いがけない場所へ、出かけよう。</p>
+          </>
+        ) : currentPage === 'destinations' ? (
+          <>
+            <header className="developer-page-header destinations-page-header">
+              <button type="button" onClick={() => switchPage('main')}><span aria-hidden="true">←</span>メイン画面に戻る</button>
+              <div className="developer-page-icon destinations-page-icon" aria-hidden="true">□</div>
+              <p>DESTINATIONS</p>
+              <h1 id="destinations-page-title">旅行先一覧</h1>
+              <span>ランダム抽選だけでなく、写真や条件から気になる旅先を探せます。</span>
+            </header>
+
+            <section className="destination-browser-card" aria-labelledby="destination-browser-title">
+              <div className="favorites-heading">
+                <div><p>SEARCH</p><h2 id="destination-browser-title">旅行先を絞り込む</h2></div>
+                <span>{filteredDestinations.length}件</span>
+              </div>
+
+              <div className="destination-browser-filters">
+                <label>
+                  <span>キーワード</span>
+                  <input
+                    type="search"
+                    value={destinationSearch}
+                    onChange={(event) => setDestinationSearch(event.target.value)}
+                    placeholder="例：温泉、京都、海"
+                  />
+                </label>
+                <label>
+                  <span>都道府県</span>
+                  <select value={destinationPrefectureFilter} onChange={(event) => setDestinationPrefectureFilter(event.target.value)}>
+                    <option value="all">すべて</option>
+                    {prefectureOptions.map((prefecture) => <option value={prefecture} key={prefecture}>{prefecture}</option>)}
+                  </select>
+                </label>
+                <label>
+                  <span>タグ</span>
+                  <select value={destinationTagFilter} onChange={(event) => setDestinationTagFilter(event.target.value)}>
+                    <option value="all">すべて</option>
+                    {filterOptions.map((filter) => <option value={filter} key={filter}>{filter}</option>)}
+                  </select>
+                </label>
+                <label>
+                  <span>旅行タイプ</span>
+                  <select value={destinationTripTypeFilter} onChange={(event) => setDestinationTripTypeFilter(event.target.value)}>
+                    <option value="all">すべて</option>
+                    {tripTypes.map((type) => <option value={type} key={type}>{type}</option>)}
+                  </select>
+                </label>
+                <label>
+                  <span>季節</span>
+                  <select value={destinationSeasonFilter} onChange={(event) => setDestinationSeasonFilter(event.target.value)}>
+                    <option value="all">すべて</option>
+                    {seasonOptions.map((season) => <option value={season} key={season}>{season}</option>)}
+                  </select>
+                </label>
+                <label>
+                  <span>移動範囲</span>
+                  <select value={destinationRangeFilter} onChange={(event) => setDestinationRangeFilter(event.target.value)}>
+                    {movementRangeOptions.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}
+                  </select>
+                </label>
+                <label className="destination-favorites-only">
+                  <input
+                    type="checkbox"
+                    checked={destinationFavoritesOnly}
+                    onChange={(event) => setDestinationFavoritesOnly(event.target.checked)}
+                  />
+                  <span>お気に入りのみ</span>
+                </label>
+              </div>
+
+              <p className="movement-range-note">
+                移動範囲は概算で判定しています。正確な移動時間は詳細表示後に取得します。
+              </p>
+            </section>
+
+            <section className="destination-list-section" aria-label="旅行先一覧">
+              {filteredDestinations.length === 0 ? (
+                <p className="favorites-empty">条件に合う旅行先が見つかりませんでした。</p>
+              ) : (
+                <div className="destination-card-grid">
+                  {filteredDestinations.map((place) => {
+                    const isFavorite = favoriteCities.includes(place.city)
+                    const isCompared = compareCities.includes(place.city)
+                    return (
+                      <article className="destination-browser-item" key={place.id}>
+                        <SafeImage
+                          destination={place}
+                          imageType="hero"
+                          className="destination-browser-image"
+                          alt={`${place.city}の旅行イメージ`}
+                          showCredit
+                          onLoadFailure={(fallbackType) => reportImageFailure(place.id, 'hero-list', fallbackType)}
+                        />
+                        <div className="destination-browser-body">
+                          <header>
+                            <div><p>{place.prefecture}</p><h3>{place.city}</h3></div>
+                            <span>{place.bestSeasons.join('・')}</span>
+                          </header>
+                          <div className="destination-browser-tags">
+                            {place.tags.map((tag) => <span key={tag}>{tag}</span>)}
+                          </div>
+                          <dl>
+                            <div><dt>最寄り目安</dt><dd>{place.nearestStationLabel}</dd></div>
+                            <div><dt>移動範囲目安</dt><dd>{estimateMovementRange(place, departure, destinationListRangeSettings).label}</dd></div>
+                          </dl>
+                          <p>{place.recommendText ?? place.recommendation}</p>
+                          <div className="destination-browser-actions">
+                            <button type="button" onClick={() => toggleFavorite(place.city)}>
+                              {isFavorite ? 'お気に入り済み' : 'お気に入り登録'}
+                            </button>
+                            <button
+                              type="button"
+                              className={isCompared ? 'selected' : ''}
+                              onClick={() => toggleComparison(place.city)}
+                            >
+                              {isCompared ? '比較中' : '比較に追加'}
+                            </button>
+                            <button type="button" className="primary" onClick={() => showDestinationFromList(place)}>
+                              詳細を見る
+                            </button>
+                          </div>
+                        </div>
+                      </article>
+                    )
+                  })}
+                </div>
+              )}
+              {comparisonDestinations.length >= 2 && (
+                <button type="button" className="compare-open-button" onClick={openComparison}>
+                  選択した旅先を比較する <b>{comparisonDestinations.length}件</b><span aria-hidden="true">→</span>
+                </button>
+              )}
+            </section>
+
+            <p className="footer-note">DROPTRIP Destination List</p>
           </>
         ) : currentPage === 'favorites' ? (
           <>
@@ -2617,6 +3304,74 @@ function App() {
           )}
         </section>
 
+        <section className="image-preview-card" aria-labelledby="image-preview-title">
+          <div className="quality-check-heading">
+            <span aria-hidden="true">□</span>
+            <div>
+              <p>IMAGE PREVIEW</p>
+              <h2 id="image-preview-title">画像プレビュー</h2>
+            </div>
+          </div>
+
+          <p className="image-preview-lead">
+            旅行先ごとの hero / food / scenery 画像、使用タイプ、クレジット、重複状態を確認できます。
+          </p>
+
+          <div className="image-preview-filter" role="group" aria-label="画像プレビューフィルター">
+            {imagePreviewFilters.map((filter) => (
+              <button
+                type="button"
+                className={imagePreviewFilter === filter.value ? 'active' : ''}
+                onClick={() => setImagePreviewFilter(filter.value)}
+                key={filter.value}
+              >
+                {filter.label}
+              </button>
+            ))}
+          </div>
+
+          <p className="image-preview-count">
+            表示中：{filteredImagePreviewItems.length}件 / 全{imagePreviewItems.length}件
+          </p>
+
+          <div className="image-preview-grid">
+            {filteredImagePreviewItems.map((item) => (
+              <article className="image-preview-item" key={item.destination.id}>
+                <header>
+                  <div>
+                    <p>{item.destination.prefecture}</p>
+                    <h3>{item.destination.city}</h3>
+                  </div>
+                  {(item.duplicateWithinDestination || item.hasCategoryMismatch) && (
+                    <span className="image-preview-review">要確認</span>
+                  )}
+                </header>
+
+                <div className="image-preview-tags">
+                  {item.destination.tags.map((tag) => <span key={tag}>{tag}</span>)}
+                </div>
+
+                {item.duplicateWithinDestination && (
+                  <p className="image-preview-warning">同じ旅行先内で同一画像が使われています。</p>
+                )}
+                {item.hasCategoryMismatch && (
+                  <p className="image-preview-warning">タグと画像カテゴリの組み合わせを確認してください。</p>
+                )}
+
+                <div className="image-preview-shots">
+                  {item.images.map((image) => (
+                    <DeveloperImagePreviewImage
+                      item={item}
+                      image={image}
+                      key={`${item.destination.id}-${image.key}`}
+                    />
+                  ))}
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
         <section className="draw-balance-card" aria-labelledby="draw-balance-title">
           <div className="quality-check-heading">
             <span aria-hidden="true">⚖</span>
@@ -2674,6 +3429,15 @@ function App() {
               </div>
             </article>
             <article>
+              <h3>移動範囲条件の影響</h3>
+              <div className="balance-chips">
+                <span>条件 <b>{movementRangeOptions.find((option) => option.value === movementRange)?.label ?? 'おまかせ'}</b></span>
+                <span>加点 <b>{movementRangeBoostedCount}</b></span>
+                <span>減点 <b>{movementRangePenalizedCount}</b></span>
+                <span>厳密 <b>{strictMovementRange ? 'ON' : 'OFF'}</b></span>
+              </div>
+            </article>
+            <article>
               <h3>予算帯（1泊2日の下限）</h3>
               <div className="balance-chips">
                 {Object.entries(drawBalanceReport.budgetCounts).map(([label, count]) => <span key={label}>{label} <b>{count}</b></span>)}
@@ -2701,7 +3465,7 @@ function App() {
           {drawSimulation && !drawSimulation.error && (
             <div className="simulation-results" aria-live="polite">
               <p className="simulation-conditions">
-                条件：{drawSimulation.conditions.tripType} / {drawSimulation.conditions.season} / {drawSimulation.conditions.filters} / 訪問済みを{drawSimulation.conditions.visited}
+                条件：{drawSimulation.conditions.tripType} / {drawSimulation.conditions.season} / {drawSimulation.conditions.filters} / 移動範囲：{drawSimulation.conditions.movementRange} / 訪問済みを{drawSimulation.conditions.visited}
               </p>
               <div className="simulation-summary">
                 <div><span>候補数</span><strong>{drawSimulation.candidateCount}件</strong></div>
@@ -2749,6 +3513,15 @@ function App() {
               <div><dt>選択中の旅行予定季節</dt><dd>{travelSeason}（判定：{resolveSeason(travelSeason) ?? 'おまかせ'}）</dd></div>
               <div><dt>最も現実的な移動手段</dt><dd>{bestTransportEvaluation?.mode ?? '未評価'}</dd></div>
               <div><dt>選択中の条件</dt><dd>{selectedFilters.length > 0 ? selectedFilters.join('、') : '指定なし'}</dd></div>
+              <div><dt>移動範囲条件</dt><dd>{movementRangeOptions.find((option) => option.value === movementRange)?.label ?? 'おまかせ'}</dd></div>
+              <div><dt>厳密絞り込み</dt><dd>{strictMovementRange ? 'ON' : 'OFF'}</dd></div>
+              <div><dt>抽選候補数</dt><dd>{destinations.filter((place) => (
+                (selectedFilters.length === 0 || selectedFilters.some((filter) => place.tags.includes(filter)))
+                && (includeVisited || !visitedCities.includes(place.city))
+                && (!strictMovementRange || movementRange === 'auto' || movementRange === 'unlimited' || estimateMovementRange(place, departure, movementRangeSettings).isWithinRange)
+              )).length}件</dd></div>
+              <div><dt>移動範囲で加点</dt><dd>{movementRangeBoostedCount}件</dd></div>
+              <div><dt>移動範囲で減点</dt><dd>{movementRangePenalizedCount}件</dd></div>
               <div><dt>現在の旅先</dt><dd>{destination ? `${destination.prefecture} ${destination.city}` : '未抽選'}</dd></div>
               <div><dt>運命度スコア</dt><dd>{destiny ? `${destiny.score}%` : '未算出'}</dd></div>
               <div><dt>行けそう度スコア</dt><dd>{feasibility ? `${feasibility.stars}/5（${feasibility.starsLabel}）` : '未算出'}</dd></div>
