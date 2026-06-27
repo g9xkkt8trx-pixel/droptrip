@@ -1537,6 +1537,7 @@ function App() {
       score: entry.selectionScore ?? 0,
       seasonCompatibility: entry.seasonCompatibility ?? '標準',
       movementRangeEstimate: entry.movementRangeEstimate ?? null,
+      source: 'history',
       visitedPolicy: entry.visitedPolicy ?? '履歴から再表示',
     })
     travelRequestInFlight.current = true
@@ -1852,6 +1853,7 @@ function App() {
       drawnAt: new Date().toISOString(),
       selectionScore: selected.score,
       seasonCompatibility: selected.seasonCompatibility,
+      source: 'draw',
       movementRangeEstimate: selected.movementRangeEstimate,
       tripCompatibilityLabel: selected.tripCompatibilityLabel,
       visitedPolicy: includeVisited ? '含める（訪問済みは減点）' : '除外',
@@ -2252,6 +2254,15 @@ function App() {
                   : favoriteCities.includes(destination.city)
                     ? 'お気に入り登録済み'
                     : 'お気に入り登録'}
+              </button>
+              <button
+                type="button"
+                className={`favorite-button compare-detail-button ${compareCities.includes(destination.city) ? 'registered' : ''}`}
+                aria-pressed={compareCities.includes(destination.city)}
+                onClick={() => toggleComparison(destination.city)}
+              >
+                <span aria-hidden="true">⇄</span>
+                {compareCities.includes(destination.city) ? '比較中 / 外す' : '比較に追加'}
               </button>
             </section>
 

@@ -749,6 +749,15 @@ h1 {
   transition: color 160ms ease, background 160ms ease, transform 160ms ease;
 }
 
+.result-card .favorite-button + .favorite-button {
+  margin-left: 8px;
+}
+
+.compare-detail-button {
+  color: #2d6f64;
+  border-color: #cfe3dd;
+}
+
 .favorite-button span {
   font-size: 1rem;
   line-height: 1;
@@ -5066,6 +5075,8 @@ h1 {
   .result-hero-image { margin: -20px -16px 18px; width: calc(100% + 32px); }
   .result-hero-image { height: 220px; }
   .result-source-row button { min-height: 44px; }
+  .result-card .favorite-button { width: 100%; margin-left: 0; }
+  .result-card .favorite-button + .favorite-button { margin-top: 8px; margin-left: 0; }
   .favorite-button { min-height: 44px; }
   .destiny-card { gap: 13px; padding: 16px; }
   .destiny-score { width: 82px; height: 82px; }
