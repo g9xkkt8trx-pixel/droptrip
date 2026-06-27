@@ -80,6 +80,16 @@ const EXTENDED_DESTINATION_IMAGE_SLUGS = new Set([
   'kamakura',
   'fukuoka',
   'ishigaki',
+  'sapporo',
+  'hakodate',
+  'yokohama',
+  'matsushima',
+  'sendai',
+  'hiroshima',
+  'miyajima',
+  'nagasaki',
+  'takayama',
+  'ise',
 ])
 
 const getDestinationImageSlug = (mappedImages = {}) => {
