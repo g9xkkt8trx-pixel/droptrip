@@ -37,6 +37,19 @@ const CATEGORY_PATHS = {
   nature: ['/images/categories/nature-1.jpg', '/images/categories/nature-2.jpg'],
 }
 
+const CATEGORY_VARIANT_TARGET = 3
+
+Object.values(CATEGORY_PATHS).forEach((paths) => {
+  const firstPath = paths[0] ?? ''
+  const match = firstPath.match(/\/images\/categories\/(.+)-1\.jpg$/)
+  if (!match) return
+
+  for (let index = 1; index <= CATEGORY_VARIANT_TARGET; index += 1) {
+    const nextPath = `/images/categories/${match[1]}-${index}.jpg`
+    if (!paths.includes(nextPath)) paths.push(nextPath)
+  }
+})
+
 // 権利確認済みの個別画像を追加したときは、この対応表へ登録する。
 const DESTINATION_LOCAL_IMAGES = {
   京都市: { hero: '/images/destinations/kyoto-hero.jpg' }, 奈良市: { hero: '/images/destinations/nara-hero.jpg' },
@@ -54,6 +67,36 @@ const DESTINATION_LOCAL_IMAGES = {
   富良野市: { hero: '/images/destinations/furano-hero.jpg' }, 会津若松市: { hero: '/images/destinations/aizuwakamatsu-hero.jpg' },
   尾道市: { hero: '/images/destinations/onomichi-hero.jpg' }, 倉敷市: { hero: '/images/destinations/kurashiki-hero.jpg' },
   松江市: { hero: '/images/destinations/matsue-hero.jpg' }, 別府市: { hero: '/images/destinations/beppu-hero.jpg' },
+}
+
+const EXTENDED_DESTINATION_IMAGE_SLUGS = new Set([
+  'kyoto',
+  'nara',
+  'otaru',
+  'kanazawa',
+  'hakone',
+  'atami',
+  'kusatsu',
+  'kamakura',
+  'fukuoka',
+  'ishigaki',
+])
+
+const getDestinationImageSlug = (mappedImages = {}) => {
+  const heroPath = mappedImages.hero ?? ''
+  return heroPath.match(/\/images\/destinations\/(.+)-hero\.jpg$/)?.[1] ?? ''
+}
+
+const getMappedDestinationImageUrl = (mappedImages, imageType) => {
+  if (!mappedImages) return ''
+  if (mappedImages[imageType]) return mappedImages[imageType]
+
+  const slug = getDestinationImageSlug(mappedImages)
+  if (slug && EXTENDED_DESTINATION_IMAGE_SLUGS.has(slug) && ['food', 'scenery'].includes(imageType)) {
+    return `/images/destinations/${slug}-${imageType}.jpg`
+  }
+
+  return ''
 }
 
 export const MAJOR_DESTINATION_CITIES = Object.freeze(Object.keys(DESTINATION_LOCAL_IMAGES))
@@ -127,8 +170,10 @@ const stableHash = (value = '') => [...String(value)].reduce((hash, character) =
 export const getThemeImageFallback = (tags = [], imageType = 'hero', seed = '') => {
   const category = getPreferredCategory(tags, imageType)
   const variants = CATEGORY_PATHS[category] ?? []
-  const typeOffset = imageType === 'hero' ? 0 : 1
-  const url = variants[(stableHash(seed) + typeOffset) % Math.max(variants.length, 1)]
+  const typeOffset = imageType === 'hero' ? 0 : imageType === 'food' ? 1 : 2
+  const url = variants[
+    (stableHash(`${seed}:${category}`) + typeOffset) % Math.max(variants.length, 1)
+  ]
   return url
     ? createLocalAsset(url, imageType, 'fallback', 'カテゴリ画像')
     : getCommonAsset(imageType)
@@ -155,7 +200,7 @@ export const getDestinationImage = (destination = {}, imageType = 'hero') => {
   const field = `${imageType}Image`
   const configured = normalizeImageAsset(destination[field], imageType)
   const configuredUrl = getImageUrl(configured)
-  const mappedUrl = DESTINATION_LOCAL_IMAGES[destination.city]?.[imageType]
+  const mappedUrl = getMappedDestinationImageUrl(DESTINATION_LOCAL_IMAGES[destination.city], imageType)
   const seed = destination.id ?? destination.city ?? destination.prefecture ?? ''
 
   if (mappedUrl) return createLocalAsset(mappedUrl, imageType, 'curated', 'イメージ画像', 'temporary')
