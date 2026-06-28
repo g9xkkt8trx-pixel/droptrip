@@ -5017,6 +5017,44 @@ h1 {
   font-weight: 800;
 }
 
+.beta-test-guide-card {
+  margin: 12px 0 0;
+  padding: 14px;
+  color: #5f6e69;
+  background: #fff;
+  border: 1px solid #e3ece8;
+  border-radius: 16px;
+  box-shadow: 0 10px 22px rgba(43, 80, 71, 0.05);
+}
+
+.beta-test-guide-card strong {
+  display: block;
+  color: #315f55;
+  font-size: 0.78rem;
+}
+
+.beta-test-guide-card p {
+  margin: 6px 0 10px;
+  font-size: 0.66rem;
+  font-weight: 700;
+  line-height: 1.7;
+}
+
+.beta-test-guide-card div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.beta-test-guide-card span {
+  padding: 6px 9px;
+  color: #2f675d;
+  background: #edf7f4;
+  border-radius: 999px;
+  font-size: 0.58rem;
+  font-weight: 900;
+}
+
 .page-switch-card {
   display: flex;
   align-items: center;

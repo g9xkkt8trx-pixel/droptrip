@@ -2974,6 +2974,15 @@ function App() {
           <span>DROPTRIP β</span>
           <small>{APP_VERSION}</small>
         </div>
+        <aside className="beta-test-guide-card" aria-label="βテスト中の案内">
+          <strong>βテスト中です</strong>
+          <p>旅先提案・移動時間・画像・グルメ情報は改善中です。使っていて気になった点があればメモしてください。</p>
+          <div>
+            <span>提案は自然？</span>
+            <span>スマホで見やすい？</span>
+            <span>交通比較は分かりやすい？</span>
+          </div>
+        </aside>
         <p className="footer-note">思いがけない場所へ、出かけよう。</p>
           </>
         )}
