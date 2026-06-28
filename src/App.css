@@ -625,6 +625,12 @@ h1 {
   animation: reveal 360ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
+.result-proposal-hero {
+  padding-bottom: 24px;
+  text-align: left;
+  background: linear-gradient(180deg, #fff7ed 0%, #fffdf9 100%);
+}
+
 .result-hero-image {
   width: calc(100% + 44px);
   height: 250px;
@@ -708,6 +714,11 @@ h1 {
 .result-card::before { top: -35px; left: -28px; }
 .result-card::after { right: -34px; bottom: -40px; }
 
+.result-hero-copy {
+  position: relative;
+  z-index: 1;
+}
+
 .result-pin {
   margin: 5px 0 -2px;
   color: #e76f51;
@@ -717,8 +728,9 @@ h1 {
 .result-city {
   margin: 0;
   color: #163f36;
-  font-size: 1.7rem;
+  font-size: 2rem;
   font-weight: 900;
+  line-height: 1.16;
 }
 
 .result-nearest-station {
@@ -729,8 +741,11 @@ h1 {
 }
 
 .result-city span {
+  display: block;
+  margin-bottom: 4px;
+  color: #9a7568;
   font-size: 0.88rem;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .result-divider {
@@ -745,6 +760,34 @@ h1 {
   color: #5f716b;
   font-size: 0.88rem;
   font-weight: 600;
+}
+
+.result-label {
+  margin: 0 0 6px;
+  color: #d45c3e;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+}
+
+.result-hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 12px 0;
+}
+
+.result-hero-meta span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  color: #315f55;
+  background: #eff7f4;
+  border: 1px solid #dcebe5;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 900;
 }
 
 .result-recommendation span {
@@ -989,6 +1032,51 @@ h1 {
   background: #f3f9f6;
   border: 1px solid #dcebe5;
   border-radius: 18px;
+}
+
+.enjoyment-card {
+  margin-top: 14px;
+  padding: 17px;
+  color: #415e56;
+  background: #fff;
+  border: 1px solid #e3ece8;
+  border-radius: 18px;
+  box-shadow: 0 10px 22px rgba(43, 80, 71, 0.05);
+}
+
+.enjoyment-card p,
+.enjoyment-card h2 {
+  margin: 0;
+}
+
+.enjoyment-card p {
+  color: #e76f51;
+  font-size: 0.52rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+}
+
+.enjoyment-card h2 {
+  margin-top: 2px;
+  color: #294f46;
+  font-size: 0.94rem;
+}
+
+.enjoyment-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 13px;
+}
+
+.enjoyment-chips span {
+  padding: 8px 11px;
+  color: #2f675d;
+  background: #edf7f4;
+  border: 1px solid #d9ebe5;
+  border-radius: 999px;
+  font-size: 0.66rem;
+  font-weight: 900;
 }
 
 .season-compatibility-card {
@@ -1338,6 +1426,8 @@ h1 {
 }
 
 .detail-plan {
+  display: grid;
+  gap: 12px;
   margin-top: 28px;
 }
 
@@ -1345,7 +1435,7 @@ h1 {
   display: flex;
   align-items: center;
   gap: 11px;
-  margin-bottom: 13px;
+  margin-bottom: 0;
   padding: 0 2px;
 }
 
@@ -1375,7 +1465,7 @@ h1 {
 }
 
 .plan-route-title {
-  margin: 0 0 13px;
+  margin: 0;
   padding: 12px 14px;
   color: #526b64;
   background: #edf6f3;
@@ -1386,6 +1476,7 @@ h1 {
 }
 
 .ai-plan-button {
+  order: 71;
   width: 100%;
   min-height: 48px;
   display: flex;
@@ -1429,7 +1520,8 @@ h1 {
 }
 
 .premium-guide-card {
-  margin: 13px 0 8px;
+  order: 70;
+  margin: 0;
   padding: 16px;
   color: #625d50;
   background: linear-gradient(145deg, #fffaf0, #fff);
@@ -1540,6 +1632,7 @@ h1 {
 }
 
 .ai-plan-loading {
+  order: 72;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1564,6 +1657,7 @@ h1 {
 }
 
 .ai-plan-key-notice {
+  order: 72;
   margin: -3px 0 12px;
   padding: 10px 12px;
   color: #756a45;
@@ -1575,6 +1669,7 @@ h1 {
 }
 
 .ai-plan-card {
+  order: 73;
   margin: 0 0 12px;
   padding: 16px;
   color: #565b70;
@@ -1701,6 +1796,50 @@ h1 {
   list-style: none;
 }
 
+.collapsible-plan-card {
+  order: 60;
+}
+
+.collapsible-plan-card summary {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 4px 9px;
+  align-items: center;
+  min-height: 44px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.collapsible-plan-card summary::-webkit-details-marker {
+  display: none;
+}
+
+.collapsible-plan-card summary > span {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  grid-row: 1 / span 2;
+  place-items: center;
+  color: #1f7669;
+  background: #e4f3ef;
+  border-radius: 8px;
+}
+
+.collapsible-plan-card summary b {
+  color: #244b42;
+  font-size: 0.82rem;
+}
+
+.collapsible-plan-card summary small {
+  color: #74847f;
+  font-size: 0.62rem;
+  font-weight: 700;
+}
+
+.collapsible-plan-card[open] summary {
+  margin-bottom: 14px;
+}
+
 .schedule-day + .schedule-day {
   margin-top: 17px;
   padding-top: 16px;
@@ -1787,7 +1926,8 @@ h1 {
 }
 
 .travel-card {
-  margin-top: 10px;
+  order: 20;
+  margin-top: 0;
 }
 
 .transport-introduction {
@@ -2062,6 +2202,7 @@ h1 {
 }
 
 .budget-card {
+  order: 40;
   margin-top: 10px;
 }
 
@@ -2169,6 +2310,7 @@ h1 {
 }
 
 .feasibility-card {
+  order: 30;
   margin-top: 10px;
   padding: 16px;
   background: linear-gradient(135deg, #fff8ee, #fffdf8);
@@ -2289,6 +2431,7 @@ h1 {
 }
 
 .highlight-card {
+  order: 50;
   margin-top: 10px;
   background: #fff7ed;
   border-color: #f3ddc9;
@@ -4971,6 +5114,72 @@ h1 {
   background: #195f55;
 }
 
+.result-page-actions,
+.result-bottom-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 9px;
+  margin-top: 16px;
+}
+
+.result-page-actions button,
+.result-bottom-actions button {
+  min-height: 46px;
+  padding: 0 16px;
+  border: 1px solid #cfe3dd;
+  border-radius: 14px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.result-page-actions .result-list-button,
+.result-bottom-actions button {
+  color: #2d6f64;
+  background: #fff;
+}
+
+.result-page-actions .result-redraw-button {
+  width: auto;
+  max-width: none;
+  margin: 0;
+}
+
+.result-bottom-actions {
+  margin: 22px 0 0;
+  padding: 16px;
+  background: #fff;
+  border: 1px solid #e3ece8;
+  border-radius: 18px;
+  box-shadow: 0 12px 26px rgba(43, 80, 71, 0.06);
+}
+
+.result-bottom-actions button:first-child {
+  color: #7b5d4f;
+  background: #fff7ed;
+  border-color: #f0d9c7;
+}
+
+.result-bottom-actions button:nth-child(2) {
+  color: #fff;
+  background: #1f7669;
+  border-color: #1f7669;
+}
+
+.result-bottom-actions button:disabled,
+.result-page-actions button:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.result-page-actions button:focus-visible,
+.result-bottom-actions button:focus-visible {
+  outline: 2px solid #2a9d8f;
+  outline-offset: 3px;
+}
+
 .developer-page-header > button {
   position: absolute;
   top: 0;
@@ -5608,6 +5817,13 @@ h1 {
   .result-card { margin-top: 22px; padding: 20px 16px 18px; }
   .result-hero-image { margin: -20px -16px 18px; width: calc(100% + 32px); }
   .result-hero-image { height: 220px; }
+  .result-city { font-size: 1.65rem; }
+  .result-recommendation { font-size: 0.78rem; line-height: 1.75; }
+  .result-hero-meta span { font-size: 0.58rem; }
+  .result-page-actions,
+  .result-bottom-actions { gap: 8px; }
+  .result-page-actions button,
+  .result-bottom-actions button { flex: 1 1 100%; min-height: 46px; }
   .result-source-row button { min-height: 44px; }
   .result-card .favorite-button { width: 100%; margin-left: 0; }
   .result-card .favorite-button + .favorite-button { margin-top: 8px; margin-left: 0; }
@@ -5618,6 +5834,8 @@ h1 {
   .destiny-score strong { font-size: 1.55rem; }
   .recommendation-card,
   .season-compatibility-card { padding: 15px; }
+  .enjoyment-card { padding: 15px; }
+  .enjoyment-chips span { font-size: 0.6rem; }
   .reason-summary { padding: 12px 13px; font-size: 0.72rem; line-height: 1.7; }
 
   .journey-gallery-card { padding: 14px; }
@@ -5635,6 +5853,7 @@ h1 {
 
   .detail-plan { margin-top: 23px; }
   .plan-route-title { padding: 11px 12px; }
+  .collapsible-plan-card summary small { font-size: 0.58rem; }
   .plan-grid,
   .ai-plan-card dl,
   .premium-guide-card ul { grid-template-columns: 1fr; }

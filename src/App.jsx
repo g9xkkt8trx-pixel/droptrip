@@ -917,6 +917,37 @@ const shouldFeatureFoodImage = (destination = {}) => {
   )
 }
 
+const getTripProposalText = (destination = {}, context = {}, seasonInfo = {}) => {
+  const tags = destination.tags ?? []
+  const lead = tags.includes(filterOptions[0])
+    ? '温泉でゆっくり整えたい気分に合う'
+    : tags.includes(filterOptions[1])
+      ? '海風を感じながら気分を変えたい日に合う'
+      : tags.includes(filterOptions[2])
+        ? '自然の中で深呼吸したい今に合う'
+        : tags.includes(filterOptions[3])
+          ? 'おいしいものを楽しみたい旅に合う'
+          : tags.includes(filterOptions[4])
+            ? 'ふたりでゆっくり過ごしたい旅に合う'
+            : '少し日常を離れたい今に合う'
+  const season = seasonInfo?.season && seasonInfo.season !== 'おまかせ'
+    ? `${seasonInfo.season}の魅力も楽しめる`
+    : '季節を問わず選びやすい'
+  const tripType = context?.tripType ? `${context.tripType}でも` : ''
+  return `${lead}、${season}${tripType}旅先です。${destination.recommendText ?? destination.recommendation ?? ''}`
+}
+
+const getTripEnjoymentItems = (destination = {}, foodItems = []) => {
+  const tagItems = (destination.tags ?? []).slice(0, 4)
+  const foodItem = foodItems[0] ? `${foodItems[0]}を味わう` : ''
+  const highlightItem = destination.highlights
+    ? String(destination.highlights).replace(/を一度に楽しめる$/, '').replace(/を満喫$/, '')
+    : ''
+  return [...new Set([...tagItems, highlightItem, foodItem])]
+    .filter(Boolean)
+    .slice(0, 6)
+}
+
 const createImagePreviewData = (destinationList) => {
   const imageFields = [
     { key: 'heroImage', type: 'hero', label: 'hero' },
@@ -1385,6 +1416,12 @@ function App() {
   const localFoodItems = destination ? getLocalFoodDisplayItems(destination) : []
   const foodThemeText = destination ? getFoodThemeText(destination, localFoodItems) : ''
   const foodImageIsFeatured = destination ? shouldFeatureFoodImage(destination) : false
+  const tripProposalText = destination && planContext
+    ? getTripProposalText(destination, planContext, seasonCompatibility)
+    : ''
+  const tripEnjoymentItems = destination
+    ? getTripEnjoymentItems(destination, localFoodItems)
+    : []
 
   const apiKeySource = getGoogleMapsApiKeySource(savedApiKey)
   const maskedApiKey = savedApiKey ? savedApiKey.slice(-4) : ''
@@ -2418,17 +2455,20 @@ function App() {
             <p>{selectionMeta?.source === 'destination-list' ? 'DESTINATION DETAIL' : 'DRAW RESULT'}</p>
             <h1 id="result-page-title">{selectionMeta?.source === 'destination-list' ? '旅行先一覧から表示中' : '抽選結果'}</h1>
             <span>選ばれた旅先の理由・プラン・行きやすさをまとめて確認できます。</span>
-            {selectionMeta?.source !== 'destination-list' && (
-              <button type="button" className="result-redraw-button" onClick={chooseDestination} disabled={travelInfo.status === 'loading'}>
-                {travelInfo.status === 'loading' ? '移動情報を取得中...' : 'もう一度旅先を決める'}
-              </button>
-            )}
+            <div className="result-page-actions">
+              {selectionMeta?.source !== 'destination-list' && (
+                <button type="button" className="result-redraw-button" onClick={chooseDestination} disabled={travelInfo.status === 'loading'}>
+                  {travelInfo.status === 'loading' ? '移動情報を取得中...' : 'もう一度旅先を決める'}
+                </button>
+              )}
+              <button type="button" className="result-list-button" onClick={() => switchPage('destinations')}>旅行先一覧を見る</button>
+            </div>
           </header>
         )}
 
         {currentPage === 'result' && destination && (
           <div className="result-area" aria-live="polite">
-            <section className="result-card" aria-label="抽選結果">
+            <section className="result-card result-proposal-hero" aria-label="旅先の提案">
               <SafeImage
                 key={`${destination.id}-hero`}
                 destination={destination}
@@ -2445,15 +2485,18 @@ function App() {
                   <button type="button" onClick={backToDestinationList}>旅行先一覧に戻る</button>
                 </div>
               )}
-              <p className="result-label">YOUR DESTINATION</p>
-              <div className="result-pin" aria-hidden="true">✦</div>
-              <p className="result-city"><span>今回の旅先：</span>{destination.city}</p>
-              <p className="result-nearest-station">最寄り目安：{destination.nearestStationLabel}</p>
-              <div className="result-divider" />
-              <p className="result-recommendation">
-                <span>この旅先の魅力</span>
-                {destination.recommendation}
-              </p>
+              <div className="result-hero-copy">
+                <p className="result-label">{selectionMeta?.source === 'destination-list' ? '旅行先一覧から表示中' : '今回の旅先は'}</p>
+                <h2 className="result-city">
+                  <span>{destination.prefecture}</span>
+                  {destination.city}
+                </h2>
+                <div className="result-hero-meta">
+                  <span>運命度 {destiny.score}%</span>
+                  <span>最寄り目安：{destination.nearestStationLabel}</span>
+                </div>
+                <p className="result-recommendation">{tripProposalText}</p>
+              </div>
               <button
                 type="button"
                 className={`favorite-button ${favoriteCities.includes(destination.city) ? 'registered' : ''} ${visitedCities.includes(destination.city) ? 'visited' : ''}`}
@@ -2507,8 +2550,8 @@ function App() {
               <div className="recommendation-heading">
                 <span aria-hidden="true">✦</span>
                 <div>
-                  <p>WHY THIS PLACE?</p>
-                  <h2 id="recommendation-title">今回{destination.city}が選ばれた理由</h2>
+                  <p>WHY IT FITS</p>
+                  <h2 id="recommendation-title">この旅先が合いそうな理由</h2>
                 </div>
               </div>
 
@@ -2550,15 +2593,17 @@ function App() {
               </p>
             </section>
 
-            <section className="season-compatibility-card" aria-labelledby="season-compatibility-title">
-              <div>
-                <p>SEASON MATCH</p>
-                <h2 id="season-compatibility-title">季節との相性</h2>
-              </div>
-              <strong aria-label={`${seasonCompatibility.stars}つ星`}>{seasonCompatibility.starsLabel}</strong>
-              <p>{seasonCompatibility.description}</p>
-              <span>ベストシーズン：{destination.bestSeasons.join('・')}</span>
-            </section>
+            {tripEnjoymentItems.length > 0 && (
+              <section className="enjoyment-card" aria-labelledby="enjoyment-title">
+                <div>
+                  <p>WHAT TO ENJOY</p>
+                  <h2 id="enjoyment-title">ここで楽しみたいこと</h2>
+                </div>
+                <div className="enjoyment-chips">
+                  {tripEnjoymentItems.map((item) => <span key={item}>{item}</span>)}
+                </div>
+              </section>
+            )}
 
             <section className="journey-gallery-card" aria-labelledby="journey-gallery-title">
               <div className="journey-gallery-heading">
@@ -2620,12 +2665,22 @@ function App() {
               </section>
             )}
 
+            <section className="season-compatibility-card" aria-labelledby="season-compatibility-title">
+              <div>
+                <p>SEASON HIGHLIGHT</p>
+                <h2 id="season-compatibility-title">この季節に行くなら</h2>
+              </div>
+              <strong aria-label={`${seasonCompatibility.stars}つ星`}>{seasonCompatibility.starsLabel}</strong>
+              <p>{seasonCompatibility.description}</p>
+              <span>ベストシーズン：{destination.bestSeasons.join('・')}</span>
+            </section>
+
             <section className="detail-plan" aria-labelledby="detail-plan-title">
               <div className="detail-heading">
                 <span className="detail-heading-icon" aria-hidden="true">✦</span>
                 <div>
-                  <p>TRIP GUIDE</p>
-                  <h2 id="detail-plan-title">詳細プラン</h2>
+                  <p>TRIP REALITY</p>
+                  <h2 id="detail-plan-title">行き方と旅の具体プラン</h2>
                 </div>
               </div>
 
@@ -2683,11 +2738,12 @@ function App() {
                 </section>
               )}
 
-              <div className="plan-card schedule-card">
-                <h3>
+              <details className="plan-card schedule-card collapsible-plan-card">
+                <summary>
                   <span aria-hidden="true">▦</span>
-                  おすすめスケジュール
-                </h3>
+                  <b>詳細プランを見る</b>
+                  <small>{planContext.tripType}の流れを確認できます</small>
+                </summary>
                 {destination.plans[planContext.tripType].map((dayPlan) => (
                   <div className="schedule-day" key={dayPlan.day}>
                     <h4>{dayPlan.day}</h4>
@@ -2704,7 +2760,7 @@ function App() {
                     </ol>
                   </div>
                 ))}
-              </div>
+              </details>
 
               <div className="plan-card travel-card">
                   <h3><span aria-hidden="true">⌁</span>交通手段比較</h3>
@@ -2865,6 +2921,16 @@ function App() {
                 <p>{destination.highlights}</p>
               </div>
             </section>
+
+            <nav className="result-bottom-actions" aria-label="抽選結果画面の操作">
+              <button type="button" onClick={() => switchPage('main')}>条件を変えて探す</button>
+              {selectionMeta?.source !== 'destination-list' && (
+                <button type="button" onClick={chooseDestination} disabled={travelInfo.status === 'loading'}>
+                  {travelInfo.status === 'loading' ? '移動情報を取得中...' : 'もう一度旅先を決める'}
+                </button>
+              )}
+              <button type="button" onClick={() => switchPage('destinations')}>旅行先一覧を見る</button>
+            </nav>
           </div>
         )}
 
