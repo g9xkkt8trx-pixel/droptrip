@@ -18,9 +18,9 @@
 - scenery候補：清水寺、嵐山、伏見稲荷、東山エリア
 - food候補：湯豆腐、抹茶スイーツ、京料理、和カフェ
 - 必要画像：hero / scenery / food
-- 現在の状態：temporary / individual imageあり
+- 現在の状態：個別画像改善済み / temporary
 - 権利確認：未確認
-- メモ：
+- メモ：hero / scenery / food を個別ローカル画像へ割り当て済み。次の課題：公式素材または権利確認済み写真へ差し替え。
 
 ### 奈良市
 
@@ -28,9 +28,9 @@
 - scenery候補：東大寺、春日大社、ならまち
 - food候補：柿の葉寿司、茶粥、奈良漬、和スイーツ
 - 必要画像：hero / scenery / food
-- 現在の状態：temporary / individual imageあり
+- 現在の状態：個別画像改善済み / temporary
 - 権利確認：未確認
-- メモ：
+- メモ：hero / scenery / food を個別ローカル画像へ割り当て済み。次の課題：公式素材または権利確認済み写真へ差し替え。
 
 ### 小樽市
 
@@ -38,9 +38,9 @@
 - scenery候補：運河夜景、天狗山、堺町通り
 - food候補：寿司、海鮮丼、スイーツ、市場グルメ
 - 必要画像：hero / scenery / food
-- 現在の状態：temporary / individual imageあり
+- 現在の状態：個別画像改善済み / temporary
 - 権利確認：未確認
-- メモ：
+- メモ：hero / scenery / food を個別ローカル画像へ割り当て済み。次の課題：公式素材または権利確認済み写真へ差し替え。
 
 ### 札幌市
 
@@ -68,9 +68,9 @@
 - scenery候補：兼六園、21世紀美術館、浅野川
 - food候補：海鮮丼、金沢おでん、加賀料理、和菓子
 - 必要画像：hero / scenery / food
-- 現在の状態：temporary / individual imageあり
+- 現在の状態：個別画像改善済み / temporary
 - 権利確認：未確認
-- メモ：
+- メモ：hero / scenery / food を個別ローカル画像へ割り当て済み。次の課題：公式素材または権利確認済み写真へ差し替え。
 
 ### 箱根町
 
@@ -78,9 +78,9 @@
 - scenery候補：大涌谷、箱根神社、ロープウェイ
 - food候補：温泉まんじゅう、そば、豆腐料理、ベーカリー
 - 必要画像：hero / scenery / food
-- 現在の状態：temporary / individual imageあり
+- 現在の状態：個別画像改善済み / temporary
 - 権利確認：未確認
-- メモ：
+- メモ：hero / scenery / food を個別ローカル画像へ割り当て済み。次の課題：公式素材または権利確認済み写真へ差し替え。
 
 ### 熱海市
 
@@ -88,9 +88,9 @@
 - scenery候補：来宮神社、海岸線、温泉街
 - food候補：海鮮、干物、温泉まんじゅう、カフェスイーツ
 - 必要画像：hero / scenery / food
-- 現在の状態：temporary / individual imageあり
+- 現在の状態：個別画像改善済み / temporary
 - 権利確認：未確認
-- メモ：
+- メモ：hero / scenery / food を個別ローカル画像へ割り当て済み。次の課題：公式素材または権利確認済み写真へ差し替え。
 
 ### 草津町
 
@@ -98,9 +98,9 @@
 - scenery候補：西の河原公園、温泉街夜景、雪景色
 - food候補：温泉まんじゅう、そば、舞茸料理、湯畑周辺スイーツ
 - 必要画像：hero / scenery / food
-- 現在の状態：temporary / individual imageあり
+- 現在の状態：個別画像改善済み / temporary
 - 権利確認：未確認
-- メモ：
+- メモ：hero / scenery / food を個別ローカル画像へ割り当て済み。次の課題：公式素材または権利確認済み写真へ差し替え。
 
 ### 日光市
 
@@ -118,9 +118,9 @@
 - scenery候補：長谷、由比ヶ浜、小町通り
 - food候補：しらす丼、鎌倉野菜、和カフェ、スイーツ
 - 必要画像：hero / scenery / food
-- 現在の状態：temporary / individual imageあり
+- 現在の状態：個別画像改善済み / temporary
 - 権利確認：未確認
-- メモ：
+- メモ：hero / scenery / food を個別ローカル画像へ割り当て済み。次の課題：公式素材または権利確認済み写真へ差し替え。
 
 ### 横浜市
 
@@ -158,9 +158,9 @@
 - scenery候補：中洲、福岡タワー、大濠公園
 - food候補：博多ラーメン、もつ鍋、水炊き、屋台グルメ
 - 必要画像：hero / scenery / food
-- 現在の状態：temporary / individual imageあり
+- 現在の状態：個別画像改善済み / temporary
 - 権利確認：未確認
-- メモ：
+- メモ：hero / scenery / food を個別ローカル画像へ割り当て済み。次の課題：公式素材または権利確認済み写真へ差し替え。
 
 ### 長崎市
 
@@ -208,9 +208,9 @@
 - scenery候補：ビーチ、夕景、南国の自然
 - food候補：石垣牛、八重山そば、海鮮、南国スイーツ
 - 必要画像：hero / scenery / food
-- 現在の状態：temporary / individual imageあり
+- 現在の状態：個別画像改善済み / temporary
 - 権利確認：未確認
-- メモ：
+- メモ：hero / scenery / food を個別ローカル画像へ割り当て済み。次の課題：公式素材または権利確認済み写真へ差し替え。
 
 ### 高山市
 

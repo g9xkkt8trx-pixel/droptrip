@@ -70,21 +70,122 @@ Object.values(CATEGORY_PATHS).forEach((paths) => {
 
 // 権利確認済みの個別画像を追加したときは、この対応表へ登録する。
 const DESTINATION_LOCAL_IMAGES = {
-  京都市: { hero: '/images/destinations/kyoto-hero.jpg' }, 奈良市: { hero: '/images/destinations/nara-hero.jpg' },
-  小樽市: { hero: '/images/destinations/otaru-hero.jpg' }, 札幌市: { hero: '/images/destinations/sapporo-hero.jpg' },
-  函館市: { hero: '/images/destinations/hakodate-hero.jpg' }, 金沢市: { hero: '/images/destinations/kanazawa-hero.jpg' },
-  箱根町: { hero: '/images/destinations/hakone-hero.jpg' }, 熱海市: { hero: '/images/destinations/atami-hero.jpg' },
-  草津町: { hero: '/images/destinations/kusatsu-hero.jpg' }, 日光市: { hero: '/images/destinations/nikko-hero.jpg' },
-  鎌倉市: { hero: '/images/destinations/kamakura-hero.jpg' }, 横浜市: { hero: '/images/destinations/yokohama-hero.jpg' },
+  京都市: {
+    hero: '/images/destinations/kyoto-hero.jpg',
+    scenery: '/images/destinations/kyoto-scenery.jpg',
+    food: '/images/destinations/kyoto-food.jpg',
+  },
+  奈良市: {
+    hero: '/images/destinations/nara-hero.jpg',
+    scenery: '/images/destinations/nara-scenery.jpg',
+    food: '/images/destinations/nara-food.jpg',
+  },
+  小樽市: {
+    hero: '/images/destinations/otaru-hero.jpg',
+    scenery: '/images/destinations/otaru-scenery.jpg',
+    food: '/images/destinations/otaru-food.jpg',
+  },
+  札幌市: { hero: '/images/destinations/sapporo-hero.jpg' },
+  函館市: { hero: '/images/destinations/hakodate-hero.jpg' },
+  金沢市: {
+    hero: '/images/destinations/kanazawa-hero.jpg',
+    scenery: '/images/destinations/kanazawa-scenery.jpg',
+    food: '/images/destinations/kanazawa-food.jpg',
+  },
+  箱根町: {
+    hero: '/images/destinations/hakone-hero.jpg',
+    scenery: '/images/destinations/hakone-scenery.jpg',
+    food: '/images/destinations/hakone-food.jpg',
+  },
+  熱海市: {
+    hero: '/images/destinations/atami-hero.jpg',
+    scenery: '/images/destinations/atami-scenery.jpg',
+    food: '/images/destinations/atami-food.jpg',
+  },
+  草津町: {
+    hero: '/images/destinations/kusatsu-hero.jpg',
+    scenery: '/images/destinations/kusatsu-scenery.jpg',
+    food: '/images/destinations/kusatsu-food.jpg',
+  },
+  日光市: { hero: '/images/destinations/nikko-hero.jpg' },
+  鎌倉市: {
+    hero: '/images/destinations/kamakura-hero.jpg',
+    scenery: '/images/destinations/kamakura-scenery.jpg',
+    food: '/images/destinations/kamakura-food.jpg',
+  },
+  横浜市: { hero: '/images/destinations/yokohama-hero.jpg' },
   松島町: { hero: '/images/destinations/matsushima-hero.jpg' }, 仙台市: { hero: '/images/destinations/sendai-hero.jpg' },
-  福岡市: { hero: '/images/destinations/fukuoka-hero.jpg' }, 長崎市: { hero: '/images/destinations/nagasaki-hero.jpg' },
+  福岡市: {
+    hero: '/images/destinations/fukuoka-hero.jpg',
+    scenery: '/images/destinations/fukuoka-scenery.jpg',
+    food: '/images/destinations/fukuoka-food.jpg',
+  },
+  長崎市: { hero: '/images/destinations/nagasaki-hero.jpg' },
   広島市: { hero: '/images/destinations/hiroshima-hero.jpg' }, 廿日市市: { hero: '/images/destinations/miyajima-hero.jpg' },
-  那覇市: { hero: '/images/destinations/naha-hero.jpg' }, 石垣市: { hero: '/images/destinations/ishigaki-hero.jpg' },
+  那覇市: { hero: '/images/destinations/naha-hero.jpg' },
+  石垣市: {
+    hero: '/images/destinations/ishigaki-hero.jpg',
+    scenery: '/images/destinations/ishigaki-scenery.jpg',
+    food: '/images/destinations/ishigaki-food.jpg',
+  },
   高山市: { hero: '/images/destinations/takayama-hero.jpg' }, 伊勢市: { hero: '/images/destinations/ise-hero.jpg' },
   白浜町: { hero: '/images/destinations/shirahama-hero.jpg' }, 軽井沢町: { hero: '/images/destinations/karuizawa-hero.jpg' },
   富良野市: { hero: '/images/destinations/furano-hero.jpg' }, 会津若松市: { hero: '/images/destinations/aizuwakamatsu-hero.jpg' },
   尾道市: { hero: '/images/destinations/onomichi-hero.jpg' }, 倉敷市: { hero: '/images/destinations/kurashiki-hero.jpg' },
   松江市: { hero: '/images/destinations/matsue-hero.jpg' }, 別府市: { hero: '/images/destinations/beppu-hero.jpg' },
+}
+
+const DESTINATION_IMAGE_THEMES = {
+  京都市: {
+    hero: '京都らしい街並み・寺社・鴨川のイメージ',
+    scenery: '清水寺・嵐山・伏見稲荷などの景観候補',
+    food: '湯豆腐・抹茶スイーツ・京料理',
+  },
+  奈良市: {
+    hero: '奈良公園・鹿・古都の街並み',
+    scenery: '東大寺・春日大社・ならまちの景観候補',
+    food: '柿の葉寿司・茶粥・奈良漬',
+  },
+  小樽市: {
+    hero: '小樽運河・港町・レンガ倉庫',
+    scenery: '運河夜景・天狗山・堺町通りの景観候補',
+    food: '寿司・海鮮丼・市場グルメ',
+  },
+  金沢市: {
+    hero: 'ひがし茶屋街・兼六園・金沢駅',
+    scenery: '兼六園・浅野川・城下町の景観候補',
+    food: '海鮮丼・金沢おでん・加賀料理',
+  },
+  箱根町: {
+    hero: '芦ノ湖・温泉旅館・富士山が見える風景',
+    scenery: '大涌谷・箱根神社・ロープウェイの景観候補',
+    food: '温泉まんじゅう・そば・豆腐料理',
+  },
+  熱海市: {
+    hero: '海と温泉街・熱海サンビーチ',
+    scenery: '来宮神社・海岸線・温泉街の景観候補',
+    food: '海鮮・干物・温泉まんじゅう',
+  },
+  草津町: {
+    hero: '湯畑・温泉街・湯けむり',
+    scenery: '西の河原公園・温泉街夜景・雪景色',
+    food: '温泉まんじゅう・そば・舞茸料理',
+  },
+  鎌倉市: {
+    hero: '海と寺社・江ノ電・鎌倉大仏',
+    scenery: '長谷・由比ヶ浜・小町通りの景観候補',
+    food: 'しらす丼・鎌倉野菜・和カフェ',
+  },
+  福岡市: {
+    hero: '博多・天神の街並み・屋台',
+    scenery: '中洲・福岡タワー・大濠公園の景観候補',
+    food: '博多ラーメン・もつ鍋・屋台グルメ',
+  },
+  石垣市: {
+    hero: '青い海・離島ターミナル・川平湾',
+    scenery: 'ビーチ・夕景・南国の自然',
+    food: '石垣牛・八重山そば・南国カフェ',
+  },
 }
 
 const EXTENDED_DESTINATION_IMAGE_SLUGS = new Set([
@@ -271,7 +372,17 @@ export const getDestinationImage = (destination = {}, imageType = 'hero') => {
   const mappedUrl = getMappedDestinationImageUrl(DESTINATION_LOCAL_IMAGES[destination.city], imageType)
   const seed = destination.id ?? destination.city ?? destination.prefecture ?? ''
 
-  if (mappedUrl) return createLocalAsset(mappedUrl, imageType, 'curated', 'イメージ画像', 'temporary')
+  if (mappedUrl) {
+    const theme = DESTINATION_IMAGE_THEMES[destination.city]?.[imageType] ?? ''
+    return createLocalAsset(mappedUrl, imageType, 'curated', 'イメージ画像', 'temporary', {
+      isFoodSpecific: imageType === 'food',
+      isLocalFood: imageType === 'food',
+      foodTheme: imageType === 'food' ? theme || inferFoodThemeFromUrl(mappedUrl, 'curated') : '',
+      note: theme
+        ? `${theme}に沿った仮の個別画像です。公開前に権利確認済み素材へ差し替えてください。`
+        : '旅行先個別画像の差し替え候補です。公開前に権利確認をしてください。',
+    })
+  }
   if (configuredUrl.startsWith('/images/destinations/') && isValidImageUrl(configured)) return configured
 
   const categoryAsset = getThemeImageFallback(destination.tags ?? [], imageType, seed)
