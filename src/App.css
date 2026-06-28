@@ -796,6 +796,18 @@ h1 {
   font-weight: 900;
 }
 
+.range-relaxation-note {
+  margin: 11px 0 0;
+  padding: 9px 11px;
+  color: #7b674f;
+  background: #fff8e8;
+  border: 1px solid #ead9af;
+  border-radius: 12px;
+  font-size: 0.66rem;
+  font-weight: 800;
+  line-height: 1.6;
+}
+
 .result-recommendation span {
   display: block;
   margin-bottom: 2px;

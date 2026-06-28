@@ -46,6 +46,84 @@ const movementRangeOptions = [
   { value: 'far', label: '遠出', description: 'しっかり旅気分を味わう距離', maxHours: 8, maxKm: 560 },
   { value: 'unlimited', label: '制限なし', description: '全国から探す', maxHours: null, maxKm: null },
 ]
+const TRAVEL_RANGE_RULES = {
+  auto: { hardFilter: false },
+  near: { maxApproxMinutes: 240, maxApproxDistanceKm: 240, hardFilter: true, relaxMultiplier: 1.25 },
+  middle: { maxApproxMinutes: 360, maxApproxDistanceKm: 460, hardFilter: true, relaxMultiplier: 1.25 },
+  far: { maxApproxMinutes: 720, maxApproxDistanceKm: 1000, hardFilter: false },
+  unlimited: { hardFilter: false },
+}
+const prefectureRegionMap = {
+  北海道: '北海道',
+  青森県: '東北',
+  岩手県: '東北',
+  宮城県: '東北',
+  秋田県: '東北',
+  山形県: '東北',
+  福島県: '東北',
+  茨城県: '関東',
+  栃木県: '関東',
+  群馬県: '関東',
+  埼玉県: '関東',
+  千葉県: '関東',
+  東京都: '関東',
+  神奈川県: '関東',
+  新潟県: '中部',
+  富山県: '中部',
+  石川県: '中部',
+  福井県: '中部',
+  山梨県: '中部',
+  長野県: '中部',
+  岐阜県: '中部',
+  静岡県: '中部',
+  愛知県: '中部',
+  三重県: '関西',
+  滋賀県: '関西',
+  京都府: '関西',
+  大阪府: '関西',
+  兵庫県: '関西',
+  奈良県: '関西',
+  和歌山県: '関西',
+  鳥取県: '中国',
+  島根県: '中国',
+  岡山県: '中国',
+  広島県: '中国',
+  山口県: '中国',
+  徳島県: '四国',
+  香川県: '四国',
+  愛媛県: '四国',
+  高知県: '四国',
+  福岡県: '九州',
+  佐賀県: '九州',
+  長崎県: '九州',
+  熊本県: '九州',
+  大分県: '九州',
+  宮崎県: '九州',
+  鹿児島県: '九州',
+  沖縄県: '沖縄',
+}
+const regionNeighbors = {
+  北海道: ['北海道', '東北'],
+  東北: ['北海道', '東北', '関東'],
+  関東: ['東北', '関東', '中部'],
+  中部: ['関東', '中部', '関西'],
+  関西: ['中部', '関西', '中国', '四国'],
+  中国: ['関西', '中国', '四国', '九州'],
+  四国: ['関西', '中国', '四国'],
+  九州: ['中国', '九州', '沖縄'],
+  沖縄: ['九州', '沖縄'],
+}
+const originRegionHints = [
+  { region: '北海道', keywords: ['北海道', '札幌', '函館', '小樽', '旭川', '新千歳'] },
+  { region: '東北', keywords: ['仙台', '宮城', '青森', '盛岡', '秋田', '山形', '福島', '会津若松'] },
+  { region: '関東', keywords: ['水戸', '土浦', '茨城', '東京', '上野', '品川', '新宿', '横浜', '大宮', '千葉', '宇都宮', '高崎', '前橋'] },
+  { region: '中部', keywords: ['名古屋', '愛知', '静岡', '浜松', '金沢', '富山', '新潟', '長野', '軽井沢', '甲府', '岐阜'] },
+  { region: '関西', keywords: ['大阪', '新大阪', '京都', '神戸', '奈良', '和歌山', '滋賀', '三重', '伊勢'] },
+  { region: '中国', keywords: ['広島', '岡山', '倉敷', '松江', '鳥取', '山口', '尾道'] },
+  { region: '四国', keywords: ['高松', '松山', '徳島', '高知'] },
+  { region: '九州', keywords: ['福岡', '博多', '北九州', '佐賀', '長崎', '熊本', '大分', '別府', '宮崎', '鹿児島'] },
+  { region: '沖縄', keywords: ['沖縄', '那覇', '石垣', '宮古'] },
+]
 const FAVORITES_STORAGE_KEY = 'droptrip-favorites'
 const VISITED_STORAGE_KEY = 'droptrip-visited'
 const COMPARE_STORAGE_KEY = 'droptrip-compare'
@@ -208,26 +286,62 @@ const inferOriginCoordinates = (departure = '') => {
   return { latitude: 35.6812, longitude: 139.7671, label: '東京駅（概算）' }
 }
 
+const getDestinationRegion = (destination = {}) => (
+  destination.region
+  ?? destination.area
+  ?? prefectureRegionMap[destination.prefecture]
+  ?? '未判定'
+)
+
+const inferOriginRegion = (departure = '') => {
+  const normalized = departure.trim()
+  const prefectureMatch = Object.keys(prefectureRegionMap).find((prefecture) => normalized.includes(prefecture))
+  if (prefectureMatch) return prefectureRegionMap[prefectureMatch]
+
+  const destinationMatch = destinations.find((place) => (
+    normalized.includes(place.city) || normalized.includes(place.nearestStation ?? '')
+  ))
+  if (destinationMatch) return getDestinationRegion(destinationMatch)
+
+  const hint = originRegionHints.find((item) => (
+    item.keywords.some((keyword) => normalized.includes(keyword))
+  ))
+  return hint?.region ?? '関東'
+}
+
 const getMovementRangeConfig = ({ movementRange, customRangeHours, customRangeKm }) => {
   const selected = movementRangeOptions.find((option) => option.value === movementRange) ?? movementRangeOptions[0]
   const customHours = Number(customRangeHours)
   const customKm = Number(customRangeKm)
+  const rule = TRAVEL_RANGE_RULES[selected.value] ?? TRAVEL_RANGE_RULES.auto
   return {
     ...selected,
     maxHours: Number.isFinite(customHours) && customHours > 0 ? customHours : selected.maxHours,
     maxKm: Number.isFinite(customKm) && customKm > 0 ? customKm : selected.maxKm,
+    ...rule,
   }
 }
 
 const estimateMovementRange = (destination, departure, rangeSettings) => {
   const origin = inferOriginCoordinates(departure)
+  const originRegion = inferOriginRegion(departure)
+  const destinationRegion = getDestinationRegion(destination)
+  const nearbyRegions = regionNeighbors[originRegion] ?? [originRegion]
+  const isSameRegion = originRegion === destinationRegion
+  const isNeighborRegion = nearbyRegions.includes(destinationRegion)
   const directDistanceKm = getDistanceKm(origin, destination)
   if (!Number.isFinite(directDistanceKm)) {
     return {
       originLabel: origin?.label ?? '未判定',
+      originRegion,
+      destinationRegion,
+      isSameRegion,
+      isNeighborRegion,
       estimatedKm: null,
       estimatedHours: null,
+      estimatedMinutes: null,
       isWithinRange: true,
+      isHardExcluded: false,
       scoreEffect: 0,
       label: '概算不可',
     }
@@ -235,26 +349,108 @@ const estimateMovementRange = (destination, departure, rangeSettings) => {
 
   const estimatedKm = Math.round(directDistanceKm * 1.35)
   const estimatedHours = Math.round(((estimatedKm / 55) + 0.5) * 10) / 10
-  const maxHours = rangeSettings.maxHours
-  const maxKm = rangeSettings.maxKm
-  const hasLimit = Number.isFinite(maxHours) || Number.isFinite(maxKm)
-  const hourOver = Number.isFinite(maxHours) ? estimatedHours - maxHours : 0
+  const estimatedMinutes = Math.round(estimatedHours * 60)
+  const maxMinutes = rangeSettings.maxApproxMinutes ?? (
+    Number.isFinite(rangeSettings.maxHours) ? rangeSettings.maxHours * 60 : null
+  )
+  const maxKm = rangeSettings.maxApproxDistanceKm ?? rangeSettings.maxKm
+  const hasLimit = Number.isFinite(maxMinutes) || Number.isFinite(maxKm)
+  const minuteOver = Number.isFinite(maxMinutes) ? estimatedMinutes - maxMinutes : 0
   const kmOver = Number.isFinite(maxKm) ? estimatedKm - maxKm : 0
-  const isWithinRange = !hasLimit || (hourOver <= 0 && kmOver <= 0)
-  const isFarOver = hasLimit && (hourOver > 2 || kmOver > 220)
+  const isWithinRange = !hasLimit || (minuteOver <= 0 && kmOver <= 0)
+  const isFarOver = hasLimit && (minuteOver > 120 || kmOver > 220)
+  const isRegionMismatchForNear = rangeSettings.value === 'near' && !isNeighborRegion
+  const isHardExcluded = Boolean(
+    rangeSettings.hardFilter
+    && (
+      isRegionMismatchForNear
+      || minuteOver > 0
+      || kmOver > 0
+    ),
+  )
   const scoreEffect = !hasLimit
     ? 0
-    : isWithinRange
+    : isWithinRange && (rangeSettings.value !== 'near' || isNeighborRegion)
       ? 18
       : isFarOver ? -18 : -8
 
   return {
     originLabel: origin.label,
+    originRegion,
+    destinationRegion,
+    isSameRegion,
+    isNeighborRegion,
     estimatedKm,
     estimatedHours,
+    estimatedMinutes,
     isWithinRange,
+    isHardExcluded,
     scoreEffect,
     label: `${estimatedHours}時間 / ${estimatedKm}km目安`,
+  }
+}
+
+const getMovementRangeCandidatePool = ({
+  destinationList,
+  departure,
+  rangeSettings,
+  includeVisited,
+  visitedCities,
+  minimumCandidateCount = 3,
+}) => {
+  const entries = destinationList
+    .filter((place) => includeVisited || !visitedCities.includes(place.city))
+    .map((place) => ({
+      place,
+      estimate: estimateMovementRange(place, departure, rangeSettings),
+    }))
+
+  const rule = TRAVEL_RANGE_RULES[rangeSettings.value] ?? TRAVEL_RANGE_RULES.auto
+  if (!rule.hardFilter) {
+    return {
+      candidates: entries.map((entry) => entry.place),
+      entries,
+      excludedCount: 0,
+      finalCount: entries.length,
+      relaxed: false,
+      farCandidateCount: entries.filter((entry) => entry.estimate.isHardExcluded).length,
+      note: '',
+    }
+  }
+
+  const strictEntries = entries.filter((entry) => !entry.estimate.isHardExcluded)
+  if (strictEntries.length >= minimumCandidateCount || strictEntries.length === entries.length) {
+    return {
+      candidates: strictEntries.map((entry) => entry.place),
+      entries,
+      excludedCount: entries.length - strictEntries.length,
+      finalCount: strictEntries.length,
+      relaxed: false,
+      farCandidateCount: strictEntries.filter((entry) => entry.estimate.isHardExcluded).length,
+      note: '',
+    }
+  }
+
+  const maxMinutes = rule.maxApproxMinutes ? rule.maxApproxMinutes * (rule.relaxMultiplier ?? 1.25) : Infinity
+  const maxDistance = rule.maxApproxDistanceKm ? rule.maxApproxDistanceKm * (rule.relaxMultiplier ?? 1.25) : Infinity
+  const relaxedEntries = entries.filter(({ estimate }) => {
+    const isSafeRegion = rangeSettings.value !== 'near' || estimate.isNeighborRegion
+    const isSafeTime = !Number.isFinite(estimate.estimatedMinutes) || estimate.estimatedMinutes <= maxMinutes
+    const isSafeDistance = !Number.isFinite(estimate.estimatedKm) || estimate.estimatedKm <= maxDistance
+    return isSafeRegion && isSafeTime && isSafeDistance
+  })
+  const finalEntries = relaxedEntries.length > strictEntries.length ? relaxedEntries : strictEntries
+
+  return {
+    candidates: finalEntries.map((entry) => entry.place),
+    entries,
+    excludedCount: entries.length - finalEntries.length,
+    finalCount: finalEntries.length,
+    relaxed: finalEntries.length > strictEntries.length,
+    farCandidateCount: finalEntries.filter((entry) => entry.estimate.isHardExcluded).length,
+    note: finalEntries.length > strictEntries.length
+      ? '指定した移動範囲の候補が少なかったため、少し範囲を広げて提案しています。'
+      : '',
   }
 }
 
@@ -1307,6 +1503,17 @@ function App() {
   ))
   const movementRangeBoostedCount = movementRangeDebugItems.filter((item) => item.scoreEffect > 0).length
   const movementRangePenalizedCount = movementRangeDebugItems.filter((item) => item.scoreEffect < 0).length
+  const currentMatchingDestinations = destinations.filter((place) => (
+    selectedFilters.length === 0
+    || selectedFilters.some((filter) => place.tags.includes(filter))
+  ))
+  const currentDrawCandidateDiagnostics = getMovementRangeCandidatePool({
+    destinationList: currentMatchingDestinations,
+    departure,
+    rangeSettings: movementRangeSettings,
+    includeVisited,
+    visitedCities,
+  })
 
   const comparisonDestinations = compareCities
     .filter((city) => favoriteCities.includes(city))
@@ -1991,10 +2198,14 @@ function App() {
       || selectedFilters.some((filter) => place.tags.includes(filter))
     ))
     const currentRangeSettings = getMovementRangeConfig({ movementRange, customRangeHours, customRangeKm })
-    const candidates = matchingDestinations.filter((place) => {
-      estimateMovementRange(place, normalizedDeparture, currentRangeSettings)
-      return includeVisited || !visitedCities.includes(place.city)
+    const candidatePool = getMovementRangeCandidatePool({
+      destinationList: matchingDestinations,
+      departure: normalizedDeparture,
+      rangeSettings: currentRangeSettings,
+      includeVisited,
+      visitedCities,
     })
+    const candidates = candidatePool.candidates
 
     if (candidates.length === 0) {
       setDrawSimulation({ error: '現在の条件ではシミュレーション対象がありません。' })
@@ -2042,6 +2253,9 @@ function App() {
     const mostFrequentCount = destinationRanking[0]?.[1] ?? 0
     setDrawSimulation({
       candidateCount: candidates.length,
+      rangeExcludedCount: candidatePool.excludedCount,
+      rangeRelaxed: candidatePool.relaxed,
+      rangeFarCandidateCount: candidatePool.farCandidateCount,
       destinationRanking: destinationRanking.slice(0, 5),
       prefectureRanking: sortCounts(prefectureCounts).slice(0, 5),
       tagRanking: sortCounts(tagCounts),
@@ -2077,10 +2291,14 @@ function App() {
       || selectedFilters.some((filter) => place.tags.includes(filter))
     ))
     const currentRangeSettings = getMovementRangeConfig({ movementRange, customRangeHours, customRangeKm })
-    const candidates = matchingDestinations.filter((place) => {
-      estimateMovementRange(place, normalizedDeparture, currentRangeSettings)
-      return includeVisited || !visitedCities.includes(place.city)
+    const candidatePool = getMovementRangeCandidatePool({
+      destinationList: matchingDestinations,
+      departure: normalizedDeparture,
+      rangeSettings: currentRangeSettings,
+      includeVisited,
+      visitedCities,
     })
+    const candidates = candidatePool.candidates
 
     if (candidates.length === 0) {
       setDestination(null)
@@ -2132,6 +2350,9 @@ function App() {
       seasonCompatibility: selected.seasonCompatibility,
       source: 'draw',
       movementRangeEstimate: selected.movementRangeEstimate,
+      movementRangeRelaxed: candidatePool.relaxed,
+      movementRangeExcludedCount: candidatePool.excludedCount,
+      movementRangeFinalCount: candidatePool.finalCount,
       tripCompatibilityLabel: selected.tripCompatibilityLabel,
       visitedPolicy: includeVisited ? '含める（訪問済みは減点）' : '除外',
     })
@@ -2144,6 +2365,9 @@ function App() {
       feasibilityStars: selected.feasibilityStars,
       score: selected.score,
       seasonCompatibility: selected.seasonCompatibility,
+      movementRangeRelaxed: candidatePool.relaxed,
+      movementRangeExcludedCount: candidatePool.excludedCount,
+      movementRangeFinalCount: candidatePool.finalCount,
       visitedPolicy: includeVisited ? '含める（訪問済みは減点）' : '除外',
     })
     setPlanContext({
@@ -2496,6 +2720,11 @@ function App() {
                   <span>最寄り目安：{destination.nearestStationLabel}</span>
                 </div>
                 <p className="result-recommendation">{tripProposalText}</p>
+                {selectionMeta?.movementRangeRelaxed && (
+                  <p className="range-relaxation-note">
+                    指定した移動範囲の候補が少なかったため、少し範囲を広げて提案しています。
+                  </p>
+                )}
               </div>
               <button
                 type="button"
@@ -3994,7 +4223,9 @@ function App() {
                 <span>条件 <b>{movementRangeOptions.find((option) => option.value === movementRange)?.label ?? 'おまかせ'}</b></span>
                 <span>加点 <b>{movementRangeBoostedCount}</b></span>
                 <span>減点 <b>{movementRangePenalizedCount}</b></span>
-                <span>厳密 <b>{strictMovementRange ? 'ON' : 'OFF'}</b></span>
+                <span>除外 <b>{currentDrawCandidateDiagnostics.excludedCount}</b></span>
+                <span>最終候補 <b>{currentDrawCandidateDiagnostics.finalCount}</b></span>
+                <span>緩和 <b>{currentDrawCandidateDiagnostics.relaxed ? 'あり' : 'なし'}</b></span>
               </div>
             </article>
             <article>
@@ -4029,6 +4260,7 @@ function App() {
               </p>
               <div className="simulation-summary">
                 <div><span>候補数</span><strong>{drawSimulation.candidateCount}件</strong></div>
+                <div><span>範囲除外</span><strong>{drawSimulation.rangeExcludedCount ?? 0}件</strong></div>
                 <div><span>平均運命度</span><strong>{drawSimulation.averageDestiny}%</strong></div>
                 <div><span>条件一致率</span><strong>{drawSimulation.conditionMatchRate}%</strong></div>
                 <div className={drawSimulation.repetitionWarning ? 'quality-warning' : 'quality-passed'}>
@@ -4074,12 +4306,11 @@ function App() {
               <div><dt>最も現実的な移動手段</dt><dd>{bestTransportEvaluation?.mode ?? '未評価'}</dd></div>
               <div><dt>選択中の条件</dt><dd>{selectedFilters.length > 0 ? selectedFilters.join('、') : '指定なし'}</dd></div>
               <div><dt>移動範囲条件</dt><dd>{movementRangeOptions.find((option) => option.value === movementRange)?.label ?? 'おまかせ'}</dd></div>
-              <div><dt>厳密絞り込み</dt><dd>{strictMovementRange ? 'ON' : 'OFF'}</dd></div>
-              <div><dt>抽選候補数</dt><dd>{destinations.filter((place) => (
-                (selectedFilters.length === 0 || selectedFilters.some((filter) => place.tags.includes(filter)))
-                && (includeVisited || !visitedCities.includes(place.city))
-                && (!strictMovementRange || movementRange === 'auto' || movementRange === 'unlimited' || estimateMovementRange(place, departure, movementRangeSettings).isWithinRange)
-              )).length}件</dd></div>
+              <div><dt>抽選前候補数</dt><dd>{currentDrawCandidateDiagnostics.entries.length}件</dd></div>
+              <div><dt>移動範囲で除外</dt><dd>{currentDrawCandidateDiagnostics.excludedCount}件</dd></div>
+              <div><dt>最終候補数</dt><dd>{currentDrawCandidateDiagnostics.finalCount}件</dd></div>
+              <div><dt>緩和が発生したか</dt><dd>{currentDrawCandidateDiagnostics.relaxed ? 'あり' : 'なし'}</dd></div>
+              <div><dt>範囲外候補の混入</dt><dd>{currentDrawCandidateDiagnostics.farCandidateCount > 0 ? `${currentDrawCandidateDiagnostics.farCandidateCount}件` : 'なし'}</dd></div>
               <div><dt>移動範囲で加点</dt><dd>{movementRangeBoostedCount}件</dd></div>
               <div><dt>移動範囲で減点</dt><dd>{movementRangePenalizedCount}件</dd></div>
               <div><dt>現在の旅先</dt><dd>{destination ? `${destination.prefecture} ${destination.city}` : '未抽選'}</dd></div>
