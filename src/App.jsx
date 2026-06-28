@@ -47,8 +47,19 @@ const AI_PLAN_USAGE_STORAGE_KEY = 'droptrip-ai-plan-usage'
 const TRAVEL_CACHE_STORAGE_KEY = 'droptrip-travel-time-cache'
 const DRAW_HISTORY_STORAGE_KEY = 'droptrip-draw-history'
 const INPUT_STATE_STORAGE_KEY = 'droptrip-input-state'
+const BETA_FEEDBACK_STORAGE_KEY = 'droptrip-beta-feedback'
 const MAX_HISTORY_ITEMS = 20
 const DAILY_AI_PLAN_LIMIT = 3
+const betaTestCheckpoints = [
+  '旅先の提案は自然か',
+  '画像は魅力的か',
+  '移動時間は納得できるか',
+  '一覧ページは探しやすいか',
+  '比較機能は使いやすいか',
+  'お気に入り登録は分かりやすいか',
+  'AIプラン案内は押し売り感がないか',
+  'スマホで見づらい箇所はないか',
+]
 const destinationQualityReport = runDestinationQualityChecks(destinations)
 const drawBalanceReport = analyzeDrawBalance(destinations)
 const publicSecurityChecks = [
@@ -69,6 +80,7 @@ const DEBUG_STORAGE_KEYS = [
   TRAVEL_CACHE_STORAGE_KEY,
   DRAW_HISTORY_STORAGE_KEY,
   INPUT_STATE_STORAGE_KEY,
+  BETA_FEEDBACK_STORAGE_KEY,
 ]
 const tripCompatibility = {
   日帰り: '見どころを絞って巡りやすく、朝出発・夜帰宅の気軽な旅と相性が良い場所です。',
@@ -627,6 +639,25 @@ const loadStoredApiKey = (storageKey = MAPS_API_KEY_STORAGE_KEY) => {
   }
 }
 
+const loadBetaFeedbackNotes = () => {
+  try {
+    const saved = JSON.parse(window.localStorage.getItem(BETA_FEEDBACK_STORAGE_KEY) ?? '[]')
+    return Array.isArray(saved)
+      ? saved.filter((item) => item && typeof item === 'object' && item.id)
+        .map((item) => ({
+          id: String(item.id),
+          screen: typeof item.screen === 'string' ? item.screen : '',
+          issue: typeof item.issue === 'string' ? item.issue : '',
+          suggestion: typeof item.suggestion === 'string' ? item.suggestion : '',
+          priority: ['低', '中', '高'].includes(item.priority) ? item.priority : '中',
+          createdAt: typeof item.createdAt === 'string' ? item.createdAt : new Date().toISOString(),
+        }))
+      : []
+  } catch {
+    return []
+  }
+}
+
 const getLocalDateKey = (date = new Date()) => {
   const year = date.getFullYear()
   const month = String(date.getMonth() + 1).padStart(2, '0')
@@ -1047,6 +1078,14 @@ function App() {
   const [aiPlanUsage, setAiPlanUsage] = useState(loadAiPlanUsage)
   const [isPremiumUser, setIsPremiumUser] = useState(loadPremiumStatus)
   const [drawSimulation, setDrawSimulation] = useState(null)
+  const [betaFeedbackNotes, setBetaFeedbackNotes] = useState(loadBetaFeedbackNotes)
+  const [betaFeedbackForm, setBetaFeedbackForm] = useState({
+    screen: '',
+    issue: '',
+    suggestion: '',
+    priority: '中',
+  })
+  const [betaFeedbackNotice, setBetaFeedbackNotice] = useState('')
   const [openAiCommunicationMode, setOpenAiCommunicationMode] = useState('server')
   const [destinationSearch, setDestinationSearch] = useState('')
   const [destinationPrefectureFilter, setDestinationPrefectureFilter] = useState('all')
@@ -1326,6 +1365,45 @@ function App() {
         ? current.filter((item) => item !== filter)
         : [...current, filter]
     ))
+  }
+
+  const saveBetaFeedbackNotes = (nextNotes) => {
+    setBetaFeedbackNotes(nextNotes)
+    try {
+      window.localStorage.setItem(BETA_FEEDBACK_STORAGE_KEY, JSON.stringify(nextNotes))
+    } catch {
+      setBetaFeedbackNotice('メモを保存できませんでした。')
+    }
+  }
+
+  const updateBetaFeedbackForm = (field, value) => {
+    setBetaFeedbackForm((current) => ({ ...current, [field]: value }))
+    setBetaFeedbackNotice('')
+  }
+
+  const addBetaFeedbackNote = (event) => {
+    event.preventDefault()
+    const nextNote = {
+      id: globalThis.crypto?.randomUUID?.() ?? `beta-${Date.now()}`,
+      screen: betaFeedbackForm.screen.trim(),
+      issue: betaFeedbackForm.issue.trim(),
+      suggestion: betaFeedbackForm.suggestion.trim(),
+      priority: betaFeedbackForm.priority,
+      createdAt: new Date().toISOString(),
+    }
+
+    if (!nextNote.screen || !nextNote.issue) {
+      setBetaFeedbackNotice('気になった画面と問題内容を入力してください。')
+      return
+    }
+
+    saveBetaFeedbackNotes([nextNote, ...betaFeedbackNotes].slice(0, 50))
+    setBetaFeedbackForm({ screen: '', issue: '', suggestion: '', priority: '中' })
+    setBetaFeedbackNotice('βテストメモを保存しました。')
+  }
+
+  const deleteBetaFeedbackNote = (noteId) => {
+    saveBetaFeedbackNotes(betaFeedbackNotes.filter((note) => note.id !== noteId))
   }
 
   const saveApiKey = (event) => {
@@ -3143,6 +3221,87 @@ function App() {
           <strong>公開前にAPIキー保護を確認してください。</strong>
           ブラウザ側にOpenAI APIキーを保存した状態で一般公開しないでください。現在のキー設定はローカル開発・検証専用です。
         </p>
+
+        <section className="beta-feedback-card" aria-labelledby="beta-feedback-title">
+          <div className="settings-heading">
+            <span aria-hidden="true">β</span>
+            <div>
+              <p>BETA TEST</p>
+              <h2 id="beta-feedback-title">βテストメモ</h2>
+            </div>
+          </div>
+
+          <div className="beta-checkpoints" aria-label="βテスト時に確認する観点">
+            {betaTestCheckpoints.map((checkpoint) => (
+              <span key={checkpoint}>{checkpoint}</span>
+            ))}
+          </div>
+
+          <form className="beta-feedback-form" onSubmit={addBetaFeedbackNote}>
+            <label>
+              <span>気になった画面</span>
+              <input
+                type="text"
+                value={betaFeedbackForm.screen}
+                onChange={(event) => updateBetaFeedbackForm('screen', event.target.value)}
+                placeholder="例：旅行先一覧、比較ページ"
+              />
+            </label>
+            <label>
+              <span>重要度</span>
+              <select
+                value={betaFeedbackForm.priority}
+                onChange={(event) => updateBetaFeedbackForm('priority', event.target.value)}
+              >
+                <option value="低">低</option>
+                <option value="中">中</option>
+                <option value="高">高</option>
+              </select>
+            </label>
+            <label>
+              <span>問題内容</span>
+              <textarea
+                value={betaFeedbackForm.issue}
+                onChange={(event) => updateBetaFeedbackForm('issue', event.target.value)}
+                placeholder="違和感、分かりにくかった点、迷った箇所など"
+              />
+            </label>
+            <label>
+              <span>改善案</span>
+              <textarea
+                value={betaFeedbackForm.suggestion}
+                onChange={(event) => updateBetaFeedbackForm('suggestion', event.target.value)}
+                placeholder="こうすると使いやすそう、というメモ"
+              />
+            </label>
+            {betaFeedbackNotice && <p className="settings-notice">{betaFeedbackNotice}</p>}
+            <button type="submit">メモを保存</button>
+          </form>
+
+          <div className="beta-feedback-list" aria-label="保存済みβテストメモ">
+            <div className="beta-feedback-list-heading">
+              <strong>保存済みメモ</strong>
+              <span>{betaFeedbackNotes.length}件</span>
+            </div>
+            {betaFeedbackNotes.length === 0 ? (
+              <p className="beta-feedback-empty">まだメモはありません。</p>
+            ) : (
+              betaFeedbackNotes.map((note) => (
+                <article className={`beta-feedback-note priority-${note.priority}`} key={note.id}>
+                  <header>
+                    <div>
+                      <strong>{note.screen}</strong>
+                      <span>重要度：{note.priority}</span>
+                    </div>
+                    <button type="button" onClick={() => deleteBetaFeedbackNote(note.id)}>削除</button>
+                  </header>
+                  <p>{note.issue}</p>
+                  {note.suggestion && <small>改善案：{note.suggestion}</small>}
+                </article>
+              ))
+            )}
+          </div>
+        </section>
 
         <section className="settings-card" aria-labelledby="settings-title">
           <div className="settings-heading">
