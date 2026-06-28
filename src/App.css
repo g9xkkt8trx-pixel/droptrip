@@ -4577,6 +4577,34 @@ h1 {
   font-size: 0.72rem;
 }
 
+.beta-version-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: fit-content;
+  margin: 24px auto 0;
+  padding: 7px 11px;
+  color: #6f7d79;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid #e3eae7;
+  border-radius: 999px;
+  box-shadow: 0 8px 18px rgba(43, 80, 71, 0.04);
+  font-size: 0.62rem;
+  font-weight: 800;
+}
+
+.beta-version-badge span {
+  color: #345f55;
+  letter-spacing: 0.04em;
+}
+
+.beta-version-badge small {
+  color: #9aa6a2;
+  font-size: 0.56rem;
+  font-weight: 800;
+}
+
 .page-switch-card {
   display: flex;
   align-items: center;
@@ -4913,6 +4941,50 @@ h1 {
 
 .developer-page .openai-settings-card {
   margin-top: 12px;
+}
+
+.release-info-card {
+  margin-top: 18px;
+  padding: 18px;
+  background: #fff;
+  border: 1px solid #dfe9e5;
+  border-radius: 20px;
+  box-shadow: 0 8px 22px rgba(43, 80, 71, 0.05);
+}
+
+.release-info-card .settings-heading > span {
+  color: #fff;
+  background: #496f66;
+  font-size: 0.64rem;
+}
+
+.release-info-list {
+  display: grid;
+  gap: 9px;
+  margin: 16px 0 0;
+}
+
+.release-info-list div {
+  display: grid;
+  grid-template-columns: 118px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  padding: 10px 0;
+  border-top: 1px solid #edf2f0;
+}
+
+.release-info-list dt {
+  color: #8a9692;
+  font-size: 0.62rem;
+  font-weight: 800;
+}
+
+.release-info-list dd {
+  margin: 0;
+  color: #2f4943;
+  font-size: 0.68rem;
+  line-height: 1.6;
+  font-weight: 800;
 }
 
 .beta-feedback-card {
@@ -5327,6 +5399,7 @@ h1 {
   .developer-page-header { padding-top: 62px; }
   .developer-page-header > button { min-height: 44px; }
   .settings-card,
+  .release-info-card,
   .beta-feedback-card,
   .quality-check-card,
   .image-preview-card,
@@ -5340,6 +5413,7 @@ h1 {
   .flight-link-list a { min-height: 44px; }
   .debug-toggle-row { align-items: stretch; flex-direction: column; }
   .debug-toggle-row button { width: 100%; justify-content: space-between; }
+  .release-info-list div { grid-template-columns: 1fr; gap: 4px; }
   .beta-feedback-form { grid-template-columns: 1fr; }
   .beta-feedback-note header { flex-direction: column; }
   .beta-feedback-note button { width: 100%; min-height: 44px; }

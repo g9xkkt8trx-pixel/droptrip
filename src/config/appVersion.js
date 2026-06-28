@@ -1,0 +1,6 @@
+export const APP_VERSION = 'v0.1.0-beta'
+export const APP_STAGE = 'beta'
+export const APP_RELEASE_NOTE = '公開βテスト向けに、旅行先一覧・比較・履歴・βテストメモを整理した検証版です。'
+export const APP_DEPLOY_TARGET = 'Vercel'
+export const APP_API_MODE = 'サーバー経由'
+export const APP_BETA_SCOPE = '限定公開'

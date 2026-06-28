@@ -25,6 +25,14 @@ import {
 } from './data/destinationImages'
 import { runDestinationQualityChecks } from './services/destinationQuality'
 import { analyzeDrawBalance } from './services/drawBalance'
+import {
+  APP_API_MODE,
+  APP_BETA_SCOPE,
+  APP_DEPLOY_TARGET,
+  APP_RELEASE_NOTE,
+  APP_STAGE,
+  APP_VERSION,
+} from './config/appVersion'
 
 const tripTypes = ['日帰り', '1泊2日', '2泊3日']
 const primaryTransportModes = ['車', '電車', '飛行機']
@@ -2733,6 +2741,10 @@ function App() {
           <button type="button" onClick={() => switchPage('destinations')}>旅行先一覧を見る <span aria-hidden="true">→</span></button>
         </nav>
 
+        <div className="beta-version-badge" aria-label={`DROPTRIP ${APP_VERSION}`}>
+          <span>DROPTRIP β</span>
+          <small>{APP_VERSION}</small>
+        </div>
         <p className="footer-note">思いがけない場所へ、出かけよう。</p>
           </>
         ) : currentPage === 'destinations' ? (
@@ -3221,6 +3233,24 @@ function App() {
           <strong>公開前にAPIキー保護を確認してください。</strong>
           ブラウザ側にOpenAI APIキーを保存した状態で一般公開しないでください。現在のキー設定はローカル開発・検証専用です。
         </p>
+
+        <section className="release-info-card" aria-labelledby="release-info-title">
+          <div className="settings-heading">
+            <span aria-hidden="true">β</span>
+            <div>
+              <p>RELEASE</p>
+              <h2 id="release-info-title">リリース情報</h2>
+            </div>
+          </div>
+          <dl className="release-info-list">
+            <div><dt>バージョン</dt><dd>{APP_VERSION}</dd></div>
+            <div><dt>ステージ</dt><dd>{APP_STAGE}</dd></div>
+            <div><dt>最終更新メモ</dt><dd>{APP_RELEASE_NOTE}</dd></div>
+            <div><dt>デプロイ先</dt><dd>{APP_DEPLOY_TARGET}</dd></div>
+            <div><dt>API通信</dt><dd>{APP_API_MODE}</dd></div>
+            <div><dt>βテスト対象</dt><dd>{APP_BETA_SCOPE}</dd></div>
+          </dl>
+        </section>
 
         <section className="beta-feedback-card" aria-labelledby="beta-feedback-title">
           <div className="settings-heading">
