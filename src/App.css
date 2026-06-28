@@ -3658,6 +3658,15 @@ h1 {
   box-shadow: 0 8px 24px rgba(43, 80, 71, 0.05);
 }
 
+.image-improvement-card {
+  margin-top: 16px;
+  padding: 18px;
+  background: #fff;
+  border: 1px solid #dfe9e5;
+  border-radius: 18px;
+  box-shadow: 0 8px 24px rgba(43, 80, 71, 0.05);
+}
+
 .image-preview-lead {
   margin: 12px 0 0;
   color: #667a73;
@@ -3960,6 +3969,119 @@ h1 {
   cursor: pointer;
   font-size: 0.62rem;
   font-weight: 800;
+}
+
+.image-improvement-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.image-improvement-summary div {
+  padding: 10px;
+  background: #f7fbf9;
+  border: 1px solid #e1ece8;
+  border-radius: 13px;
+}
+
+.image-improvement-summary span {
+  display: block;
+  color: #7b8d87;
+  font-size: 0.56rem;
+  font-weight: 800;
+}
+
+.image-improvement-summary strong {
+  display: block;
+  margin-top: 4px;
+  color: #315f55;
+  font-size: 1rem;
+}
+
+.image-improvement-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 13px;
+}
+
+.image-improvement-item {
+  padding: 12px;
+  background: #f8fbfa;
+  border: 1px solid #e2ebe8;
+  border-left: 4px solid #a8c9c1;
+  border-radius: 15px;
+}
+
+.image-improvement-item.priority-高 {
+  border-left-color: #d87455;
+}
+
+.image-improvement-item.priority-中 {
+  border-left-color: #d8a548;
+}
+
+.image-improvement-item header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.image-improvement-item header p,
+.image-improvement-item header h3 {
+  margin: 0;
+}
+
+.image-improvement-item header p {
+  color: #7b8d87;
+  font-size: 0.56rem;
+  font-weight: 800;
+}
+
+.image-improvement-item header h3 {
+  margin-top: 2px;
+  color: #315f55;
+  font-size: 0.82rem;
+}
+
+.image-improvement-item header b {
+  flex: 0 0 auto;
+  padding: 4px 7px;
+  color: #7b5d2f;
+  background: #fff7e8;
+  border-radius: 999px;
+  font-size: 0.54rem;
+}
+
+.image-improvement-item.priority-高 header b {
+  color: #a34e37;
+  background: #fff0e9;
+}
+
+.image-improvement-item dl {
+  display: grid;
+  gap: 7px;
+  margin: 10px 0 0;
+}
+
+.image-improvement-item dl > div {
+  display: grid;
+  grid-template-columns: 82px minmax(0, 1fr);
+  gap: 8px;
+}
+
+.image-improvement-item dt {
+  color: #83938e;
+  font-size: 0.55rem;
+  font-weight: 800;
+}
+
+.image-improvement-item dd {
+  margin: 0;
+  color: #526b64;
+  font-size: 0.6rem;
+  line-height: 1.55;
 }
 
 .draw-simulation {
@@ -5459,6 +5581,7 @@ h1 {
   .beta-feedback-card,
   .quality-check-card,
   .image-preview-card,
+  .image-improvement-card,
   .draw-balance-card,
   .debug-card,
   .calculation-method-card { padding: 15px; border-radius: 16px; }
@@ -5475,6 +5598,9 @@ h1 {
   .beta-feedback-note button { width: 100%; min-height: 44px; }
   .debug-details { grid-template-columns: 1fr; }
   .quality-check-summary { gap: 7px; }
+  .image-improvement-summary { grid-template-columns: 1fr; }
+  .image-improvement-item header { flex-direction: column; }
+  .image-improvement-item dl > div { grid-template-columns: 1fr; gap: 3px; }
   .image-preview-filter button { flex: 1 1 calc(50% - 7px); }
   .image-preview-grid { grid-template-columns: 1fr; }
   .image-preview-shot img,

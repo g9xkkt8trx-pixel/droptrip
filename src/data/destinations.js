@@ -121,6 +121,47 @@ const normalizePlans = (plans, city) => Object.fromEntries(
  * UIで利用する旅行先データの公開モデル。
  * 元データを追加しても、このファイルで項目名と必須値を統一できる。
  */
+const localFoodCandidatesByCity = {
+  京都市: ['湯豆腐', '抹茶スイーツ', '京料理', '和カフェ'],
+  奈良市: ['柿の葉寿司', '茶粥', '奈良漬', '和スイーツ'],
+  小樽市: ['寿司', '海鮮丼', 'ルタオ系スイーツ', '市場グルメ'],
+  札幌市: ['スープカレー', '味噌ラーメン', 'ジンギスカン', '海鮮'],
+  函館市: ['海鮮丼', 'イカ料理', '塩ラーメン', '市場朝食'],
+  金沢市: ['海鮮丼', '金沢おでん', '加賀料理', '和菓子'],
+  箱根町: ['温泉まんじゅう', 'そば', '豆腐料理', 'ベーカリー'],
+  熱海市: ['海鮮', '干物', '温泉まんじゅう', 'カフェスイーツ'],
+  草津町: ['温泉まんじゅう', 'そば', '舞茸料理', '湯畑周辺スイーツ'],
+  日光市: ['湯波料理', 'そば', '羊羹', 'カフェ'],
+  鎌倉市: ['しらす丼', '鎌倉野菜', '和カフェ', 'スイーツ'],
+  横浜市: ['中華街グルメ', '洋食', 'スイーツ', 'カフェ'],
+  松島町: ['牡蠣', '海鮮', '笹かまぼこ', 'ずんだスイーツ'],
+  仙台市: ['牛タン', 'ずんだ餅', '笹かまぼこ', '海鮮'],
+  福岡市: ['博多ラーメン', 'もつ鍋', '水炊き', '屋台グルメ'],
+  長崎市: ['ちゃんぽん', '皿うどん', 'トルコライス', 'カステラ'],
+  広島市: ['お好み焼き', '牡蠣', '穴子飯', '瀬戸内レモン'],
+  廿日市市: ['あなごめし', '牡蠣', 'もみじ饅頭', '瀬戸内海鮮'],
+  那覇市: ['沖縄そば', 'ゴーヤーチャンプルー', 'タコライス', 'ブルーシール'],
+  石垣市: ['石垣牛', '八重山そば', '海鮮', '南国スイーツ'],
+  高山市: ['飛騨牛', '高山ラーメン', 'みたらし団子', '郷土料理'],
+  伊勢市: ['伊勢うどん', '赤福', 'てこね寿司', '海鮮'],
+  白浜町: ['海鮮', 'クエ料理', '梅スイーツ', '温泉街グルメ'],
+  軽井沢町: ['ベーカリー', '高原野菜', 'カフェ', 'ジャム'],
+  富良野市: ['オムカレー', 'メロン', 'チーズ', 'スイーツ'],
+  会津若松市: ['ソースカツ丼', 'こづゆ', '会津そば', '地酒'],
+  尾道市: ['尾道ラーメン', '瀬戸内海鮮', 'レモンスイーツ', 'カフェ'],
+  倉敷市: ['デミカツ丼', '白桃スイーツ', '町家カフェ', '瀬戸内グルメ'],
+  松江市: ['出雲そば', '和菓子', 'しじみ料理', '茶文化'],
+  別府市: ['地獄蒸し', 'とり天', '温泉プリン', '海鮮'],
+}
+
+const getLocalFoodCandidates = (city, tags = []) => {
+  if (localFoodCandidatesByCity[city]) return localFoodCandidatesByCity[city]
+  if (tags.includes('グルメ')) return ['ご当地グルメ', '市場グルメ', 'カフェ']
+  if (tags.includes('海')) return ['海鮮', '市場グルメ', '港町の食事']
+  if (tags.includes('温泉')) return ['温泉まんじゅう', 'そば', '温泉街グルメ']
+  return ['ご当地グルメ', 'カフェ', '郷土料理']
+}
+
 const baseDestinations = rawDestinations.map((destination) => {
   const [latitude, longitude] = destinationCoordinates[destination.city]
   const address = destinationAddresses[destination.city]
@@ -148,6 +189,7 @@ const baseDestinations = rawDestinations.map((destination) => {
     highlights: destination.highlight,
     bestSeasons: seasonProfile.bestSeasons,
     seasonHighlights: seasonProfile.seasonHighlights,
+    localFoodCandidates: getLocalFoodCandidates(destination.city, destination.tags),
     ...images,
     ...transit,
   }
@@ -160,6 +202,7 @@ const expandedDestinations = supplementalDestinations.map((destination) => {
     id: `${destination.prefecture}-${destination.city}`,
     googleMapsQuery: `${destination.address} 観光`,
     reason: `${destination.city}は「${destination.recommendText}」をテーマにした旅行ができ、${destination.tags.join('・')}を重視する方におすすめです。`,
+    localFoodCandidates: getLocalFoodCandidates(destination.city, destination.tags),
     ...images,
   }
 })

@@ -4,7 +4,14 @@ export const createImageAsset = ({
   source = '',
   credit = '',
   license = '',
-  status = 'unconfirmed',
+  status = 'needs_review',
+  isLocal,
+  isGeneric,
+  isDestinationSpecific,
+  isFoodSpecific = false,
+  isLocalFood = false,
+  foodTheme = '',
+  note = '',
 }) => ({
   url,
   imageUrl: url,
@@ -18,6 +25,17 @@ export const createImageAsset = ({
   imageLicense: license,
   status,
   imageStatus: status,
+  isLocal: typeof isLocal === 'boolean' ? isLocal : url.startsWith('/images/'),
+  isGeneric: typeof isGeneric === 'boolean'
+    ? isGeneric
+    : source === 'placeholder' || url.startsWith('/images/common/'),
+  isDestinationSpecific: typeof isDestinationSpecific === 'boolean'
+    ? isDestinationSpecific
+    : source === 'curated' || url.startsWith('/images/destinations/'),
+  isFoodSpecific,
+  isLocalFood,
+  foodTheme,
+  note,
 })
 
 const COMMON_PATHS = {
@@ -123,13 +141,32 @@ export const MAJOR_DESTINATION_CITIES = Object.freeze(Object.keys(DESTINATION_LO
 
 const PHOTO_LICENSE = 'DROPTRIP生成素材・本プロジェクト内で利用可能'
 
-const createLocalAsset = (url, type, source, credit, status = 'confirmed') => createImageAsset({
+const inferFoodThemeFromUrl = (url = '', source = '') => {
+  if (source === 'curated' && url.includes('-food')) return 'ご当地グルメ候補'
+  if (url.includes('/gourmet-')) return '料理イメージ'
+  if (url.includes('/food-default')) return '汎用料理イメージ'
+  return ''
+}
+
+const createLocalAsset = (url, type, source, credit, status = 'confirmed', overrides = {}) => createImageAsset({
   url,
   type,
   source,
   credit,
   license: PHOTO_LICENSE,
   status,
+  isLocal: true,
+  isGeneric: source === 'placeholder',
+  isDestinationSpecific: source === 'curated',
+  isFoodSpecific: type === 'food' && source === 'curated',
+  isLocalFood: type === 'food' && source === 'curated',
+  foodTheme: type === 'food' ? inferFoodThemeFromUrl(url, source) : '',
+  note: source === 'curated'
+    ? '旅行先個別画像の差し替え候補です。公開前に権利確認をしてください。'
+    : source === 'fallback'
+      ? 'タグ別の共通画像です。個別の現地写真へ差し替える候補です。'
+      : '汎用画像です。個別画像またはカテゴリ画像への差し替え候補です。',
+  ...overrides,
 })
 
 export const DEFAULT_TRAVEL_IMAGE = createLocalAsset(COMMON_PATHS.hero, 'hero', 'placeholder', 'イメージ画像')
@@ -195,7 +232,11 @@ export const getThemeImageFallback = (tags = [], imageType = 'hero', seed = '') 
     (stableHash(`${seed}:${category}`) + typeOffset) % Math.max(variants.length, 1)
   ]
   return url
-    ? createLocalAsset(url, imageType, 'fallback', 'カテゴリ画像')
+    ? createLocalAsset(url, imageType, 'fallback', 'カテゴリ画像', 'fallback', {
+      isFoodSpecific: imageType === 'food' && category === 'グルメ',
+      isLocalFood: false,
+      foodTheme: imageType === 'food' ? (category === 'グルメ' ? '料理イメージ' : '汎用料理イメージ') : '',
+    })
     : getCommonAsset(imageType)
 }
 
@@ -208,7 +249,14 @@ const normalizeImageAsset = (image, imageType) => {
     source: image.source ?? image.imageSource ?? '',
     credit: image.credit ?? image.imageCredit ?? '',
     license: image.license ?? image.imageLicense ?? '',
-    status: image.status ?? image.imageStatus ?? 'unconfirmed',
+    status: image.status ?? image.imageStatus ?? 'needs_review',
+    isLocal: image.isLocal,
+    isGeneric: image.isGeneric,
+    isDestinationSpecific: image.isDestinationSpecific,
+    isFoodSpecific: image.isFoodSpecific,
+    isLocalFood: image.isLocalFood,
+    foodTheme: image.foodTheme,
+    note: image.note,
   })
 }
 

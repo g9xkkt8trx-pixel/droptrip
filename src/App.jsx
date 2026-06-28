@@ -813,6 +813,39 @@ const imagePreviewFilters = [
   { value: 'credit-missing', label: 'クレジット未設定' },
 ]
 
+const imageImprovementPriorityCities = [
+  '京都市',
+  '奈良市',
+  '小樽市',
+  '札幌市',
+  '函館市',
+  '金沢市',
+  '箱根町',
+  '熱海市',
+  '草津町',
+  '日光市',
+  '鎌倉市',
+  '横浜市',
+  '松島町',
+  '仙台市',
+  '福岡市',
+  '長崎市',
+  '広島市',
+  '廿日市市',
+  '那覇市',
+  '石垣市',
+  '高山市',
+  '伊勢市',
+  '白浜町',
+  '軽井沢町',
+  '富良野市',
+  '会津若松市',
+  '尾道市',
+  '倉敷市',
+  '松江市',
+  '別府市',
+]
+
 const getImageMetaValue = (image, key, fallback = '') => (
   typeof image === 'object' && image
     ? image[key] ?? image[`image${key[0].toUpperCase()}${key.slice(1)}`] ?? fallback
@@ -879,7 +912,15 @@ const createImagePreviewData = (destinationList) => {
         displayType: getImageDisplayType(image),
         source: getImageMetaValue(image, 'source', '未設定'),
         credit: getImageMetaValue(image, 'credit'),
+        license: getImageMetaValue(image, 'license'),
         status: getImageMetaValue(image, 'status', '未設定'),
+        note: getImageMetaValue(image, 'note'),
+        isLocal: Boolean(getImageMetaValue(image, 'isLocal')),
+        isGeneric: Boolean(getImageMetaValue(image, 'isGeneric')),
+        isDestinationSpecific: Boolean(getImageMetaValue(image, 'isDestinationSpecific')),
+        isFoodSpecific: Boolean(getImageMetaValue(image, 'isFoodSpecific')),
+        isLocalFood: Boolean(getImageMetaValue(image, 'isLocalFood')),
+        foodTheme: getImageMetaValue(image, 'foodTheme'),
         usageCount: usageCounts[url] ?? 0,
         categoryMismatch: Boolean(category && !expectedCategories.has(category)),
       }
@@ -899,9 +940,64 @@ const createImagePreviewData = (destinationList) => {
       hasCommon: images.some((image) => image.displayType === '共通画像'),
       hasTemporary: images.some((image) => image.status === 'temporary'),
       hasConfirmed: images.some((image) => image.status === 'confirmed'),
+      hasLocalFood: images.some((image) => image.type === 'food' && image.isLocalFood),
+      hasGenericFood: images.some((image) => image.type === 'food' && (image.isGeneric || !image.isLocalFood)),
     }
   })
 }
+
+const createImageImprovementItems = (imagePreviewItems) => imagePreviewItems
+  .map((item) => {
+    const hero = item.images.find((image) => image.type === 'hero')
+    const food = item.images.find((image) => image.type === 'food')
+    const scenery = item.images.find((image) => image.type === 'scenery')
+    const issues = []
+    const recommendations = []
+    let priorityScore = imageImprovementPriorityCities.includes(item.destination.city) ? 2 : 0
+
+    if (!hero?.isDestinationSpecific) {
+      issues.push('個別hero画像なし')
+      recommendations.push('現地の第一印象が伝わる写真を追加')
+      priorityScore += 3
+    }
+    if (!food?.isDestinationSpecific) {
+      issues.push('個別food画像なし')
+      recommendations.push('ご当地グルメ写真を追加')
+      priorityScore += 3
+    }
+    if (food && !food.isLocalFood) {
+      issues.push('food画像がご当地グルメ未判定')
+      recommendations.push((item.destination.localFoodCandidates ?? []).length > 0
+        ? `${item.destination.localFoodCandidates.slice(0, 3).join('・')} の写真を検討`
+        : '地域らしい料理写真を検討')
+      priorityScore += 3
+    }
+    if (!scenery?.isDestinationSpecific) {
+      issues.push('scenery画像がカテゴリ画像')
+      recommendations.push('代表的な風景・街並み写真を追加')
+      priorityScore += 1
+    }
+    if (item.images.some((image) => ['temporary', 'needs_review', 'fallback', 'missing'].includes(image.status))) {
+      issues.push('status確認が必要')
+      recommendations.push('公開前に権利・出典・ライセンスを確認')
+      priorityScore += 1
+    }
+    if (item.hasCreditMissing) {
+      issues.push('クレジット未設定')
+      recommendations.push('写真ごとの credit を登録')
+      priorityScore += 1
+    }
+    if (item.images.some((image) => image.usageCount >= 10)) {
+      issues.push('同じ画像の使用回数が多い')
+      recommendations.push('カテゴリ画像の追加または個別画像への差し替えを検討')
+      priorityScore += 2
+    }
+
+    const priority = priorityScore >= 8 ? '高' : priorityScore >= 4 ? '中' : '低'
+    return { ...item, issues, recommendations: [...new Set(recommendations)], priority, priorityScore }
+  })
+  .filter((item) => item.issues.length > 0)
+  .sort((left, right) => right.priorityScore - left.priorityScore)
 
 const filterImagePreviewItems = (items, filter) => items.filter((item) => {
   if (filter === 'individual') return item.hasIndividual
@@ -1028,7 +1124,17 @@ function DeveloperImagePreviewImage({ item, image }) {
       <dl>
         <div><dt>source</dt><dd>{image.source}</dd></div>
         <div><dt>credit</dt><dd>{image.credit || '未設定'}</dd></div>
+        <div><dt>license</dt><dd>{image.license || '未確認'}</dd></div>
         <div><dt>status</dt><dd>{image.status}</dd></div>
+        <div><dt>現地写真</dt><dd>{image.isDestinationSpecific ? 'はい' : 'いいえ'}</dd></div>
+        <div><dt>汎用カテゴリ</dt><dd>{image.isGeneric ? '共通画像' : image.displayType}</dd></div>
+        {image.type === 'food' && (
+          <>
+            <div><dt>ご当地グルメ</dt><dd>{image.isLocalFood ? 'はい' : '未判定 / 汎用'}</dd></div>
+            <div><dt>foodテーマ</dt><dd>{image.foodTheme || '未設定'}</dd></div>
+          </>
+        )}
+        <div><dt>note</dt><dd>{image.note || 'なし'}</dd></div>
         <div><dt>使用回数</dt><dd>{image.usageCount > 1 ? `この画像は ${image.usageCount} 件で使用中` : '1件'}</dd></div>
       </dl>
       {image.categoryMismatch && <p className="image-preview-warning">タグと画像カテゴリが合っているか要確認</p>}
@@ -1243,6 +1349,7 @@ function App() {
   const todayAiPlanUsageCount = aiPlanUsage.date === getLocalDateKey() ? aiPlanUsage.count : 0
   const imagePreviewItems = createImagePreviewData(destinations)
   const filteredImagePreviewItems = filterImagePreviewItems(imagePreviewItems, imagePreviewFilter)
+  const imageImprovementItems = createImageImprovementItems(imagePreviewItems)
 
   const reportImageFailure = (destinationId, imageType, fallbackType) => {
     const key = `${destinationId}:${imageType}`
@@ -3611,6 +3718,49 @@ function App() {
               </article>
             ))}
           </div>
+        </section>
+
+        <section className="image-improvement-card" aria-labelledby="image-improvement-title">
+          <div className="quality-check-heading">
+            <span aria-hidden="true">◎</span>
+            <div>
+              <p>IMAGE ROADMAP</p>
+              <h2 id="image-improvement-title">画像改善優先リスト</h2>
+            </div>
+          </div>
+
+          <p className="image-preview-lead">
+            現地写真・ご当地グルメ写真を安全に増やすため、個別画像不足やfood画像の汎用利用を優先度付きで確認できます。
+          </p>
+
+          <div className="image-improvement-summary">
+            <div><span>要改善</span><strong>{imageImprovementItems.length}件</strong></div>
+            <div><span>優先度 高</span><strong>{imageImprovementItems.filter((item) => item.priority === '高').length}件</strong></div>
+            <div><span>ご当地food未判定</span><strong>{imageImprovementItems.filter((item) => item.issues.includes('food画像がご当地グルメ未判定')).length}件</strong></div>
+          </div>
+
+          {imageImprovementItems.length === 0 ? (
+            <p className="quality-all-clear">現時点で優先対応が必要な画像項目は見つかりませんでした。</p>
+          ) : (
+            <div className="image-improvement-list">
+              {imageImprovementItems.slice(0, 30).map((item) => (
+                <article className={`image-improvement-item priority-${item.priority}`} key={`image-improvement-${item.destination.id}`}>
+                  <header>
+                    <div>
+                      <p>{item.destination.prefecture}</p>
+                      <h3>{item.destination.city}</h3>
+                    </div>
+                    <b>優先度：{item.priority}</b>
+                  </header>
+                  <dl>
+                    <div><dt>問題</dt><dd>{item.issues.join(' / ')}</dd></div>
+                    <div><dt>推奨対応</dt><dd>{item.recommendations.join(' / ')}</dd></div>
+                    <div><dt>グルメ候補</dt><dd>{item.destination.localFoodCandidates?.join('、') ?? '未設定'}</dd></div>
+                  </dl>
+                </article>
+              ))}
+            </div>
+          )}
         </section>
 
         <section className="draw-balance-card" aria-labelledby="draw-balance-title">

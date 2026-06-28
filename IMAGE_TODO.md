@@ -1,0 +1,313 @@
+# DROPTRIP 画像改善TODO
+
+現地写真・ご当地グルメ画像を安全に増やすための管理メモです。画像を追加するときは、権利確認済みのローカル画像として `public/images/destinations/` に配置し、`source`・`credit`・`license`・`status` を更新します。
+
+## 運用方針
+
+- `hero` / `scenery` / `food` の3種類を基本にする
+- `food` はできるだけご当地グルメ写真を優先する
+- 権利不明画像、無断転載画像、外部サイトからの直リンクは使わない
+- 自治体・観光協会・素材サイトの画像は利用規約を確認してから登録する
+- 仮画像は `status: temporary`、確認が必要なものは `needs_review`、権利確認済みは `confirmed` とする
+
+## 優先30件
+
+### 京都市
+
+- hero候補：京都らしい街並み、寺社、鴨川、祇園
+- scenery候補：清水寺、嵐山、伏見稲荷、東山エリア
+- food候補：湯豆腐、抹茶スイーツ、京料理、和カフェ
+- 必要画像：hero / scenery / food
+- 現在の状態：temporary / individual imageあり
+- 権利確認：未確認
+- メモ：
+
+### 奈良市
+
+- hero候補：奈良公園、鹿、古都の街並み
+- scenery候補：東大寺、春日大社、ならまち
+- food候補：柿の葉寿司、茶粥、奈良漬、和スイーツ
+- 必要画像：hero / scenery / food
+- 現在の状態：temporary / individual imageあり
+- 権利確認：未確認
+- メモ：
+
+### 小樽市
+
+- hero候補：小樽運河、レンガ倉庫、港町
+- scenery候補：運河夜景、天狗山、堺町通り
+- food候補：寿司、海鮮丼、スイーツ、市場グルメ
+- 必要画像：hero / scenery / food
+- 現在の状態：temporary / individual imageあり
+- 権利確認：未確認
+- メモ：
+
+### 札幌市
+
+- hero候補：大通公園、時計台、冬の街並み
+- scenery候補：藻岩山夜景、北海道大学、雪景色
+- food候補：スープカレー、味噌ラーメン、ジンギスカン、海鮮
+- 必要画像：hero / scenery / food
+- 現在の状態：temporary / individual imageあり
+- 権利確認：未確認
+- メモ：
+
+### 函館市
+
+- hero候補：函館山夜景、港町、異国情緒の街並み
+- scenery候補：五稜郭、元町、ベイエリア
+- food候補：海鮮丼、イカ料理、塩ラーメン、市場朝食
+- 必要画像：hero / scenery / food
+- 現在の状態：temporary / individual imageあり
+- 権利確認：未確認
+- メモ：
+
+### 金沢市
+
+- hero候補：ひがし茶屋街、兼六園、金沢駅
+- scenery候補：兼六園、21世紀美術館、浅野川
+- food候補：海鮮丼、金沢おでん、加賀料理、和菓子
+- 必要画像：hero / scenery / food
+- 現在の状態：temporary / individual imageあり
+- 権利確認：未確認
+- メモ：
+
+### 箱根町
+
+- hero候補：芦ノ湖、温泉旅館、富士山が見える風景
+- scenery候補：大涌谷、箱根神社、ロープウェイ
+- food候補：温泉まんじゅう、そば、豆腐料理、ベーカリー
+- 必要画像：hero / scenery / food
+- 現在の状態：temporary / individual imageあり
+- 権利確認：未確認
+- メモ：
+
+### 熱海市
+
+- hero候補：海と温泉街、熱海サンビーチ、夜景
+- scenery候補：来宮神社、海岸線、温泉街
+- food候補：海鮮、干物、温泉まんじゅう、カフェスイーツ
+- 必要画像：hero / scenery / food
+- 現在の状態：temporary / individual imageあり
+- 権利確認：未確認
+- メモ：
+
+### 草津町
+
+- hero候補：湯畑、温泉街、湯けむり
+- scenery候補：西の河原公園、温泉街夜景、雪景色
+- food候補：温泉まんじゅう、そば、舞茸料理、湯畑周辺スイーツ
+- 必要画像：hero / scenery / food
+- 現在の状態：temporary / individual imageあり
+- 権利確認：未確認
+- メモ：
+
+### 日光市
+
+- hero候補：東照宮、杉並木、奥日光
+- scenery候補：華厳の滝、中禅寺湖、紅葉
+- food候補：湯波料理、そば、羊羹、カフェ
+- 必要画像：hero / scenery / food
+- 現在の状態：temporary / individual imageあり
+- 権利確認：未確認
+- メモ：
+
+### 鎌倉市
+
+- hero候補：海と寺社、江ノ電、鎌倉大仏
+- scenery候補：長谷、由比ヶ浜、小町通り
+- food候補：しらす丼、鎌倉野菜、和カフェ、スイーツ
+- 必要画像：hero / scenery / food
+- 現在の状態：temporary / individual imageあり
+- 権利確認：未確認
+- メモ：
+
+### 横浜市
+
+- hero候補：みなとみらい、赤レンガ倉庫、夜景
+- scenery候補：山下公園、中華街、港の風景
+- food候補：中華街グルメ、洋食、スイーツ、カフェ
+- 必要画像：hero / scenery / food
+- 現在の状態：temporary / individual imageあり
+- 権利確認：未確認
+- メモ：
+
+### 松島町
+
+- hero候補：松島湾、島々、遊覧船
+- scenery候補：五大堂、瑞巌寺、海辺の風景
+- food候補：牡蠣、海鮮、笹かまぼこ、ずんだスイーツ
+- 必要画像：hero / scenery / food
+- 現在の状態：temporary / individual imageあり
+- 権利確認：未確認
+- メモ：
+
+### 仙台市
+
+- hero候補：仙台駅周辺、青葉城跡、並木道
+- scenery候補：定禅寺通、瑞鳳殿、夜景
+- food候補：牛タン、ずんだ餅、笹かまぼこ、海鮮
+- 必要画像：hero / scenery / food
+- 現在の状態：temporary / individual imageあり
+- 権利確認：未確認
+- メモ：
+
+### 福岡市
+
+- hero候補：博多・天神の街並み、屋台、海辺
+- scenery候補：中洲、福岡タワー、大濠公園
+- food候補：博多ラーメン、もつ鍋、水炊き、屋台グルメ
+- 必要画像：hero / scenery / food
+- 現在の状態：temporary / individual imageあり
+- 権利確認：未確認
+- メモ：
+
+### 長崎市
+
+- hero候補：坂の街、港、夜景
+- scenery候補：グラバー園、眼鏡橋、稲佐山
+- food候補：ちゃんぽん、皿うどん、トルコライス、カステラ
+- 必要画像：hero / scenery / food
+- 現在の状態：temporary / individual imageあり
+- 権利確認：未確認
+- メモ：
+
+### 広島市
+
+- hero候補：平和記念公園、川沿い、街並み
+- scenery候補：原爆ドーム、広島城、瀬戸内方面
+- food候補：お好み焼き、牡蠣、穴子飯、瀬戸内レモン
+- 必要画像：hero / scenery / food
+- 現在の状態：temporary / individual imageあり
+- 権利確認：未確認
+- メモ：
+
+### 宮島
+
+- hero候補：厳島神社、大鳥居、宮島の海
+- scenery候補：弥山、表参道商店街、夕景
+- food候補：あなごめし、牡蠣、もみじ饅頭、瀬戸内海鮮
+- 必要画像：hero / scenery / food
+- 現在の状態：temporary / individual imageあり
+- 権利確認：未確認
+- メモ：データ上は廿日市市として管理している場合があります。
+
+### 那覇市
+
+- hero候補：国際通り、首里城周辺、南国の街並み
+- scenery候補：港、夜の街歩き、沖縄らしい建物
+- food候補：沖縄そば、ゴーヤーチャンプルー、タコライス、ブルーシール
+- 必要画像：hero / scenery / food
+- 現在の状態：temporary / individual imageあり
+- 権利確認：未確認
+- メモ：
+
+### 石垣市
+
+- hero候補：青い海、離島ターミナル、川平湾
+- scenery候補：ビーチ、夕景、南国の自然
+- food候補：石垣牛、八重山そば、海鮮、南国スイーツ
+- 必要画像：hero / scenery / food
+- 現在の状態：temporary / individual imageあり
+- 権利確認：未確認
+- メモ：
+
+### 高山市
+
+- hero候補：古い町並み、朝市、飛騨の街並み
+- scenery候補：宮川、古民家、雪景色
+- food候補：飛騨牛、高山ラーメン、みたらし団子、郷土料理
+- 必要画像：hero / scenery / food
+- 現在の状態：temporary / individual imageあり
+- 権利確認：未確認
+- メモ：
+
+### 伊勢市
+
+- hero候補：伊勢神宮、おはらい町、五十鈴川
+- scenery候補：内宮、外宮、街歩き
+- food候補：伊勢うどん、赤福、てこね寿司、海鮮
+- 必要画像：hero / scenery / food
+- 現在の状態：temporary / individual imageあり
+- 権利確認：未確認
+- メモ：
+
+### 白浜町
+
+- hero候補：白良浜、温泉、海岸線
+- scenery候補：円月島、三段壁、夕景
+- food候補：海鮮、クエ料理、梅スイーツ、温泉街グルメ
+- 必要画像：hero / scenery / food
+- 現在の状態：temporary / individual imageあり
+- 権利確認：未確認
+- メモ：
+
+### 軽井沢町
+
+- hero候補：高原の街並み、旧軽井沢、森の道
+- scenery候補：雲場池、白糸の滝、カフェテラス
+- food候補：ベーカリー、高原野菜、カフェ、ジャム
+- 必要画像：hero / scenery / food
+- 現在の状態：temporary / individual imageあり
+- 権利確認：未確認
+- メモ：
+
+### 富良野市
+
+- hero候補：ラベンダー畑、丘陵地、北海道らしい風景
+- scenery候補：花畑、雪景色、農園
+- food候補：オムカレー、メロン、チーズ、スイーツ
+- 必要画像：hero / scenery / food
+- 現在の状態：temporary / individual imageあり
+- 権利確認：未確認
+- メモ：
+
+### 会津若松市
+
+- hero候補：鶴ヶ城、城下町、歴史ある街並み
+- scenery候補：七日町通り、飯盛山、雪景色
+- food候補：ソースカツ丼、こづゆ、会津そば、地酒
+- 必要画像：hero / scenery / food
+- 現在の状態：temporary / individual imageあり
+- 権利確認：未確認
+- メモ：
+
+### 尾道市
+
+- hero候補：坂道、海、猫の細道
+- scenery候補：しまなみ海道、千光寺、港町
+- food候補：尾道ラーメン、瀬戸内海鮮、レモンスイーツ、カフェ
+- 必要画像：hero / scenery / food
+- 現在の状態：temporary / individual imageあり
+- 権利確認：未確認
+- メモ：
+
+### 倉敷市
+
+- hero候補：美観地区、白壁の街並み、川舟
+- scenery候補：夜の美観地区、町家、カフェ通り
+- food候補：デミカツ丼、白桃スイーツ、町家カフェ、瀬戸内グルメ
+- 必要画像：hero / scenery / food
+- 現在の状態：temporary / individual imageあり
+- 権利確認：未確認
+- メモ：
+
+### 松江市
+
+- hero候補：松江城、堀川、城下町
+- scenery候補：宍道湖夕景、堀川めぐり、茶室
+- food候補：出雲そば、和菓子、しじみ料理、茶文化
+- 必要画像：hero / scenery / food
+- 現在の状態：temporary / individual imageあり
+- 権利確認：未確認
+- メモ：
+
+### 別府市
+
+- hero候補：湯けむり、温泉街、地獄めぐり
+- scenery候補：海と温泉街、別府湾、鉄輪温泉
+- food候補：地獄蒸し、とり天、温泉プリン、海鮮
+- 必要画像：hero / scenery / food
+- 現在の状態：temporary / individual imageあり
+- 権利確認：未確認
+- メモ：
