@@ -39,6 +39,49 @@ const primaryTransportModes = ['車', '電車', '飛行機']
 const transportModes = [...primaryTransportModes]
 const seasonOptions = ['今の季節', '春', '夏', '秋', '冬', 'おまかせ']
 const filterOptions = ['温泉', '海', '山', 'グルメ', 'カップル向け']
+const travelPurposeOptions = ['グルメ', '神社・歴史', '温泉', '自然・絶景', 'アクティビティ', '体験', '街歩き', 'ゆっくり']
+const travelPurposeProfiles = {
+  グルメ: {
+    tags: ['グルメ'],
+    keywords: ['グルメ', '食', '海鮮', '寿司', 'カフェ', '市場', '屋台', 'ラーメン', '名物', '郷土料理', 'スイーツ'],
+    cities: ['小樽市', '札幌市', '函館市', '金沢市', '福岡市', '長崎市', '広島市', '別府市'],
+  },
+  '神社・歴史': {
+    tags: ['歴史', '神社', '寺社'],
+    keywords: ['歴史', '寺', '神社', '文化', '城', '古都', '世界遺産', '町並み', 'レトロ'],
+    cities: ['京都市', '奈良市', '鎌倉市', '伊勢市', '宮島', '日光市', '会津若松市', '松江市'],
+  },
+  温泉: {
+    tags: ['温泉'],
+    keywords: ['温泉', '湯', '湯けむり', '旅館', '外湯'],
+    cities: ['箱根町', '熱海市', '草津町', '別府市', '白浜町', '由布市', '下呂市'],
+  },
+  '自然・絶景': {
+    tags: ['山', '海', '自然'],
+    keywords: ['自然', '絶景', '山', '海', '湖', '高原', '島', '砂浜', '滝', '森', '景色'],
+    cities: ['富良野市', '石垣市', '松島町', '日光市', '軽井沢町', '白浜町'],
+  },
+  アクティビティ: {
+    tags: ['海', '山'],
+    keywords: ['海', '山', '島', 'アウトドア', '体験', '散策', 'ハイキング', '高原', '砂浜'],
+    cities: ['石垣市', '富良野市', '日光市', '軽井沢町', '白浜町', '鳥取市'],
+  },
+  体験: {
+    tags: ['グルメ', '温泉'],
+    keywords: ['体験', '工芸', '文化', '食', '温泉街', '散策', '市場', 'カフェ', '町歩き'],
+    cities: ['金沢市', '京都市', '倉敷市', '高山市', '小樽市', '別府市'],
+  },
+  街歩き: {
+    tags: ['グルメ', 'カップル向け'],
+    keywords: ['街歩き', '町並み', '港町', 'レトロ', 'カフェ', '散策', '夜景', '商店街'],
+    cities: ['小樽市', '金沢市', '鎌倉市', '横浜市', '京都市', '尾道市', '倉敷市', '高山市'],
+  },
+  ゆっくり: {
+    tags: ['温泉', '山', 'カップル向け'],
+    keywords: ['温泉', '自然', '高原', 'カフェ', 'のんびり', '癒や', 'ゆっくり', '宿'],
+    cities: ['箱根町', '草津町', '軽井沢町', '富良野市', '別府市', '松江市'],
+  },
+}
 const movementRangeOptions = [
   { value: 'auto', label: 'おまかせ', maxHours: null, maxKm: null },
   { value: 'near', label: '近場', description: '気軽に行きやすい範囲', maxHours: 2, maxKm: 120 },
@@ -454,7 +497,7 @@ const getMovementRangeCandidatePool = ({
   }
 }
 
-const calculateDestiny = (destination, selectedFilters, tripType) => {
+const calculateDestiny = (destination, selectedFilters, tripType, selectedTravelPurposes = []) => {
   const matchingConditions = selectedFilters.filter((filter) => destination.tags.includes(filter))
   const conditionPoints = selectedFilters.length > 0
     ? (matchingConditions.length / selectedFilters.length) * 60
@@ -462,7 +505,9 @@ const calculateDestiny = (destination, selectedFilters, tripType) => {
   const planDays = destination.plans[tripType]?.length ?? 0
   const tripPoints = Math.min(planDays / expectedTripDays[tripType], 1) * 25
   const tagPoints = Math.min(destination.tags.length / 5, 1) * 15
-  const score = Math.round(conditionPoints + tripPoints + tagPoints)
+  const purposeMatch = getTravelPurposeMatch(destination, selectedTravelPurposes)
+  const purposePoints = Math.min(purposeMatch.score, 18)
+  const score = Math.min(100, Math.round(conditionPoints + tripPoints + tagPoints + purposePoints))
   const commentGroup = score >= 90
     ? destinyComments.excellent
     : score >= 80
@@ -769,6 +814,7 @@ const getTripSuitability = (destination, tripType) => {
 const scoreDestination = ({
   destination,
   selectedFilters,
+  selectedTravelPurposes = [],
   tripType,
   isVisited,
   cachedDurationMinutes,
@@ -788,6 +834,7 @@ const scoreDestination = ({
   const conditionPoints = selectedFilters.length > 0
     ? matchingCount * 22 + conditionRatio * 18
     : 18
+  const purposeMatch = getTravelPurposeMatch(destination, selectedTravelPurposes)
 
   const score = Math.max(1, Math.round(
     8
@@ -796,6 +843,7 @@ const scoreDestination = ({
     + (isVisited ? -12 : 8)
     + Math.min(destination.tags.length, 5) * 1.5
     + seasonPoints
+    + Math.min(purposeMatch.score, 32)
     + (cachedFeasibility ? cachedFeasibility.stars * 4 : 0)
     + (movementRangeEstimate?.scoreEffect ?? 0),
   ))
@@ -809,6 +857,7 @@ const scoreDestination = ({
       ? 'おまかせ'
       : destination.bestSeasons.includes(season) ? 'とても良い' : '標準',
     movementRangeEstimate,
+    purposeMatch,
     score,
     weight: Math.pow(score, 1.28) * (isPrevious ? 0.22 : 1),
   }
@@ -916,6 +965,9 @@ const loadDrawHistory = () => {
           selectedFilters: Array.isArray(entry.selectedFilters)
             ? entry.selectedFilters.filter((filter) => filterOptions.includes(filter))
             : [],
+          selectedTravelPurposes: Array.isArray(entry.selectedTravelPurposes)
+            ? entry.selectedTravelPurposes.filter((purpose) => travelPurposeOptions.includes(purpose))
+            : [],
         }))
         .slice(0, MAX_HISTORY_ITEMS)
       : []
@@ -941,6 +993,7 @@ const loadInputState = () => {
     tripType: '日帰り',
     travelSeason: '今の季節',
     selectedFilters: [],
+    selectedTravelPurposes: [],
     includeVisited: false,
     movementRange: 'auto',
     strictMovementRange: false,
@@ -959,6 +1012,9 @@ const loadInputState = () => {
       selectedFilters: Array.isArray(saved.selectedFilters)
         ? saved.selectedFilters.filter((filter) => filterOptions.includes(filter))
         : initialState.selectedFilters,
+      selectedTravelPurposes: Array.isArray(saved.selectedTravelPurposes)
+        ? saved.selectedTravelPurposes.filter((purpose) => travelPurposeOptions.includes(purpose))
+        : initialState.selectedTravelPurposes,
       includeVisited: typeof saved.includeVisited === 'boolean'
         ? saved.includeVisited
         : initialState.includeVisited,
@@ -1095,6 +1151,64 @@ const getLocalFoodDisplayItems = (destination = {}) => {
     .slice(0, 5)
 }
 
+const normalizeSearchText = (value) => String(value ?? '').toLowerCase()
+
+const getTravelPurposeMatch = (destination = {}, selectedTravelPurposes = []) => {
+  if (!Array.isArray(selectedTravelPurposes) || selectedTravelPurposes.length === 0) {
+    return {
+      matchedPurposes: [],
+      score: 0,
+      summary: '',
+    }
+  }
+
+  const tags = destination.tags ?? []
+  const localFoods = Array.isArray(destination.localFoodCandidates) ? destination.localFoodCandidates : []
+  const foodTheme = getImageMetaValue(destination.foodImage, 'foodTheme')
+  const searchableText = normalizeSearchText([
+    destination.city,
+    destination.prefecture,
+    destination.recommendText,
+    destination.recommendation,
+    destination.highlights,
+    destination.highlight,
+    destination.reason,
+    Object.values(destination.seasonHighlights ?? {}).join(' '),
+    localFoods.join(' '),
+    foodTheme,
+    tags.join(' '),
+  ].join(' '))
+
+  const matchedPurposes = selectedTravelPurposes.filter((purpose) => {
+    const profile = travelPurposeProfiles[purpose]
+    if (!profile) return false
+    const tagMatched = profile.tags.some((tag) => tags.includes(tag))
+    const cityMatched = profile.cities.some((city) => destination.city === city)
+    const keywordMatched = profile.keywords.some((keyword) => searchableText.includes(normalizeSearchText(keyword)))
+    const foodMatched = purpose === 'グルメ' && (localFoods.length > 0 || Boolean(foodTheme))
+    return tagMatched || cityMatched || keywordMatched || foodMatched
+  })
+
+  const score = matchedPurposes.reduce((total, purpose) => {
+    const profile = travelPurposeProfiles[purpose]
+    const isStrongCityMatch = profile?.cities?.includes(destination.city)
+    const hasLocalFood = purpose === 'グルメ' && localFoods.length > 0
+    return total + (isStrongCityMatch || hasLocalFood ? 18 : 13)
+  }, 0)
+
+  const summary = matchedPurposes.length > 0
+    ? `この旅先では、${matchedPurposes.slice(0, 3).join('・')}を楽しみやすいです。`
+    : selectedTravelPurposes.length > 0
+      ? `選んだ目的とは少し違う角度から、${tags.slice(0, 2).join('・') || '旅先の魅力'}を楽しめます。`
+      : ''
+
+  return {
+    matchedPurposes,
+    score,
+    summary,
+  }
+}
+
 const getFoodThemeText = (destination = {}, foodItems = []) => {
   const foodTheme = getImageMetaValue(destination.foodImage, 'foodTheme')
   if (foodTheme) return foodTheme
@@ -1115,6 +1229,7 @@ const shouldFeatureFoodImage = (destination = {}) => {
 
 const getTripProposalText = (destination = {}, context = {}, seasonInfo = {}) => {
   const tags = destination.tags ?? []
+  const purposeMatch = getTravelPurposeMatch(destination, context?.selectedTravelPurposes ?? [])
   const lead = tags.includes(filterOptions[0])
     ? '温泉でゆっくり整えたい気分に合う'
     : tags.includes(filterOptions[1])
@@ -1130,7 +1245,10 @@ const getTripProposalText = (destination = {}, context = {}, seasonInfo = {}) =>
     ? `${seasonInfo.season}の魅力も楽しめる`
     : '季節を問わず選びやすい'
   const tripType = context?.tripType ? `${context.tripType}でも` : ''
-  return `${lead}、${season}${tripType}旅先です。${destination.recommendText ?? destination.recommendation ?? ''}`
+  const purposeNote = purposeMatch.matchedPurposes.length > 0
+    ? `${purposeMatch.matchedPurposes.slice(0, 2).join('・')}の気分にも合います。`
+    : ''
+  return `${lead}、${season}${tripType}旅先です。${purposeNote}${destination.recommendText ?? destination.recommendation ?? ''}`
 }
 
 const getTripEnjoymentItems = (destination = {}, foodItems = []) => {
@@ -1304,6 +1422,7 @@ function HistoryItems({ entries, favoriteCities, onShow, onFavorite, onDelete })
             <div><dt>移動範囲</dt><dd>{entry.movementRangeLabel ?? movementRangeOptions.find((option) => option.value === entry.movementRange)?.label ?? 'おまかせ'}</dd></div>
             <div><dt>最適な移動手段</dt><dd>{entry.bestTransport ?? '未評価'}</dd></div>
             <div><dt>選択条件</dt><dd>{entry.selectedFilters?.length > 0 ? entry.selectedFilters.join('、') : '指定なし'}</dd></div>
+            <div><dt>旅の目的</dt><dd>{entry.selectedTravelPurposes?.length > 0 ? entry.selectedTravelPurposes.join('、') : '指定なし'}</dd></div>
             <div><dt>運命度</dt><dd>{entry.destinyScore}%</dd></div>
             <div><dt>行けそう度</dt><dd>{entry.feasibilityStars ?? '未取得'}</dd></div>
             <div><dt>予算目安</dt><dd>{entry.budget}</dd></div>
@@ -1434,6 +1553,7 @@ function App() {
   const [tripType, setTripType] = useState(restoredInputState.tripType)
   const [travelSeason, setTravelSeason] = useState(restoredInputState.travelSeason)
   const [selectedFilters, setSelectedFilters] = useState(restoredInputState.selectedFilters)
+  const [selectedTravelPurposes, setSelectedTravelPurposes] = useState(restoredInputState.selectedTravelPurposes)
   const [movementRange, setMovementRange] = useState(restoredInputState.movementRange)
   const [strictMovementRange, setStrictMovementRange] = useState(restoredInputState.strictMovementRange)
   const [customRangeHours, setCustomRangeHours] = useState(restoredInputState.customRangeHours)
@@ -1480,6 +1600,7 @@ function App() {
   const [destinationSearch, setDestinationSearch] = useState('')
   const [destinationPrefectureFilter, setDestinationPrefectureFilter] = useState('all')
   const [destinationTagFilter, setDestinationTagFilter] = useState('all')
+  const [destinationPurposeFilter, setDestinationPurposeFilter] = useState('all')
   const [destinationTripTypeFilter, setDestinationTripTypeFilter] = useState('all')
   const [destinationSeasonFilter, setDestinationSeasonFilter] = useState('all')
   const [destinationRangeFilter, setDestinationRangeFilter] = useState('auto')
@@ -1507,6 +1628,9 @@ function App() {
     selectedFilters.length === 0
     || selectedFilters.some((filter) => place.tags.includes(filter))
   ))
+  const travelPurposeBoostedCount = destinations.filter((place) => (
+    getTravelPurposeMatch(place, selectedTravelPurposes).matchedPurposes.length > 0
+  )).length
   const currentDrawCandidateDiagnostics = getMovementRangeCandidatePool({
     destinationList: currentMatchingDestinations,
     departure,
@@ -1552,6 +1676,8 @@ function App() {
     ].some((value) => String(value ?? '').toLowerCase().includes(keyword))
     const matchesPrefecture = destinationPrefectureFilter === 'all' || place.prefecture === destinationPrefectureFilter
     const matchesTag = destinationTagFilter === 'all' || place.tags.includes(destinationTagFilter)
+    const matchesPurpose = destinationPurposeFilter === 'all'
+      || getTravelPurposeMatch(place, [destinationPurposeFilter]).matchedPurposes.length > 0
     const matchesTripType = destinationTripTypeFilter === 'all' || Boolean(place.plans[destinationTripTypeFilter])
     const resolvedListSeason = destinationSeasonFilter === 'all' ? null : resolveSeason(destinationSeasonFilter)
     const matchesSeason = !resolvedListSeason || place.bestSeasons.includes(resolvedListSeason)
@@ -1563,6 +1689,7 @@ function App() {
     return matchesKeyword
       && matchesPrefecture
       && matchesTag
+      && matchesPurpose
       && matchesTripType
       && matchesSeason
       && matchesRange
@@ -1573,6 +1700,7 @@ function App() {
     destinationSearch.trim() && `キーワード：${destinationSearch.trim()}`,
     destinationPrefectureFilter !== 'all' && `都道府県：${destinationPrefectureFilter}`,
     destinationTagFilter !== 'all' && `タグ：${destinationTagFilter}`,
+    destinationPurposeFilter !== 'all' && `旅の目的：${destinationPurposeFilter}`,
     destinationTripTypeFilter !== 'all' && `旅行タイプ：${destinationTripTypeFilter}`,
     destinationSeasonFilter !== 'all' && `季節：${destinationSeasonFilter}`,
     destinationRangeFilter !== 'auto' && `移動範囲：${destinationRangeLabel}`,
@@ -1583,6 +1711,7 @@ function App() {
     setDestinationSearch('')
     setDestinationPrefectureFilter('all')
     setDestinationTagFilter('all')
+    setDestinationPurposeFilter('all')
     setDestinationTripTypeFilter('all')
     setDestinationSeasonFilter('all')
     setDestinationRangeFilter('auto')
@@ -1590,7 +1719,7 @@ function App() {
   }
 
   const destiny = destination && planContext
-    ? calculateDestiny(destination, planContext.selectedFilters, planContext.tripType)
+    ? calculateDestiny(destination, planContext.selectedFilters, planContext.tripType, planContext.selectedTravelPurposes)
     : null
   const seasonCompatibility = destination && planContext
     ? getSeasonCompatibility(destination, planContext.travelSeason, planContext.tripType)
@@ -1629,6 +1758,9 @@ function App() {
   const tripEnjoymentItems = destination
     ? getTripEnjoymentItems(destination, localFoodItems)
     : []
+  const currentPurposeMatch = destination && planContext
+    ? getTravelPurposeMatch(destination, planContext.selectedTravelPurposes)
+    : { matchedPurposes: [], summary: '' }
 
   const apiKeySource = getGoogleMapsApiKeySource(savedApiKey)
   const maskedApiKey = savedApiKey ? savedApiKey.slice(-4) : ''
@@ -1665,6 +1797,7 @@ function App() {
         tripType,
         travelSeason,
         selectedFilters,
+        selectedTravelPurposes,
         includeVisited,
         movementRange,
         strictMovementRange,
@@ -1679,6 +1812,7 @@ function App() {
     tripType,
     travelSeason,
     selectedFilters,
+    selectedTravelPurposes,
     includeVisited,
     movementRange,
     strictMovementRange,
@@ -1911,6 +2045,7 @@ function App() {
     setTripType('日帰り')
     setTravelSeason('今の季節')
     setSelectedFilters([])
+    setSelectedTravelPurposes([])
     setMovementRange('auto')
     setStrictMovementRange(false)
     setCustomRangeHours('')
@@ -1975,6 +2110,14 @@ function App() {
     )
   }
 
+  const toggleTravelPurpose = (purpose) => {
+    setSelectedTravelPurposes((current) =>
+      current.includes(purpose)
+        ? current.filter((item) => item !== purpose)
+        : [...current, purpose],
+    )
+  }
+
   const addHistoryToFavorites = (entry) => {
     if (!favoriteCities.includes(entry.city)) {
       updateFavorites([...favoriteCities, entry.city])
@@ -1999,7 +2142,11 @@ function App() {
       ? entry.movementRange
       : 'auto'
     const restoredFilters = Array.isArray(entry.selectedFilters) ? entry.selectedFilters : []
+    const restoredTravelPurposes = Array.isArray(entry.selectedTravelPurposes)
+      ? entry.selectedTravelPurposes.filter((purpose) => travelPurposeOptions.includes(purpose))
+      : []
     const matchingCount = restoredFilters.filter((filter) => place.tags.includes(filter)).length
+    const purposeMatch = getTravelPurposeMatch(place, restoredTravelPurposes)
 
     setDeparture(restoredDeparture)
     setDepartureError('')
@@ -2008,6 +2155,7 @@ function App() {
     setMovementRange(restoredMovementRange)
     setStrictMovementRange(false)
     setSelectedFilters(restoredFilters)
+    setSelectedTravelPurposes(restoredTravelPurposes)
     setDestination(place)
     setLastDestinationId(place.id)
     setNoMatchMessage('')
@@ -2016,11 +2164,13 @@ function App() {
       tripType: restoredTripType,
       travelSeason: restoredSeason,
       selectedFilters: restoredFilters,
+      selectedTravelPurposes: restoredTravelPurposes,
       movementRange: restoredMovementRange,
       strictMovementRange: false,
     })
     setSelectionMeta({
       matchingCount,
+      purposeMatch,
       tripCompatibilityLabel: entry.tripCompatibilityLabel ?? '良い',
       feasibilityStars: entry.feasibilityStars ?? null,
       score: entry.selectionScore ?? 0,
@@ -2095,10 +2245,12 @@ function App() {
     const normalizedDeparture = departure.trim()
     const requestId = ++travelRequestId.current
     const detailFilters = [...selectedFilters]
+    const detailTravelPurposes = [...selectedTravelPurposes]
     const movementEstimate = estimateMovementRange(place, normalizedDeparture, movementRangeSettings)
     const detailScore = scoreDestination({
       destination: place,
       selectedFilters: detailFilters,
+      selectedTravelPurposes: detailTravelPurposes,
       tripType,
       travelSeason,
       isVisited: visitedCities.includes(place.city),
@@ -2115,6 +2267,7 @@ function App() {
     setNoMatchMessage('')
     setSelectionMeta({
       matchingCount: detailScore.matchingCount,
+      purposeMatch: detailScore.purposeMatch,
       tripCompatibilityLabel: detailScore.tripCompatibilityLabel,
       feasibilityStars: detailScore.feasibilityStars,
       score: detailScore.score,
@@ -2128,6 +2281,7 @@ function App() {
       tripType,
       travelSeason,
       selectedFilters: detailFilters,
+      selectedTravelPurposes: detailTravelPurposes,
       movementRange,
       strictMovementRange,
     })
@@ -2223,6 +2377,7 @@ function App() {
       const scoredDestinations = candidates.map((place) => scoreDestination({
         destination: place,
         selectedFilters,
+        selectedTravelPurposes,
         tripType,
         travelSeason,
         isVisited: visitedCities.includes(place.city),
@@ -2234,7 +2389,7 @@ function App() {
       }))
       const selected = pickWeightedDestination(scoredDestinations)
       const place = selected.destination
-      const destinyScore = calculateDestiny(place, selectedFilters, tripType).score
+      const destinyScore = calculateDestiny(place, selectedFilters, tripType, selectedTravelPurposes).score
 
       cityCounts[place.city] = (cityCounts[place.city] ?? 0) + 1
       prefectureCounts[place.prefecture] = (prefectureCounts[place.prefecture] ?? 0) + 1
@@ -2267,6 +2422,7 @@ function App() {
         tripType,
         season: resolveSeason(travelSeason) ?? 'おまかせ',
         filters: selectedFilters.length > 0 ? selectedFilters.join('、') : '指定なし',
+        purposes: selectedTravelPurposes.length > 0 ? selectedTravelPurposes.join('、') : '指定なし',
         visited: includeVisited ? '含める' : '除外',
         movementRange: movementRangeOptions.find((option) => option.value === movementRange)?.label ?? 'おまかせ',
       },
@@ -2317,6 +2473,7 @@ function App() {
     const scoredDestinations = candidates.map((place) => scoreDestination({
       destination: place,
       selectedFilters,
+      selectedTravelPurposes,
       tripType,
       travelSeason,
       isVisited: visitedCities.includes(place.city),
@@ -2326,7 +2483,7 @@ function App() {
     }))
     const selected = pickWeightedDestination(scoredDestinations)
     const next = selected.destination
-    const selectedDestiny = calculateDestiny(next, selectedFilters, tripType)
+    const selectedDestiny = calculateDestiny(next, selectedFilters, tripType, selectedTravelPurposes)
     const historyEntryId = globalThis.crypto?.randomUUID?.()
       ?? `history-${historyIdFallback.current += 1}`
     addHistoryEntry({
@@ -2341,6 +2498,7 @@ function App() {
       strictMovementRange,
       movementRangeLabel: movementRangeOptions.find((option) => option.value === movementRange)?.label ?? 'おまかせ',
       selectedFilters: [...selectedFilters],
+      selectedTravelPurposes: [...selectedTravelPurposes],
       destinyScore: selectedDestiny.score,
       feasibilityStars: selected.feasibilityStars,
       bestTransport: selected.feasibilityStars ? '車' : null,
@@ -2353,6 +2511,7 @@ function App() {
       movementRangeRelaxed: candidatePool.relaxed,
       movementRangeExcludedCount: candidatePool.excludedCount,
       movementRangeFinalCount: candidatePool.finalCount,
+      purposeMatch: selected.purposeMatch,
       tripCompatibilityLabel: selected.tripCompatibilityLabel,
       visitedPolicy: includeVisited ? '含める（訪問済みは減点）' : '除外',
     })
@@ -2361,6 +2520,7 @@ function App() {
     setLastDestinationId(next.id)
     setSelectionMeta({
       matchingCount: selected.matchingCount,
+      purposeMatch: selected.purposeMatch,
       tripCompatibilityLabel: selected.tripCompatibilityLabel,
       feasibilityStars: selected.feasibilityStars,
       score: selected.score,
@@ -2375,6 +2535,7 @@ function App() {
       tripType,
       travelSeason,
       selectedFilters: [...selectedFilters],
+      selectedTravelPurposes: [...selectedTravelPurposes],
       movementRange,
       strictMovementRange,
     })
@@ -2472,6 +2633,7 @@ function App() {
       tripType: planContext.tripType,
       season,
       selectedFilters: planContext.selectedFilters,
+      selectedTravelPurposes: planContext.selectedTravelPurposes,
       transportComparisons: transportEvaluations.map((item) => ({
         mode: item.mode,
         rating: item.feasibility?.starsLabel ?? '未評価',
@@ -2522,7 +2684,7 @@ function App() {
           <p className="eyebrow">WHERE TO NEXT?</p>
           <h1 id="app-title" onClick={handleDeveloperTitleClick}>DROPTRIP</h1>
           <p className="subtitle">運命の旅行先を決めよう</p>
-          <p className="hero-description">出発地と気分を選ぶだけ。今のあなたに合う旅先をランダムに提案します。</p>
+          <p className="hero-description">今の気分に合う旅先を提案します。</p>
         </header>
 
         <form onSubmit={chooseDestination} className="trip-form" noValidate>
@@ -2655,6 +2817,31 @@ function App() {
                     />
                     <span className="filter-check" aria-hidden="true">✓</span>
                     <span>{filter}</span>
+                  </label>
+                )
+              })}
+            </div>
+          </fieldset>
+
+          <fieldset className="field-group travel-purpose-field">
+            <legend>
+              旅の目的
+              <span className="optional-label">複数選択可</span>
+            </legend>
+            <p className="field-help">旅先で楽しみたいことを選んでください</p>
+            <div className="filter-options purpose-options">
+              {travelPurposeOptions.map((purpose) => {
+                const isSelected = selectedTravelPurposes.includes(purpose)
+
+                return (
+                  <label key={purpose} className={isSelected ? 'selected' : ''}>
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => toggleTravelPurpose(purpose)}
+                    />
+                    <span className="filter-check" aria-hidden="true">✓</span>
+                    <span>{purpose}</span>
                   </label>
                 )
               })}
@@ -2831,6 +3018,12 @@ function App() {
                 <div className="enjoyment-chips">
                   {tripEnjoymentItems.map((item) => <span key={item}>{item}</span>)}
                 </div>
+                {(planContext.selectedTravelPurposes ?? []).length > 0 && (
+                  <div className="purpose-match-box">
+                    <p>今回選んだ旅の目的：{planContext.selectedTravelPurposes.join('・')}</p>
+                    {currentPurposeMatch.summary && <span>{currentPurposeMatch.summary}</span>}
+                  </div>
+                )}
               </section>
             )}
 
@@ -3268,6 +3461,13 @@ function App() {
                   <select value={destinationTagFilter} onChange={(event) => setDestinationTagFilter(event.target.value)}>
                     <option value="all">すべて</option>
                     {filterOptions.map((filter) => <option value={filter} key={filter}>{filter}</option>)}
+                  </select>
+                </label>
+                <label>
+                  <span>旅の目的</span>
+                  <select value={destinationPurposeFilter} onChange={(event) => setDestinationPurposeFilter(event.target.value)}>
+                    <option value="all">すべて</option>
+                    {travelPurposeOptions.map((purpose) => <option value={purpose} key={purpose}>{purpose}</option>)}
                   </select>
                 </label>
                 <label>
@@ -4256,7 +4456,7 @@ function App() {
           {drawSimulation && !drawSimulation.error && (
             <div className="simulation-results" aria-live="polite">
               <p className="simulation-conditions">
-                条件：{drawSimulation.conditions.tripType} / {drawSimulation.conditions.season} / {drawSimulation.conditions.filters} / 移動範囲：{drawSimulation.conditions.movementRange} / 訪問済みを{drawSimulation.conditions.visited}
+                条件：{drawSimulation.conditions.tripType} / {drawSimulation.conditions.season} / {drawSimulation.conditions.filters} / 旅の目的：{drawSimulation.conditions.purposes} / 移動範囲：{drawSimulation.conditions.movementRange} / 訪問済みを{drawSimulation.conditions.visited}
               </p>
               <div className="simulation-summary">
                 <div><span>候補数</span><strong>{drawSimulation.candidateCount}件</strong></div>
@@ -4305,6 +4505,8 @@ function App() {
               <div><dt>選択中の旅行予定季節</dt><dd>{travelSeason}（判定：{resolveSeason(travelSeason) ?? 'おまかせ'}）</dd></div>
               <div><dt>最も現実的な移動手段</dt><dd>{bestTransportEvaluation?.mode ?? '未評価'}</dd></div>
               <div><dt>選択中の条件</dt><dd>{selectedFilters.length > 0 ? selectedFilters.join('、') : '指定なし'}</dd></div>
+              <div><dt>選択中の旅の目的</dt><dd>{selectedTravelPurposes.length > 0 ? selectedTravelPurposes.join('、') : '指定なし'}</dd></div>
+              <div><dt>旅の目的で加点</dt><dd>{selectedTravelPurposes.length > 0 ? `${travelPurposeBoostedCount}件` : '指定なし'}</dd></div>
               <div><dt>移動範囲条件</dt><dd>{movementRangeOptions.find((option) => option.value === movementRange)?.label ?? 'おまかせ'}</dd></div>
               <div><dt>抽選前候補数</dt><dd>{currentDrawCandidateDiagnostics.entries.length}件</dd></div>
               <div><dt>移動範囲で除外</dt><dd>{currentDrawCandidateDiagnostics.excludedCount}件</dd></div>
@@ -4318,6 +4520,7 @@ function App() {
               <div><dt>行けそう度スコア</dt><dd>{feasibility ? `${feasibility.stars}/5（${feasibility.starsLabel}）` : '未算出'}</dd></div>
               <div><dt>抽選スコア</dt><dd>{selectionMeta ? `${selectionMeta.score}pt` : '未算出'}</dd></div>
               <div><dt>条件一致数</dt><dd>{selectionMeta ? `${selectionMeta.matchingCount}件` : '未算出'}</dd></div>
+              <div><dt>旅の目的の影響</dt><dd>{selectionMeta?.purposeMatch?.matchedPurposes?.length > 0 ? selectionMeta.purposeMatch.matchedPurposes.join('、') : '未加点 / 指定なし'}</dd></div>
               <div><dt>旅行タイプ相性</dt><dd>{selectionMeta?.tripCompatibilityLabel ?? '未算出'}</dd></div>
               <div><dt>季節相性</dt><dd>{selectionMeta?.seasonCompatibility ?? '未算出'}</dd></div>
               <div><dt>抽選方式</dt><dd>重み付きランダム（ランダム要素あり）</dd></div>
