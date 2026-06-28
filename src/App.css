@@ -400,7 +400,8 @@ h1 {
   gap: 8px;
 }
 
-.visited-filter-options label {
+.visited-filter-options label,
+.visited-filter-toggle {
   position: relative;
   display: flex;
   align-items: center;
@@ -419,28 +420,39 @@ h1 {
   transition: 160ms ease;
 }
 
-.visited-filter-options label.selected {
+.visited-filter-toggle {
+  justify-content: flex-start;
+  min-height: 46px;
+  padding-inline: 12px;
+}
+
+.visited-filter-options label.selected,
+.visited-filter-toggle.selected {
   color: #1c665a;
   background: #e8f5f1;
   border-color: #8acbc0;
 }
 
-.visited-filter-options input {
+.visited-filter-options input,
+.visited-filter-toggle input {
   position: absolute;
   opacity: 0;
   pointer-events: none;
 }
 
-.visited-filter-options label > span {
+.visited-filter-options label > span,
+.visited-filter-toggle > span {
   color: transparent;
   font-size: 0.68rem;
 }
 
-.visited-filter-options label.selected > span {
+.visited-filter-options label.selected > span,
+.visited-filter-toggle.selected > span {
   color: #2a9d8f;
 }
 
-.visited-filter-options label:has(input:focus-visible) {
+.visited-filter-options label:has(input:focus-visible),
+.visited-filter-toggle:has(input:focus-visible) {
   outline: 2px solid #2a9d8f;
   outline-offset: 2px;
 }
@@ -455,8 +467,10 @@ h1 {
 .movement-strict-toggle {
   position: relative;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 3px;
   min-height: 43px;
   padding: 8px 10px;
   color: #748680;
@@ -467,6 +481,17 @@ h1 {
   text-align: center;
   font-size: 0.7rem;
   font-weight: 800;
+}
+
+.movement-range-options label small {
+  color: #8a9692;
+  font-size: 0.56rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.movement-range-options label.selected small {
+  color: #4b776e;
 }
 
 .movement-range-options label.selected,
@@ -4678,6 +4703,36 @@ h1 {
   text-align: center;
 }
 
+.result-page-header {
+  padding-bottom: 18px;
+}
+
+.result-page-header > span {
+  display: block;
+  max-width: 420px;
+  margin: 8px auto 0;
+  color: #7d8d88;
+  font-size: 0.68rem;
+  line-height: 1.7;
+}
+
+.result-page-header .result-redraw-button {
+  position: static;
+  justify-content: center;
+  width: 100%;
+  max-width: 320px;
+  min-height: 46px;
+  margin: 16px auto 0;
+  color: #fff;
+  background: #1f7669;
+  border-color: #1f7669;
+  border-radius: 14px;
+}
+
+.result-page-header .result-redraw-button:hover {
+  background: #195f55;
+}
+
 .developer-page-header > button {
   position: absolute;
   top: 0;
@@ -5308,6 +5363,7 @@ h1 {
   .season-options label,
   .filter-options label,
   .visited-filter-options label,
+  .visited-filter-toggle,
   .movement-range-options label,
   .movement-strict-toggle { min-height: 44px; }
 

@@ -41,10 +41,10 @@ const seasonOptions = ['今の季節', '春', '夏', '秋', '冬', 'おまかせ
 const filterOptions = ['温泉', '海', '山', 'グルメ', 'カップル向け']
 const movementRangeOptions = [
   { value: 'auto', label: 'おまかせ', maxHours: null, maxKm: null },
-  { value: 'near', label: '近場：2時間以内', maxHours: 2, maxKm: 120 },
-  { value: 'middle', label: '中距離：4時間以内', maxHours: 4, maxKm: 260 },
-  { value: 'far', label: '遠出：8時間以内', maxHours: 8, maxKm: 560 },
-  { value: 'unlimited', label: '制限なし', maxHours: null, maxKm: null },
+  { value: 'near', label: '近場', description: '気軽に行きやすい範囲', maxHours: 2, maxKm: 120 },
+  { value: 'middle', label: '中距離', description: '少し足を伸ばす旅', maxHours: 4, maxKm: 260 },
+  { value: 'far', label: '遠出', description: 'しっかり旅気分を味わう距離', maxHours: 8, maxKm: 560 },
+  { value: 'unlimited', label: '制限なし', description: '全国から探す', maxHours: null, maxKm: null },
 ]
 const FAVORITES_STORAGE_KEY = 'droptrip-favorites'
 const VISITED_STORAGE_KEY = 'droptrip-visited'
@@ -769,9 +769,7 @@ const loadInputState = () => {
       movementRange: movementRangeOptions.some((option) => option.value === saved.movementRange)
         ? saved.movementRange
         : initialState.movementRange,
-      strictMovementRange: typeof saved.strictMovementRange === 'boolean'
-        ? saved.strictMovementRange
-        : initialState.strictMovementRange,
+      strictMovementRange: initialState.strictMovementRange,
       customRangeHours: typeof saved.customRangeHours === 'string'
         ? saved.customRangeHours
         : initialState.customRangeHours,
@@ -1603,7 +1601,7 @@ function App() {
     setTripType(restoredTripType)
     setTravelSeason(restoredSeason)
     setMovementRange(restoredMovementRange)
-    setStrictMovementRange(Boolean(entry.strictMovementRange))
+    setStrictMovementRange(false)
     setSelectedFilters(restoredFilters)
     setDestination(place)
     setLastDestinationId(place.id)
@@ -1614,7 +1612,7 @@ function App() {
       travelSeason: restoredSeason,
       selectedFilters: restoredFilters,
       movementRange: restoredMovementRange,
-      strictMovementRange: Boolean(entry.strictMovementRange),
+      strictMovementRange: false,
     })
     setSelectionMeta({
       matchingCount,
@@ -1629,8 +1627,7 @@ function App() {
     travelRequestInFlight.current = true
     setTravelInfo({ status: 'loading', car: null, publicTransit: null })
     resetAiPlanState()
-    setCurrentPage('main')
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    switchPage('result')
 
     try {
       const routes = await getTravelInfo({
@@ -1730,7 +1727,7 @@ function App() {
       strictMovementRange,
     })
     resetAiPlanState()
-    switchPage('main')
+    switchPage('result')
 
     if (!normalizedDeparture) {
       setTravelInfo({ status: 'idle', car: null, publicTransit: null })
@@ -1797,9 +1794,8 @@ function App() {
     ))
     const currentRangeSettings = getMovementRangeConfig({ movementRange, customRangeHours, customRangeKm })
     const candidates = matchingDestinations.filter((place) => {
-      const rangeEstimate = estimateMovementRange(place, normalizedDeparture, currentRangeSettings)
-      return (includeVisited || !visitedCities.includes(place.city))
-        && (!strictMovementRange || movementRange === 'auto' || movementRange === 'unlimited' || rangeEstimate.isWithinRange)
+      estimateMovementRange(place, normalizedDeparture, currentRangeSettings)
+      return includeVisited || !visitedCities.includes(place.city)
     })
 
     if (candidates.length === 0) {
@@ -1884,24 +1880,21 @@ function App() {
     ))
     const currentRangeSettings = getMovementRangeConfig({ movementRange, customRangeHours, customRangeKm })
     const candidates = matchingDestinations.filter((place) => {
-      const rangeEstimate = estimateMovementRange(place, normalizedDeparture, currentRangeSettings)
-      return (includeVisited || !visitedCities.includes(place.city))
-        && (!strictMovementRange || movementRange === 'auto' || movementRange === 'unlimited' || rangeEstimate.isWithinRange)
+      estimateMovementRange(place, normalizedDeparture, currentRangeSettings)
+      return includeVisited || !visitedCities.includes(place.city)
     })
 
     if (candidates.length === 0) {
-      const strictRangeNoMatch = strictMovementRange && movementRange !== 'auto' && movementRange !== 'unlimited'
       setDestination(null)
       setPlanContext(null)
       setTravelInfo({ status: 'idle', car: null, publicTransit: null })
       setSelectionMeta(null)
       setNoMatchMessage(
-        strictRangeNoMatch
-          ? '条件に合う旅先が見つかりませんでした。移動範囲を広げるか、厳密絞り込みをOFFにしてください。'
-          : matchingDestinations.length > 0
-          ? '条件に合う未訪問の旅先がありません。「行った場所も含める」を選んでください。'
+        matchingDestinations.length > 0
+          ? '条件に合う未訪問の旅先がありません。「行った場所を除外する」をOFFにするか、条件を減らしてください。'
           : '条件に合う旅先が見つかりませんでした。条件を減らしてください。',
       )
+      switchPage('main')
       return
     }
 
@@ -1966,6 +1959,7 @@ function App() {
     travelRequestInFlight.current = true
     setTravelInfo({ status: 'loading', car: null, publicTransit: null })
     resetAiPlanState()
+    switchPage('result')
 
     try {
       const routes = await getTravelInfo({
@@ -2089,10 +2083,12 @@ function App() {
   return (
     <main className="app-shell">
       <section
-        className={`trip-card ${currentPage === 'developer' ? 'developer-page' : currentPage === 'history' ? 'history-page' : currentPage === 'favorites' ? 'favorites-page' : currentPage === 'comparison' ? 'comparison-page' : currentPage === 'calculation' ? 'calculation-page' : currentPage === 'destinations' ? 'destinations-page' : 'main-page'}`}
-        aria-labelledby={currentPage === 'developer' ? 'developer-page-title' : currentPage === 'history' ? 'history-page-title' : currentPage === 'favorites' ? 'favorites-page-title' : currentPage === 'comparison' ? 'comparison-page-title' : currentPage === 'calculation' ? 'calculation-page-title' : currentPage === 'destinations' ? 'destinations-page-title' : 'app-title'}
+        className={`trip-card ${currentPage === 'developer' ? 'developer-page' : currentPage === 'history' ? 'history-page' : currentPage === 'favorites' ? 'favorites-page' : currentPage === 'comparison' ? 'comparison-page' : currentPage === 'calculation' ? 'calculation-page' : currentPage === 'destinations' ? 'destinations-page' : currentPage === 'result' ? 'result-page' : 'main-page'}`}
+        aria-labelledby={currentPage === 'developer' ? 'developer-page-title' : currentPage === 'history' ? 'history-page-title' : currentPage === 'favorites' ? 'favorites-page-title' : currentPage === 'comparison' ? 'comparison-page-title' : currentPage === 'calculation' ? 'calculation-page-title' : currentPage === 'destinations' ? 'destinations-page-title' : currentPage === 'result' ? 'result-page-title' : 'app-title'}
       >
-        {currentPage === 'main' ? (
+        {currentPage === 'main' || currentPage === 'result' ? (
+          <>
+        {currentPage === 'main' && (
           <>
         <header className="hero">
           <div className="logo-mark" aria-hidden="true">
@@ -2186,28 +2182,15 @@ function App() {
 
           <fieldset className="field-group">
             <legend>行った場所の抽選設定</legend>
-            <div className="visited-filter-options">
-              <label className={includeVisited ? 'selected' : ''}>
-                <input
-                  type="radio"
-                  name="visitedFilter"
-                  checked={includeVisited}
-                  onChange={() => setIncludeVisited(true)}
-                />
-                <span aria-hidden="true">✓</span>
-                行った場所も含める
-              </label>
-              <label className={!includeVisited ? 'selected' : ''}>
-                <input
-                  type="radio"
-                  name="visitedFilter"
-                  checked={!includeVisited}
-                  onChange={() => setIncludeVisited(false)}
-                />
-                <span aria-hidden="true">✓</span>
-                行った場所を除外する
-              </label>
-            </div>
+            <label className={`visited-filter-toggle ${!includeVisited ? 'selected' : ''}`}>
+              <input
+                type="checkbox"
+                checked={!includeVisited}
+                onChange={(event) => setIncludeVisited(!event.target.checked)}
+              />
+              <span aria-hidden="true">✓</span>
+              行った場所を除外する
+            </label>
           </fieldset>
 
           <fieldset className="field-group movement-range-field">
@@ -2223,46 +2206,12 @@ function App() {
                     onChange={(event) => setMovementRange(event.target.value)}
                   />
                   <span>{option.label}</span>
+                  {option.description && <small>{option.description}</small>}
                 </label>
               ))}
             </div>
-            <div className="movement-range-custom">
-              <label>
-                <span>何時間以内</span>
-                <input
-                  type="number"
-                  min="1"
-                  step="0.5"
-                  value={customRangeHours}
-                  onChange={(event) => setCustomRangeHours(event.target.value)}
-                  placeholder="例：3"
-                />
-              </label>
-              <label>
-                <span>何km以内</span>
-                <input
-                  type="number"
-                  min="10"
-                  step="10"
-                  value={customRangeKm}
-                  onChange={(event) => setCustomRangeKm(event.target.value)}
-                  placeholder="例：200"
-                />
-              </label>
-            </div>
-            <label className={`movement-strict-toggle ${strictMovementRange ? 'selected' : ''}`}>
-              <input
-                type="checkbox"
-                checked={strictMovementRange}
-                onChange={(event) => setStrictMovementRange(event.target.checked)}
-              />
-              <span>厳密に絞り込む</span>
-            </label>
-            <p className="movement-strict-note">
-              ONにすると条件外の旅先を除外します。候補が少なくなる場合があります。
-            </p>
             <p className="movement-range-note">
-              移動範囲は概算で判定します。正確な移動時間は旅先決定後に表示されます。
+              移動範囲は行きやすさの目安です。正確な移動時間は旅先決定後に表示されます。
             </p>
           </fieldset>
 
@@ -2298,8 +2247,25 @@ function App() {
             </svg>
           </button>
         </form>
+          </>
+        )}
 
-        {destination && (
+        {currentPage === 'result' && (
+          <header className="developer-page-header result-page-header">
+            <button type="button" onClick={() => switchPage('main')}><span aria-hidden="true">←</span>条件を変えてもう一度探す</button>
+            <div className="developer-page-icon result-page-icon" aria-hidden="true">✦</div>
+            <p>{selectionMeta?.source === 'destination-list' ? 'DESTINATION DETAIL' : 'DRAW RESULT'}</p>
+            <h1 id="result-page-title">{selectionMeta?.source === 'destination-list' ? '旅行先一覧から表示中' : '抽選結果'}</h1>
+            <span>選ばれた旅先の理由・プラン・行きやすさをまとめて確認できます。</span>
+            {selectionMeta?.source !== 'destination-list' && (
+              <button type="button" className="result-redraw-button" onClick={chooseDestination} disabled={travelInfo.status === 'loading'}>
+                {travelInfo.status === 'loading' ? '移動情報を取得中...' : 'もう一度旅先を決める'}
+              </button>
+            )}
+          </header>
+        )}
+
+        {currentPage === 'result' && destination && (
           <div className="result-area" aria-live="polite">
             <section className="result-card" aria-label="抽選結果">
               <SafeImage
@@ -2707,6 +2673,8 @@ function App() {
           </div>
         )}
 
+        {currentPage === 'main' && (
+          <>
         {noMatchMessage && (
           <div className="no-match" role="alert">
             <span aria-hidden="true">!</span>
@@ -2746,6 +2714,8 @@ function App() {
           <small>{APP_VERSION}</small>
         </div>
         <p className="footer-note">思いがけない場所へ、出かけよう。</p>
+          </>
+        )}
           </>
         ) : currentPage === 'destinations' ? (
           <>
