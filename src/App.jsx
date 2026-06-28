@@ -2060,7 +2060,7 @@ function App() {
   }
 
   const chooseDestination = async (event) => {
-    event.preventDefault()
+    event?.preventDefault?.()
     if (travelRequestInFlight.current) return
     const normalizedDeparture = departure.trim()
 
@@ -3350,9 +3350,9 @@ function App() {
         ) : currentPage === 'calculation' ? (
           <>
             <header className="developer-page-header calculation-page-header">
-              <button type="button" onClick={() => switchPage('main')}>
+              <button type="button" onClick={() => switchPage(destination ? 'result' : 'main')}>
                 <span aria-hidden="true">←</span>
-                メイン画面に戻る
+                {destination ? '結果画面に戻る' : 'メイン画面に戻る'}
               </button>
               <div className="developer-page-icon calculation-page-icon" aria-hidden="true">∑</div>
               <p>HOW WE CALCULATE</p>

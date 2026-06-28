@@ -694,11 +694,17 @@ h1 {
 }
 
 .result-area {
+  max-width: 100%;
   animation: reveal 360ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .result-area .result-card {
   animation: none;
+}
+
+.result-area section,
+.result-area nav {
+  min-width: 0;
 }
 
 .result-card::before,
@@ -5125,6 +5131,7 @@ h1 {
 
 .result-page-actions button,
 .result-bottom-actions button {
+  min-width: 0;
   min-height: 46px;
   padding: 0 16px;
   border: 1px solid #cfe3dd;
