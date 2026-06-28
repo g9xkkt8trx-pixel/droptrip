@@ -15,6 +15,9 @@ export const createAiPlanPrompt = ({
   transportComparisons = [],
   budget,
 }) => {
+  const localFoodSummary = Array.isArray(destination.localFoodCandidates) && destination.localFoodCandidates.length > 0
+    ? destination.localFoodCandidates.join('、')
+    : ''
   const transportSummary = transportComparisons.length > 0
     ? transportComparisons.map((item) => (
       `${item.mode}: ${item.rating ?? '未評価'}${item.duration ? `、${item.duration}` : ''}${item.isReference ? '（参考評価）' : ''}`
@@ -32,6 +35,7 @@ export const createAiPlanPrompt = ({
     `こだわり条件: ${joinOrDefault(selectedFilters)}`,
     `予算目安: 1人あたり ${budget}`,
     `旅先の特徴: ${destination.recommendation}`,
+    localFoodSummary ? `ご当地グルメ候補: ${localFoodSummary}` : '',
     '',
     '交通手段比較:',
     transportSummary,
@@ -43,6 +47,7 @@ export const createAiPlanPrompt = ({
     '4. 移動の注意点',
     '5. 予算感',
     '6. この旅先を楽しむコツ',
+    'ご当地グルメ候補がある場合は、食事・カフェ案に自然に含めてください。',
     '季節と移動時間を考慮し、実在を断定できない店舗名や時刻は候補として表現してください。',
-  ].join('\n')
+  ].filter(Boolean).join('\n')
 }

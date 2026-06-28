@@ -881,6 +881,42 @@ const getExpectedImageCategories = (tags = [], imageType = 'hero') => {
   return categories
 }
 
+const splitFoodTheme = (theme = '') => String(theme)
+  .split(/[、・/／,]/)
+  .map((item) => item.trim())
+  .filter(Boolean)
+
+const getLocalFoodDisplayItems = (destination = {}) => {
+  const fromCandidates = Array.isArray(destination.localFoodCandidates)
+    ? destination.localFoodCandidates
+    : []
+  const fromFoodTheme = splitFoodTheme(getImageMetaValue(destination.foodImage, 'foodTheme'))
+  const fromTags = destination.tags?.includes(filterOptions[3])
+    ? ['ご当地グルメ', 'カフェ']
+    : []
+  return [...new Set([...fromCandidates, ...fromFoodTheme, ...fromTags])]
+    .filter(Boolean)
+    .slice(0, 5)
+}
+
+const getFoodThemeText = (destination = {}, foodItems = []) => {
+  const foodTheme = getImageMetaValue(destination.foodImage, 'foodTheme')
+  if (foodTheme) return foodTheme
+  if (foodItems.length > 0) return foodItems.slice(0, 3).join('・')
+  return ''
+}
+
+const shouldFeatureFoodImage = (destination = {}) => {
+  const foodImage = destination.foodImage
+  return Boolean(
+    getImageUrl(foodImage)
+    && (
+      getImageMetaValue(foodImage, 'isDestinationSpecific')
+      || getImageMetaValue(foodImage, 'isLocalFood')
+    ),
+  )
+}
+
 const createImagePreviewData = (destinationList) => {
   const imageFields = [
     { key: 'heroImage', type: 'hero', label: 'hero' },
@@ -927,10 +963,14 @@ const createImagePreviewData = (destinationList) => {
     })
     const urls = images.map((image) => image.url).filter(Boolean)
     const duplicateWithinDestination = new Set(urls).size < urls.length
+    const localFoodCandidates = Array.isArray(destination.localFoodCandidates)
+      ? destination.localFoodCandidates.filter(Boolean)
+      : []
 
     return {
       destination,
       images,
+      localFoodCandidates,
       duplicateWithinDestination,
       hasDuplicateUsage: images.some((image) => image.usageCount > 1),
       hasCreditMissing: images.some((image) => !image.credit),
@@ -942,6 +982,7 @@ const createImagePreviewData = (destinationList) => {
       hasConfirmed: images.some((image) => image.status === 'confirmed'),
       hasLocalFood: images.some((image) => image.type === 'food' && image.isLocalFood),
       hasGenericFood: images.some((image) => image.type === 'food' && (image.isGeneric || !image.isLocalFood)),
+      hasLocalFoodCandidates: localFoodCandidates.length > 0,
     }
   })
 }
@@ -971,6 +1012,16 @@ const createImageImprovementItems = (imagePreviewItems) => imagePreviewItems
         ? `${item.destination.localFoodCandidates.slice(0, 3).join('・')} の写真を検討`
         : '地域らしい料理写真を検討')
       priorityScore += 3
+    }
+    if (!item.hasLocalFoodCandidates) {
+      issues.push('localFoodCandidates未設定')
+      recommendations.push('ご当地グルメ候補を3〜5個追加')
+      priorityScore += 3
+    }
+    if (food?.url && !item.hasLocalFoodCandidates) {
+      issues.push('food画像あり / グルメ候補なし')
+      recommendations.push('food画像に対応する localFoodCandidates を追加')
+      priorityScore += 2
     }
     if (!scenery?.isDestinationSpecific) {
       issues.push('scenery画像がカテゴリ画像')
@@ -1331,6 +1382,9 @@ function App() {
       transportEvaluation: bestTransportEvaluation,
     })
     : '移動情報を取得すると、最も現実的な交通手段との相性を表示します。'
+  const localFoodItems = destination ? getLocalFoodDisplayItems(destination) : []
+  const foodThemeText = destination ? getFoodThemeText(destination, localFoodItems) : ''
+  const foodImageIsFeatured = destination ? shouldFeatureFoodImage(destination) : false
 
   const apiKeySource = getGoogleMapsApiKeySource(savedApiKey)
   const maskedApiKey = savedApiKey ? savedApiKey.slice(-4) : ''
@@ -2532,6 +2586,40 @@ function App() {
               </div>
             </section>
 
+            {localFoodItems.length > 0 && (
+              <section className={`local-food-card ${foodImageIsFeatured ? 'featured-food-image' : 'compact-food-image'}`} aria-labelledby="local-food-title">
+                <div className="local-food-heading">
+                  <span aria-hidden="true">🍴</span>
+                  <div>
+                    <p>LOCAL FOOD</p>
+                    <h2 id="local-food-title">ご当地グルメ</h2>
+                  </div>
+                </div>
+                <div className="local-food-content">
+                  <div className="local-food-text">
+                    {foodThemeText && (
+                      <p className="local-food-theme">この旅先で食べたいもの：{foodThemeText}</p>
+                    )}
+                    <div className="local-food-chips" aria-label={`${destination.city}で食べたいご当地グルメ`}>
+                      {localFoodItems.map((food) => <span key={food}>{food}</span>)}
+                    </div>
+                  </div>
+                  {isValidImageUrl(destination.foodImage) && (
+                    <div className="local-food-image-wrap">
+                      <SafeImage
+                        destination={destination}
+                        imageType="food"
+                        alt={`${destination.city}のご当地グルメイメージ`}
+                        className="local-food-image"
+                        showCredit={foodImageIsFeatured}
+                        onLoadFailure={(fallbackType) => reportImageFailure(destination.id, 'food', fallbackType)}
+                      />
+                    </div>
+                  )}
+                </div>
+              </section>
+            )}
+
             <section className="detail-plan" aria-labelledby="detail-plan-title">
               <div className="detail-heading">
                 <span className="detail-heading-icon" aria-hidden="true">✦</span>
@@ -3698,6 +3786,11 @@ function App() {
                 <div className="image-preview-tags">
                   {item.destination.tags.map((tag) => <span key={tag}>{tag}</span>)}
                 </div>
+                {item.localFoodCandidates.length > 0 && (
+                  <p className="image-preview-food-candidates">
+                    ご当地グルメ候補：{item.localFoodCandidates.join('、')}
+                  </p>
+                )}
 
                 {item.duplicateWithinDestination && (
                   <p className="image-preview-warning">同じ旅行先内で同一画像が使われています。</p>
@@ -3737,6 +3830,7 @@ function App() {
             <div><span>要改善</span><strong>{imageImprovementItems.length}件</strong></div>
             <div><span>優先度 高</span><strong>{imageImprovementItems.filter((item) => item.priority === '高').length}件</strong></div>
             <div><span>ご当地food未判定</span><strong>{imageImprovementItems.filter((item) => item.issues.includes('food画像がご当地グルメ未判定')).length}件</strong></div>
+            <div><span>グルメ候補なし</span><strong>{imageImprovementItems.filter((item) => item.issues.includes('localFoodCandidates未設定')).length}件</strong></div>
           </div>
 
           {imageImprovementItems.length === 0 ? (
