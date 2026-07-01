@@ -71,3 +71,23 @@ DROPTRIP のβ版リリース履歴を管理するためのメモです。
 - Suppressed abstract local-food labels and now show detail cards only for concrete dish or specialty names.
 - Removed template-generated local-food detail copy and replaced generated descriptions with food-oriented text.
 - Added developer diagnostics for abstract food names, template food descriptions, generic food-image risk, and destinations lacking concrete food names.
+
+## Unreleased
+
+## Unreleased
+
+- Concrete tourist spot display: filtered generic spot names and template-like spot descriptions from the result screen.
+- Updated the simple stay plan copy so day trips, one-night trips, two-night trips, and longer stays include concrete spot and local food names.
+- Added developer diagnostics for abstract tourist spot names, template descriptions, purpose-fit spot shortages, and missing concrete names in simple plans.
+
+## Unreleased
+
+- Pseudo spot names are filtered from tourist spot cards and simple plans, including city + local lunch, seaside area, cafe, and generic sightseeing labels.
+- Removed generic fallback tourist spot generation so destinations without concrete touristSpots no longer create fake cards.
+- Added concrete Naruto City tourist spot and local food metadata for future data coverage.
+
+## Unreleased
+
+- Natural local food copy: regenerated localFoodDetails descriptions with timing, area hints, and trip-fit context instead of generic template wording.
+- Added bestTiming, bestAreaHints, and goodFor metadata to generated local food details and passed those hints into AI plan prompts.
+- Added developer diagnostics for duplicated food descriptions, template phrase risk, missing timing/area hints, and unreviewed restaurant hints.

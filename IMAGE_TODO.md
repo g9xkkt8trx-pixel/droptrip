@@ -336,3 +336,15 @@
 - Generic food images should not be promoted as concrete local specialty photos.
 - Priority destinations still need safe local image assets for dishes such as sushi, seafood bowls, tonkotsu ramen, beef tongue, matcha sweets, and onsen manju.
 - Category-only food images should be replaced over time with verified local assets stored under public/images/.
+
+## Pseudo Spot Data Follow-up
+
+- Destinations that only have generic fallback-like spot names should be treated as concrete tourist spot data shortages, not as image-ready destinations.
+- Priority follow-up targets include smaller or newly added destinations where real spot photos and concrete spot metadata are still missing.
+- Naruto City now has concrete metadata, but safe local images for whirlpools, Naruto Park, and local foods should be considered separately before adding photos.
+
+## Local Food Copy and Image Fit
+
+- Local food copy now names timing and area hints; image follow-up should prioritize photos that match those specific dishes and areas.
+- If a food image is generic or does not match the named dish, keep it visually modest and track the missing dish-specific asset here.
+- Restaurant-level names should not be added from external sources unless manually reviewed with source, checkedAt, and status metadata.

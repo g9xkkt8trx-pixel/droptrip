@@ -1450,6 +1450,64 @@ const getConcreteFoodCandidates = (items = []) => [...new Set((Array.isArray(ite
   .map((item) => String(item ?? '').trim())
   .filter(isConcreteFoodName))]
 
+const abstractSpotNames = new Set([
+  '\u89b3\u5149\u30b9\u30dd\u30c3\u30c8', '\u81ea\u7136\u30b9\u30dd\u30c3\u30c8', '\u6b74\u53f2\u30b9\u30dd\u30c3\u30c8', '\u30b0\u30eb\u30e1\u30b9\u30dd\u30c3\u30c8', '\u4f53\u9a13\u30b9\u30dd\u30c3\u30c8',
+  '\u8857\u6b69\u304d\u30b9\u30dd\u30c3\u30c8', '\u5b9a\u756a\u30b9\u30dd\u30c3\u30c8', '\u4eba\u6c17\u30b9\u30dd\u30c3\u30c8', '\u8857\u6b69\u304d', '\u30b0\u30eb\u30e1', '\u6e29\u6cc9', '\u4f53\u9a13', '\u7d76\u666f', '\u540d\u6240', '\u5b9a\u756a',
+  '\u3054\u5f53\u5730\u30e9\u30f3\u30c1', '\u6d77\u8fba\u30a8\u30ea\u30a2', '\u4e2d\u5fc3\u8857\u30b0\u30eb\u30e1\u6563\u7b56', '\u30b0\u30eb\u30e1\u6563\u7b56', '\u30ab\u30d5\u30a7\u4f11\u61a9', '\u30e9\u30f3\u30c1', '\u30ab\u30d5\u30a7', '\u5468\u8fba\u6563\u7b56',
+])
+
+const pseudoSpotNamePatterns = [
+  /\u3054\u5f53\u5730\u30e9\u30f3\u30c1$/,
+  /\u6d77\u8fba\u30a8\u30ea\u30a2$/,
+  /\u4e2d\u5fc3\u8857\u30b0\u30eb\u30e1\u6563\u7b56$/,
+  /\u8857\u6b69\u304d$/,
+  /\u89b3\u5149\u30b9\u30dd\u30c3\u30c8$/,
+  /\u81ea\u7136\u30b9\u30dd\u30c3\u30c8$/,
+  /\u6b74\u53f2\u30b9\u30dd\u30c3\u30c8$/,
+  /\u30b0\u30eb\u30e1\u30b9\u30dd\u30c3\u30c8$/,
+  /\u30ab\u30d5\u30a7$/,
+  /\u30e9\u30f3\u30c1$/,
+  /\u5468\u8fba\u6563\u7b56$/,
+  /\u30b0\u30eb\u30e1\u6563\u7b56$/,
+  /\u30ab\u30d5\u30a7\u4f11\u61a9$/,
+  /\u4e2d\u5fc3\u8857$/,
+]
+
+const isPseudoSpotName = (name = '') => {
+  const normalized = String(name).trim()
+  if (!normalized) return true
+  if (abstractSpotNames.has(normalized)) return true
+  return pseudoSpotNamePatterns.some((pattern) => pattern.test(normalized))
+}
+
+const isConcreteSpotName = (name = '') => {
+  const normalized = String(name).trim()
+  if (!normalized) return false
+  if (isPseudoSpotName(normalized)) return false
+  return !/^(\u89b3\u5149|\u81ea\u7136|\u6b74\u53f2|\u30b0\u30eb\u30e1|\u4f53\u9a13|\u8857\u6b69\u304d|\u5b9a\u756a|\u4eba\u6c17|\u540d\u6240|\u6e29\u6cc9|\u7d76\u666f)(\u30b9\u30dd\u30c3\u30c8)?$/.test(normalized)
+}
+
+const isTemplateSpotDescription = (description = '') => {
+  const text = String(description ?? '').trim()
+  if (!text) return true
+  return [
+    '\u3053\u306e\u65c5\u5148\u3067\u697d\u3057\u3081\u308b\u30b9\u30dd\u30c3\u30c8\u3067\u3059',
+    '\u89b3\u5149\u306b\u304a\u3059\u3059\u3081\u3067\u3059',
+    '\u65c5\u306e\u76ee\u7684\u306b\u5408\u3044\u307e\u3059',
+    '\u7acb\u3061\u5bc4\u308a\u3084\u3059\u3044\u30b9\u30dd\u30c3\u30c8\u3067\u3059',
+    '\u9b45\u529b\u7684\u306a\u5834\u6240\u3067\u3059',
+    '\u81ea\u7136\u3092\u697d\u3057\u3081\u307e\u3059',
+    '\u6b74\u53f2\u3092\u611f\u3058\u3089\u308c\u307e\u3059',
+    '\u98df\u4e8b\u3092\u697d\u3057\u3081\u307e\u3059',
+    '\u663c\u98df\u306b\u90f7\u571f\u6599\u7406\u3084\u30ab\u30d5\u30a7\u3092\u9078\u3073',
+    '\u6d77\u6cbf\u3044\u306e\u666f\u8272\u3092\u773a\u3081\u306a\u304c\u3089\u6b69\u304d',
+    '\u99c5\u5468\u8fba\u3084\u4e2d\u5fc3\u8857\u3067\u98df\u4e8b\u51e6\u3092\u63a2\u3057',
+  ].some((fragment) => text.includes(fragment))
+}
+
+const getConcreteTouristSpots = (destination = {}) => (Array.isArray(destination.touristSpots) ? destination.touristSpots : [])
+  .filter((spot) => isConcreteSpotName(spot?.name) && !isTemplateSpotDescription(spot?.description))
+
 const getLocalFoodDisplayItems = (destination = {}) => {
   const fromCandidates = getConcreteFoodCandidates(destination.localFoodCandidates)
   const fromFoodTheme = getConcreteFoodCandidates(splitFoodTheme(getImageMetaValue(destination.foodImage, 'foodTheme')))
@@ -1477,11 +1535,11 @@ const getLocalFoodDetailItems = (destination = {}, fallbackItems = []) => {
     .filter((item) => item?.name && isConcreteFoodName(item.name))
     .filter((item) => !isTemplateFoodDescription(item.description))
     .filter((item) => fallbackSet.size === 0 || fallbackSet.has(item.name) || isConcreteFoodName(item.name))
-    .slice(0, 3)
+    .slice(0, 2)
 }
 
 const getPurposeMatchedTouristSpots = (destination = {}, selectedPurposes = []) => {
-  const spots = Array.isArray(destination.touristSpots) ? destination.touristSpots : []
+  const spots = getConcreteTouristSpots(destination)
   if (spots.length === 0) return []
   const purposes = Array.isArray(selectedPurposes) ? selectedPurposes : []
   return spots
@@ -1491,7 +1549,7 @@ const getPurposeMatchedTouristSpots = (destination = {}, selectedPurposes = []) 
         const keywords = purposeSpotKeywords[purpose] ?? [purpose]
         const bestForMatch = (spot.bestFor ?? []).some((item) => item === purpose || keywords.some((keyword) => item.includes(keyword)))
         const textMatch = keywords.some((keyword) => searchable.includes(keyword))
-        return total + (bestForMatch ? 6 : 0) + (textMatch ? 3 : 0)
+        return total + (bestForMatch ? 8 : 0) + (textMatch ? 4 : 0)
       }, 0)
       return { ...spot, score, order: index }
     })
@@ -1511,31 +1569,40 @@ const getConcreteStayIdeas = (destination = {}, schedule = {}, spots = [], foodD
   const mainSpot = spots[0]
   const secondSpot = spots[1]
   const thirdSpot = spots[2]
-  const mainSpotName = mainSpot?.name ?? destination.city + '中心部'
+  const mainSpotName = mainSpot?.name ?? destination.city + '中心エリア'
   const secondSpotName = secondSpot?.name ?? destination.city + '周辺'
+  const thirdSpotName = thirdSpot?.name
   const food = foodDetails[0]
-  const foodName = food?.name ?? getConcreteFoodCandidates(destination.localFoodCandidates)[0] ?? '現地の食事'
-  const foodDetail = food?.description ? '。' + food.description : ''
-  const purpose = selectedPurposes?.[0] ?? '旅先らしい時間'
+  const foodName = food?.name ?? getConcreteFoodCandidates(destination.localFoodCandidates)[0]
+  const purpose = selectedPurposes?.slice(0, 2).join('・') || '街歩きや食事'
   const nearbyName = nearbySuggestions[0]?.destination?.city ?? nearbySuggestions[0]?.city ?? destination.nearbyDestinationHints?.[0]
+  const foodPhrase = foodName ? foodName + 'を食事候補にする' : '現地の食事を短く入れる'
   if ((schedule?.days ?? 1) <= 1) {
     return [
-      '午前：移動後、' + mainSpotName + 'へ向かい、' + (mainSpot?.description ?? '旅先の中心になる場所を歩く'),
-      '昼：' + foodName + 'を候補にして食事を入れる' + foodDetail,
-      '午後：' + secondSpotName + 'を歩き、' + (secondSpot?.stayTime ? secondSpot.stayTime + 'を目安に' : '') + '帰路に合わせて軽めに締める',
+      '午前：移動・到着後、' + mainSpotName + '周辺から歩き始める',
+      '昼：' + foodPhrase + (food?.description ? '。' + food.description : ''),
+      '午後：' + mainSpotName + (secondSpot ? 'と' + secondSpotName : '') + 'を組み合わせて、' + purpose + 'の時間を作る',
+      '夕方：帰路に合わせて軽めに散策して戻る',
     ]
   }
   if (schedule?.days === 2) {
     return [
-      '1日目：到着後に' + mainSpotName + 'へ行き、' + (mainSpot?.description ?? '旅先らしい景色や街並みを押さえる'),
-      '夜：' + foodName + 'や宿周辺の食事を入れ、移動で詰め込みすぎない流れにする',
-      '2日目：' + secondSpotName + (thirdSpot ? 'と' + thirdSpot.name : '') + 'を組み合わせ、' + purpose + 'の時間を作ってから帰路へ向かう',
+      '1日目：到着後に' + mainSpotName + 'を訪れ、夕方は' + (foodName ?? '現地の食事') + 'や宿周辺の時間を確保する',
+      '2日目：朝の散策後、' + secondSpotName + (thirdSpotName ? 'や' + thirdSpotName : '') + 'へ広げてから帰路に向かう',
+    ]
+  }
+  if (schedule?.days === 3) {
+    return [
+      '1日目：' + mainSpotName + 'を軸に、到着後の街歩きと食事をまとめる',
+      '2日目：' + secondSpotName + (thirdSpotName ? 'と' + thirdSpotName : '') + 'を入れ、' + purpose + 'をしっかり取る',
+      '3日目：' + (foodName ? foodName + 'や軽い散策を入れて、' : '') + '帰路に合わせて短めに動く',
     ]
   }
   return [
-    '前半：' + mainSpotName + 'を急がず回り、' + foodName + 'を食事候補にして旅先の印象を作る',
-    '中盤：' + secondSpotName + (nearbyName ? 'や' + nearbyName + '方面' : 'や周辺候補') + 'へ足を伸ばし、同じ地域の違う表情を見る',
-    '後半：' + (thirdSpot?.name ?? '街歩き・温泉・自然') + 'など目的に合う時間を残し、最終日は帰路に合わせて軽めに動く',
+    '前半：' + mainSpotName + 'を中心に、無理に移動しすぎず深く見る',
+    '中盤：' + (nearbyName ? nearbyName + '方面' : secondSpotName) + 'へ足を伸ばし、メイン旅先と違う表情を入れる',
+    '後半：' + (foodName ? foodName + 'などの食事と' : '') + purpose + 'に合わせて過ごす',
+    '最終日：帰路に合わせて、' + (thirdSpotName ?? secondSpotName) + '周辺を軽めに回る',
   ]
 }
 
@@ -1549,7 +1616,7 @@ const createAiDestinationPayload = (destination = {}, context = {}, featuredSpot
   seasonHighlights: destination.seasonHighlights ?? {},
   localFoodCandidates: getConcreteFoodCandidates(destination.localFoodCandidates).slice(0, 5),
   localFoodDetails: foodDetails.slice(0, 3),
-  touristSpots: (featuredSpots.length > 0 ? featuredSpots : destination.touristSpots ?? []).slice(0, 5).map(({ name, type, description, bestFor, stayTime }) => ({ name, type, description, bestFor, stayTime })),
+  touristSpots: (featuredSpots.length > 0 ? featuredSpots : getConcreteTouristSpots(destination)).slice(0, 5).map(({ name, type, description, bestFor, stayTime }) => ({ name, type, description, bestFor, stayTime })),
   nearbyDestinationHints: (destination.nearbyDestinationHints ?? []).slice(0, 3),
   companionFit: destination.companionFit ?? {},
   purposeFit: destination.purposeFit ?? {},
@@ -1586,7 +1653,7 @@ const getTravelPurposeMatch = (destination = {}, selectedTravelPurposes = []) =>
   const tags = destination.tags ?? []
   const localFoods = Array.isArray(destination.localFoodCandidates) ? destination.localFoodCandidates : []
   const foodDetails = Array.isArray(destination.localFoodDetails) ? destination.localFoodDetails : []
-  const touristSpots = Array.isArray(destination.touristSpots) ? destination.touristSpots : []
+  const touristSpots = getConcreteTouristSpots(destination)
   const foodTheme = getImageMetaValue(destination.foodImage, 'foodTheme')
   const searchableText = normalizeSearchText([
     destination.city,
@@ -1748,6 +1815,66 @@ const getGourmetFoodShortageCities = (destinationList = []) => destinationList
   .filter((place) => Number(place.purposeFit?.gourmet ?? 0) >= 70 && getConcreteFoodCandidates(place.localFoodCandidates).length < 2)
   .map((place) => place.city)
 
+const getPseudoTouristSpotNameCities = (destinationList = []) => destinationList
+  .filter((place) => (place.touristSpots ?? []).some((spot) => isPseudoSpotName(spot?.name)))
+  .map((place) => place.city)
+
+const getFallbackPseudoSpotGeneratedCities = (destinationList = []) => destinationList
+  .filter((place) => (place.touristSpots ?? []).some((spot) => String(spot?.name ?? '').startsWith(place.city) && isPseudoSpotName(spot?.name)))
+  .map((place) => place.city)
+
+const getAbstractTouristSpotNameCities = (destinationList = []) => destinationList
+  .filter((place) => (place.touristSpots ?? []).some((spot) => spot?.name && !isConcreteSpotName(spot.name)))
+  .map((place) => place.city)
+
+const getTemplateTouristSpotDescriptionCities = (destinationList = []) => destinationList
+  .filter((place) => (place.touristSpots ?? []).some((spot) => isConcreteSpotName(spot?.name) && isTemplateSpotDescription(spot?.description)))
+  .map((place) => place.city)
+
+const getPurposeSpotShortageCities = (destinationList = []) => destinationList
+  .filter((place) => {
+    const spots = getConcreteTouristSpots(place)
+    if (spots.length < 2) return true
+    const purposeKeys = Object.entries(place.purposeFit ?? {}).filter(([, score]) => Number(score) >= 70).map(([key]) => key)
+    if (purposeKeys.length === 0) return false
+    const searchable = spots.map((spot) => [spot.type, spot.description, ...(spot.bestFor ?? [])].join(' ')).join(' ')
+    return !purposeKeys.some((key) => searchable.toLowerCase().includes(key.toLowerCase()))
+  })
+  .map((place) => place.city)
+
+const getStayPlanSpotNameMissingCities = (destinationList = []) => destinationList
+  .filter((place) => getConcreteTouristSpots(place).length === 0)
+  .map((place) => place.city)
+
+const getStayPlanFoodNameMissingCities = (destinationList = []) => destinationList
+  .filter((place) => getConcreteFoodCandidates(place.localFoodCandidates).length === 0 && getLocalFoodDetailItems(place, []).length === 0)
+  .map((place) => place.city)
+
+
+const localFoodDescriptionRiskPhrases = ['\u98df\u6587\u5316\u306b\u89e6\u308c\u3084\u3059\u3044', '\u5019\u88dc\u306b\u3057\u3084\u3059\u3044', '\u5165\u308c\u3084\u3059\u3044\u3067\u3059', '\u305d\u306e\u571f\u5730\u3089\u3057\u3044\u98df\u4e8b']
+
+const getLocalFoodDescriptionDuplicateCities = (destinationList = []) => destinationList
+  .filter((place) => {
+    const descriptions = (place.localFoodDetails ?? []).map((food) => food?.description).filter(Boolean)
+    return descriptions.length > 1 && new Set(descriptions).size < descriptions.length
+  })
+  .map((place) => place.city)
+
+const getLocalFoodPhraseRiskCities = (destinationList = []) => destinationList
+  .filter((place) => (place.localFoodDetails ?? []).some((food) => localFoodDescriptionRiskPhrases.some((phrase) => String(food?.description ?? '').includes(phrase))))
+  .map((place) => place.city)
+
+const getLocalFoodMissingTimingCities = (destinationList = []) => destinationList
+  .filter((place) => (place.localFoodDetails ?? []).some((food) => !(food.bestTiming?.length > 0)))
+  .map((place) => place.city)
+
+const getLocalFoodMissingAreaHintCities = (destinationList = []) => destinationList
+  .filter((place) => (place.localFoodDetails ?? []).some((food) => !(food.bestAreaHints?.length > 0)))
+  .map((place) => place.city)
+
+const getUnreviewedRestaurantHintCities = (destinationList = []) => destinationList
+  .filter((place) => (place.restaurantHints ?? []).some((hint) => hint?.name && (hint.status === 'confirmed' ? !hint.checkedAt : true)))
+  .map((place) => place.city)
 
 const getAbstractFoodDetailCities = (destinationList = []) => destinationList
   .filter((place) => (place.localFoodDetails ?? []).some((food) => food?.name && !isConcreteFoodName(food.name)))
@@ -3761,6 +3888,12 @@ function App() {
                             <strong>{food.name}</strong>
                             <span>{food.type}</span>
                             <p>{food.description}</p>
+                            {(food.bestTiming?.length > 0 || food.bestAreaHints?.length > 0) && (
+                              <div className="local-food-meta">
+                                {food.bestTiming?.length > 0 && <small>{'\u5165\u308c\u3084\u3059\u3044\u30bf\u30a4\u30df\u30f3\u30b0: '}{food.bestTiming.join('\u30fb')}</small>}
+                                {food.bestAreaHints?.length > 0 && <small>{'\u5408\u308f\u305b\u3084\u3059\u3044\u30a8\u30ea\u30a2: '}{food.bestAreaHints.join('\u30fb')}</small>}
+                              </div>
+                            )}
                           </li>
                         ))}
                       </ul>
@@ -4978,8 +5111,20 @@ function App() {
               <div><dt>localFoodDetailsのnameが抽象語</dt><dd>{formatShortageList(getAbstractFoodDetailCities(destinations))}</dd></div>
               <div><dt>localFoodCandidatesが抽象語のみ</dt><dd>{formatShortageList(getAbstractFoodCandidateOnlyCities(destinations))}</dd></div>
               <div><dt>ご当地グルメ説明文がテンプレート化</dt><dd>{formatShortageList(getTemplateFoodDescriptionCities(destinations))}</dd></div>
+              <div><dt>localFoodDetails duplicate descriptions</dt><dd>{formatShortageList(getLocalFoodDescriptionDuplicateCities(destinations))}</dd></div>
+              <div><dt>localFoodDetails template phrase risk</dt><dd>{formatShortageList(getLocalFoodPhraseRiskCities(destinations))}</dd></div>
+              <div><dt>localFoodDetails missing bestTiming</dt><dd>{formatShortageList(getLocalFoodMissingTimingCities(destinations))}</dd></div>
+              <div><dt>localFoodDetails missing bestAreaHints</dt><dd>{formatShortageList(getLocalFoodMissingAreaHintCities(destinations))}</dd></div>
+              <div><dt>restaurantHints review metadata missing</dt><dd>{formatShortageList(getUnreviewedRestaurantHintCities(destinations))}</dd></div>
               <div><dt>具体的な料理名が不足</dt><dd>{formatShortageList(getConcreteFoodShortageCities(destinations))}</dd></div>
               <div><dt>generic food画像の大表示リスク</dt><dd>{formatShortageList(getGenericFoodImageRiskCities(destinations))}</dd></div>
+              <div><dt>touristSpotsのnameが抽象語</dt><dd>{formatShortageList(getAbstractTouristSpotNameCities(destinations))}</dd></div>
+              <div><dt>touristSpots.nameが疑似スポット名</dt><dd>{formatShortageList(getPseudoTouristSpotNameCities(destinations))}</dd></div>
+              <div><dt>fallback疑似カード生成リスク</dt><dd>{formatShortageList(getFallbackPseudoSpotGeneratedCities(destinations))}</dd></div>
+              <div><dt>touristSpotsのdescriptionがテンプレート化</dt><dd>{formatShortageList(getTemplateTouristSpotDescriptionCities(destinations))}</dd></div>
+              <div><dt>旅の目的に合うtouristSpots不足</dt><dd>{formatShortageList(getPurposeSpotShortageCities(destinations))}</dd></div>
+              <div><dt>簡易プランにスポット名が入りにくい</dt><dd>{formatShortageList(getStayPlanSpotNameMissingCities(destinations))}</dd></div>
+              <div><dt>簡易プランにご当地グルメ名が入りにくい</dt><dd>{formatShortageList(getStayPlanFoodNameMissingCities(destinations))}</dd></div>
             </dl>
           </details>
 

@@ -40,9 +40,12 @@ export const createAiPlanPrompt = ({
   const touristSpotLines = compactList(destination.touristSpots, (spot) => (
     '- ' + spot.name + '（' + (spot.type ?? 'スポット') + ' / 目安:' + (spot.stayTime ?? '短時間') + '）: ' + (spot.description ?? '')
   ), 5)
-  const localFoodDetailLines = compactList(destination.localFoodDetails, (food) => (
-    '- ' + food.name + '（' + (food.type ?? 'ご当地グルメ') + '）: ' + (food.description ?? '')
-  ), 3)
+  const localFoodDetailLines = compactList(destination.localFoodDetails, (food) => {
+    const timing = Array.isArray(food.bestTiming) && food.bestTiming.length > 0 ? ' / \u5165\u308c\u3084\u3059\u3044\u30bf\u30a4\u30df\u30f3\u30b0: ' + food.bestTiming.join('\u30fb') : ''
+    const areas = Array.isArray(food.bestAreaHints) && food.bestAreaHints.length > 0 ? ' / \u5408\u308f\u305b\u3084\u3059\u3044\u30a8\u30ea\u30a2: ' + food.bestAreaHints.join('\u30fb') : ''
+    const goodFor = Array.isArray(food.goodFor) && food.goodFor.length > 0 ? ' / \u76f8\u6027: ' + food.goodFor.join('\u30fb') : ''
+    return '- ' + food.name + '\uff08' + (food.type ?? '\u3054\u5f53\u5730\u30b0\u30eb\u30e1') + '\uff09: ' + (food.description ?? '') + timing + areas + goodFor
+  }, 3)
   const localFoodSummary = Array.isArray(destination.localFoodCandidates) && destination.localFoodCandidates.length > 0
     ? destination.localFoodCandidates.slice(0, 5).join('、')
     : ''

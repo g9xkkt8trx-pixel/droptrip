@@ -152,6 +152,7 @@ const localFoodCandidatesByCity = {
   倉敷市: ['デミカツ丼', '白桃スイーツ', '町家カフェ', '瀬戸内グルメ'],
   松江市: ['出雲そば', '和菓子', 'しじみ料理', '茶文化'],
   別府市: ['地獄蒸し', 'とり天', '温泉プリン', '海鮮'],
+  鳴門市: ['鳴門鯛', '鳴門わかめ', '鳴ちゅるうどん', 'なると金時'],
 }
 
 const getLocalFoodCandidates = (city, tags = []) => {
@@ -1437,6 +1438,36 @@ const touristSpotsByCity = {
       ],
       "stayTime": "30分〜45分"
     }
+  ],
+  "\u9cf4\u9580\u5e02": [
+    {
+      "name": "\u6e26\u306e\u9053",
+      "type": "\u81ea\u7136\u30fb\u7d76\u666f",
+      "description": "\u9cf4\u9580\u6d77\u5ce1\u306e\u6e26\u6f6e\u3092\u6d77\u4e0a\u306e\u904a\u6b69\u9053\u304b\u3089\u773a\u3081\u3089\u308c\u308b\u30b9\u30dd\u30c3\u30c8\u3067\u3059\u3002\u5929\u5019\u3084\u6f6e\u306e\u6642\u9593\u306b\u5de6\u53f3\u3055\u308c\u308b\u305f\u3081\u3001\u8a2a\u554f\u524d\u306b\u898b\u9803\u3092\u78ba\u8a8d\u3059\u308b\u3068\u4e88\u5b9a\u306b\u7d44\u307f\u8fbc\u307f\u3084\u3059\u304f\u306a\u308a\u307e\u3059\u3002",
+      "bestFor": ["\u81ea\u7136\u30fb\u7d76\u666f", "\u4f53\u9a13", "\u8857\u6b69\u304d"],
+      "stayTime": "45\u5206\u301c1\u6642\u9593"
+    },
+    {
+      "name": "\u5927\u585a\u56fd\u969b\u7f8e\u8853\u9928",
+      "type": "\u7f8e\u8853\u9928\u30fb\u4f53\u9a13",
+      "description": "\u9676\u677f\u3067\u518d\u73fe\u3055\u308c\u305f\u4e16\u754c\u306e\u540d\u753b\u3092\u898b\u3089\u308c\u308b\u5927\u578b\u7f8e\u8853\u9928\u3067\u3059\u3002\u96e8\u306e\u65e5\u3084\u9577\u3081\u306e\u6ede\u5728\u306b\u3082\u5165\u308c\u3084\u3059\u304f\u3001\u5c4b\u5185\u3067\u3058\u3063\u304f\u308a\u904e\u3054\u3057\u305f\u3044\u6642\u306b\u5411\u3044\u3066\u3044\u307e\u3059\u3002",
+      "bestFor": ["\u4f53\u9a13", "\u3086\u3063\u304f\u308a", "\u8857\u6b69\u304d"],
+      "stayTime": "2\u301c3\u6642\u9593"
+    },
+    {
+      "name": "\u9cf4\u9580\u516c\u5712",
+      "type": "\u81ea\u7136\u30fb\u6563\u7b56",
+      "description": "\u9cf4\u9580\u6d77\u5ce1\u3092\u671b\u3081\u308b\u516c\u5712\u30a8\u30ea\u30a2\u3067\u3059\u3002\u6e26\u6f6e\u89b3\u5149\u3084\u5c55\u671b\u30b9\u30dd\u30c3\u30c8\u3068\u5408\u308f\u305b\u3066\u6b69\u304d\u3084\u3059\u304f\u3001\u6d77\u6cbf\u3044\u306e\u666f\u8272\u3092\u4e2d\u5fc3\u306b\u904e\u3054\u305b\u307e\u3059\u3002",
+      "bestFor": ["\u81ea\u7136\u30fb\u7d76\u666f", "\u8857\u6b69\u304d", "\u3086\u3063\u304f\u308a"],
+      "stayTime": "1\u6642\u9593\u524d\u5f8c"
+    },
+    {
+      "name": "\u3046\u305a\u3057\u304a\u89b3\u6f6e\u8239",
+      "type": "\u81ea\u7136\u30fb\u4f53\u9a13",
+      "description": "\u8239\u304b\u3089\u6e26\u6f6e\u3092\u8fd1\u304f\u3067\u898b\u308b\u4f53\u9a13\u578b\u306e\u89b3\u5149\u3067\u3059\u3002\u6f6e\u306e\u6642\u9593\u306b\u5408\u308f\u305b\u3066\u4e88\u5b9a\u306b\u5165\u308c\u308b\u3068\u3001\u9cf4\u9580\u6d77\u5ce1\u3089\u3057\u3044\u666f\u8272\u3092\u65c5\u306e\u4e2d\u5fc3\u306b\u3057\u3084\u3059\u304f\u306a\u308a\u307e\u3059\u3002",
+      "bestFor": ["\u81ea\u7136\u30fb\u7d76\u666f", "\u30a2\u30af\u30c6\u30a3\u30d3\u30c6\u30a3", "\u4f53\u9a13"],
+      "stayTime": "1\u6642\u9593\u524d\u5f8c"
+    }
   ]
 }
 
@@ -1453,61 +1484,97 @@ const isConcreteFoodNameForData = (name = '') => {
 }
 
 const getFoodDetailType = (name = '') => {
-  if (/寿司|海鮮|牡蠣|穴子|しらす|クエ|イカ|刺身/.test(name)) return '海鮮・食事'
-  if (/ラーメン|そば|うどん|鍋|カレー|牛タン|ジンギスカン|ちゃんぽん|もつ/.test(name)) return '食事'
-  if (/餅|菓子|スイーツ|甘味|プリン|チーズ|メロン|カステラ/.test(name)) return '甘味・軽食'
-  return '名物'
+  if (/\u5bff\u53f8|\u6d77\u9bae|\u7261\u8823|\u7a74\u5b50|\u3057\u3089\u3059|\u30af\u30a8|\u30a4\u30ab|\u523a\u8eab|\u9bdb|\u308f\u304b\u3081/.test(name)) return '\u6d77\u9bae\u30fb\u98df\u4e8b'
+  if (/\u30e9\u30fc\u30e1\u30f3|\u305d\u3070|\u3046\u3069\u3093|\u934b|\u30ab\u30ec\u30fc|\u725b\u30bf\u30f3|\u30b8\u30f3\u30ae\u30b9\u30ab\u30f3|\u3061\u3083\u3093\u307d\u3093|\u3082\u3064|\u8c46\u8150|\u84b8\u3057|\u5929/.test(name)) return '\u98df\u4e8b'
+  if (/\u9905|\u83d3\u5b50|\u30b9\u30a4\u30fc\u30c4|\u7518\u5473|\u30d7\u30ea\u30f3|\u30c1\u30fc\u30ba|\u30e1\u30ed\u30f3|\u30ab\u30b9\u30c6\u30e9|\u62b9\u8336|\u91d1\u6642/.test(name)) return '\u7518\u5473\u30fb\u8efd\u98df'
+  return '\u540d\u7269'
+}
+
+const foodAreaHintsByCity = {
+  '\u4eac\u90fd\u5e02': ['\u5357\u7985\u5bfa\u5468\u8fba', '\u5d50\u5c71\u65b9\u9762', '\u7957\u5712\u5468\u8fba'],
+  '\u5948\u826f\u5e02': ['\u5948\u826f\u516c\u5712\u5468\u8fba', '\u306a\u3089\u307e\u3061'],
+  '\u5c0f\u6a3d\u5e02': ['\u5c0f\u6a3d\u904b\u6cb3\u5468\u8fba', '\u4e09\u89d2\u5e02\u5834', '\u580a\u753a\u901a\u308a'],
+  '\u672d\u5e4c\u5e02': ['\u5927\u901a\u30fb\u3059\u3059\u304d\u306e\u5468\u8fba', '\u672d\u5e4c\u99c5\u5468\u8fba'],
+  '\u51fd\u9928\u5e02': ['\u51fd\u9928\u671d\u5e02', '\u30d9\u30a4\u30a8\u30ea\u30a2', '\u5143\u753a\u5468\u8fba'],
+  '\u91d1\u6ca2\u5e02': ['\u8fd1\u6c5f\u753a\u5e02\u5834', '\u3072\u304c\u3057\u8336\u5c4b\u8857', '\u517c\u516d\u5712\u5468\u8fba'],
+  '\u7bb1\u6839\u753a': ['\u7bb1\u6839\u6e6f\u672c\u5468\u8fba', '\u5f37\u7f85\u65b9\u9762', '\u82a6\u30ce\u6e56\u5468\u8fba'],
+  '\u71b1\u6d77\u5e02': ['\u71b1\u6d77\u99c5\u524d\u5546\u5e97\u8857', '\u6d77\u5cb8\u65b9\u9762'],
+  '\u8349\u6d25\u753a': ['\u6e6f\u7551\u5468\u8fba', '\u6e29\u6cc9\u8857'],
+  '\u65e5\u5149\u5e02': ['\u6771\u7167\u5bae\u5468\u8fba', '\u4e2d\u7985\u5bfa\u6e56\u65b9\u9762'],
+  '\u938c\u5009\u5e02': ['\u5c0f\u753a\u901a\u308a', '\u9577\u8c37\u30fb\u7531\u6bd4\u30ac\u6d5c\u65b9\u9762'],
+  '\u6a2a\u6d5c\u5e02': ['\u4e2d\u83ef\u8857', '\u307f\u306a\u3068\u307f\u3089\u3044', '\u5143\u753a\u5468\u8fba'],
+  '\u4ed9\u53f0\u5e02': ['\u4ed9\u53f0\u99c5\u5468\u8fba', '\u4e00\u756a\u753a\u5468\u8fba'],
+  '\u798f\u5ca1\u5e02': ['\u535a\u591a\u99c5\u5468\u8fba', '\u5929\u795e\u30fb\u4e2d\u6d32\u65b9\u9762'],
+  '\u9577\u5d0e\u5e02': ['\u65b0\u5730\u4e2d\u83ef\u8857', '\u773c\u93e1\u6a4b\u5468\u8fba'],
+  '\u5e83\u5cf6\u5e02': ['\u5e73\u548c\u8a18\u5ff5\u516c\u5712\u5468\u8fba', '\u5e83\u5cf6\u99c5\u5468\u8fba'],
+  '\u5bae\u5cf6': ['\u8868\u53c2\u9053\u5546\u5e97\u8857', '\u53b3\u5cf6\u795e\u793e\u5468\u8fba'],
+  '\u90a3\u8987\u5e02': ['\u56fd\u969b\u901a\u308a', '\u516c\u8a2d\u5e02\u5834\u5468\u8fba'],
+  '\u77f3\u57a3\u5e02': ['\u77f3\u57a3\u6e2f\u96e2\u5cf6\u30bf\u30fc\u30df\u30ca\u30eb\u5468\u8fba', '\u5ddd\u5e73\u6e7e\u65b9\u9762'],
+  '\u9ad8\u5c71\u5e02': ['\u53e4\u3044\u753a\u4e26\u307f', '\u5bae\u5ddd\u671d\u5e02\u5468\u8fba'],
+  '\u9cf4\u9580\u5e02': ['\u9cf4\u9580\u516c\u5712\u5468\u8fba', '\u6e26\u306e\u9053\u5468\u8fba'],
+}
+
+const getFoodAreaHints = (city, name) => {
+  const cityHints = foodAreaHintsByCity[city] ?? []
+  if (/\u6e29\u6cc9|\u307e\u3093\u3058\u3085\u3046|\u30d7\u30ea\u30f3/.test(name)) return cityHints.filter((hint) => /\u6e6f|\u6e29\u6cc9|\u99c5/.test(hint)).slice(0, 2).concat(cityHints.slice(0, 1)).slice(0, 2)
+  if (/\u5bff\u53f8|\u6d77\u9bae|\u9bdb|\u308f\u304b\u3081|\u7261\u8823|\u30a4\u30ab|\u7a74\u5b50/.test(name)) return cityHints.filter((hint) => /\u5e02\u5834|\u6e2f|\u6d77|\u6e56|\u6e7e|\u8868\u53c2\u9053/.test(hint)).slice(0, 2).concat(cityHints.slice(0, 1)).slice(0, 2)
+  return cityHints.slice(0, 2)
+}
+
+const getFoodBestTiming = (name, index = 0) => {
+  if (/\u30b9\u30a4\u30fc\u30c4|\u62b9\u8336|\u9905|\u83d3\u5b50|\u30d7\u30ea\u30f3|\u91d1\u6642|\u30e1\u30ed\u30f3/.test(name)) return ['\u4f11\u61a9', '\u98df\u5f8c']
+  if (/\u934b|\u3082\u3064|\u725b\u30bf\u30f3|\u30b8\u30f3\u30ae\u30b9\u30ab\u30f3|\u4eac\u6599\u7406/.test(name)) return ['\u5915\u98df', '\u663c\u98df']
+  if (/\u30e9\u30fc\u30e1\u30f3|\u305d\u3070|\u3046\u3069\u3093|\u30ab\u30ec\u30fc|\u4e3c/.test(name)) return ['\u663c\u98df', '\u8efd\u3081\u306e\u5915\u98df']
+  if (/\u6d77\u9bae|\u5bff\u53f8|\u9bdb|\u7261\u8823|\u30a4\u30ab/.test(name)) return index === 0 ? ['\u663c\u98df', '\u5915\u98df'] : ['\u663c\u98df']
+  return ['\u663c\u98df', '\u4f11\u61a9']
+}
+
+const getFoodGoodFor = (name) => {
+  if (/\u30b9\u30a4\u30fc\u30c4|\u62b9\u8336|\u9905|\u83d3\u5b50|\u30d7\u30ea\u30f3|\u91d1\u6642/.test(name)) return ['\u30ab\u30c3\u30d7\u30eb', '\u53cb\u9054', '\u3086\u3063\u304f\u308a']
+  if (/\u6d77\u9bae|\u5bff\u53f8|\u9bdb|\u7261\u8823|\u30a4\u30ab/.test(name)) return ['\u53cb\u9054', '\u30ab\u30c3\u30d7\u30eb', '\u30b0\u30eb\u30e1']
+  if (/\u30e9\u30fc\u30e1\u30f3|\u3046\u3069\u3093|\u305d\u3070|\u30ab\u30ec\u30fc/.test(name)) return ['\u4e00\u4eba\u65c5', '\u53cb\u9054', '\u8857\u6b69\u304d']
+  return ['\u30b0\u30eb\u30e1', '\u8857\u6b69\u304d']
 }
 
 const createFoodDescription = (city, name) => {
-  if (/寿司|海鮮|牡蠣|穴子|しらす|クエ|イカ|刺身/.test(name)) {
-    return '港町や海辺の旅で昼食の中心にしやすく、' + city + 'らしい食事候補として選びやすいです。'
-  }
-  if (/ラーメン|そば|うどん|鍋|カレー|牛タン|ジンギスカン|ちゃんぽん|もつ/.test(name)) {
-    return '昼食や夕食に入れやすい名物で、移動の合間でもその土地らしい食事にしやすいです。'
-  }
-  if (/餅|菓子|スイーツ|甘味|プリン|チーズ|メロン|カステラ|カフェ/.test(name)) {
-    return '街歩きの休憩や食後の甘味として入れやすく、短い滞在でも試しやすい一品です。'
-  }
-  if (/まんじゅう|温泉/.test(name)) {
-    return '温泉街の散策途中に立ち寄りやすく、湯上がりや宿へ向かう前の軽い食べ歩きに向いています。'
-  }
-  return city + 'の食文化に触れやすい料理で、昼食や夕食の候補にしやすいです。'
+  const areas = getFoodAreaHints(city, name)
+  const areaText = areas.length > 0 ? areas.join('\u3084') + '\u3067' : city + '\u3067'
+  if (/\u6e6f\u8c46\u8150|\u8c46\u8150/.test(name)) return areaText + '\u5bfa\u793e\u5de1\u308a\u3084\u5ead\u5712\u6563\u7b56\u306e\u9593\u306b\u5165\u308c\u308b\u3068\u3001\u4eac\u90fd\u3089\u3057\u3044\u9759\u304b\u306a\u98df\u4e8b\u6642\u9593\u3092\u4f5c\u308c\u307e\u3059\u3002\u91cd\u3059\u304e\u306a\u3044\u663c\u98df\u3084\u3001\u843d\u3061\u7740\u3044\u305f\u5915\u98df\u306b\u5411\u3044\u3066\u3044\u307e\u3059\u3002'
+  if (/\u62b9\u8336|\u548c\u83d3\u5b50|\u30b9\u30a4\u30fc\u30c4|\u9905|\u30d7\u30ea\u30f3|\u91d1\u6642|\u30e1\u30ed\u30f3|\u30ab\u30b9\u30c6\u30e9/.test(name)) return areaText + '\u6563\u7b56\u306e\u9014\u4e2d\u306b\u4f11\u61a9\u3092\u517c\u306d\u3066\u5165\u308c\u3084\u3059\u3044\u7518\u5473\u3067\u3059\u3002\u6b69\u304f\u6642\u9593\u304c\u9577\u3044\u65e5\u306e\u4e00\u606f\u3084\u3001\u98df\u5f8c\u306e\u5c0f\u3055\u306a\u697d\u3057\u307f\u306b\u5408\u3044\u307e\u3059\u3002'
+  if (/\u6d77\u9bae|\u5bff\u53f8|\u9bdb|\u308f\u304b\u3081|\u7261\u8823|\u7a74\u5b50|\u3057\u3089\u3059|\u30af\u30a8|\u30a4\u30ab|\u523a\u8eab/.test(name)) return areaText + '\u6d77\u3084\u5e02\u5834\u306e\u96f0\u56f2\u6c17\u3068\u7d44\u307f\u5408\u308f\u305b\u308b\u3068\u3001\u65c5\u5148\u306e\u98df\u306e\u5370\u8c61\u304c\u6b8b\u308a\u3084\u3059\u3044\u4e00\u54c1\u3067\u3059\u3002\u663c\u306b\u5165\u308c\u308b\u3068\u3001\u5348\u5f8c\u306e\u666f\u8272\u3084\u8857\u6b69\u304d\u3078\u81ea\u7136\u306b\u3064\u306a\u3052\u3089\u308c\u307e\u3059\u3002'
+  if (/\u30e9\u30fc\u30e1\u30f3|\u305d\u3070|\u3046\u3069\u3093|\u3061\u3083\u3093\u307d\u3093|\u30ab\u30ec\u30fc|\u4e3c/.test(name)) return areaText + '\u79fb\u52d5\u306e\u524d\u5f8c\u306b\u7d44\u307f\u8fbc\u307f\u3084\u3059\u304f\u3001\u77ed\u3044\u6ede\u5728\u3067\u3082\u305d\u306e\u571f\u5730\u306e\u5473\u3092\u611f\u3058\u3084\u3059\u3044\u98df\u4e8b\u3067\u3059\u3002\u4e00\u4eba\u65c5\u3084\u8857\u6b69\u304d\u4e2d\u306e\u663c\u98df\u306b\u3082\u5165\u308c\u3084\u3059\u3044\u3067\u3059\u3002'
+  if (/\u725b\u30bf\u30f3|\u30b8\u30f3\u30ae\u30b9\u30ab\u30f3|\u3082\u3064|\u934b|\u84b8\u3057|\u5929/.test(name)) return areaText + '\u65c5\u306e\u30e1\u30a4\u30f3\u306e\u98df\u4e8b\u3068\u3057\u3066\u6642\u9593\u3092\u53d6\u308b\u3068\u6e80\u8db3\u611f\u304c\u51fa\u3084\u3059\u3044\u540d\u7269\u3067\u3059\u3002\u5915\u98df\u306b\u5165\u308c\u308b\u3068\u3001\u305d\u306e\u65e5\u306e\u7de0\u3081\u306b\u3057\u3084\u3059\u3044\u3067\u3059\u3002'
+  if (/\u307e\u3093\u3058\u3085\u3046|\u6e29\u6cc9/.test(name)) return areaText + '\u6e29\u6cc9\u8857\u3092\u6b69\u304f\u6642\u306b\u5c0f\u3055\u304f\u5165\u308c\u3089\u308c\u308b\u98df\u3079\u6b69\u304d\u306e\u697d\u3057\u307f\u3067\u3059\u3002\u6e6f\u4e0a\u304c\u308a\u3084\u5bbf\u306b\u5411\u304b\u3046\u524d\u306b\u5408\u308f\u305b\u308b\u3068\u3001\u6e29\u6cc9\u5730\u3089\u3057\u3055\u304c\u51fa\u307e\u3059\u3002'
+  return areaText + name + '\u3092\u5165\u308c\u308b\u3068\u3001\u666f\u8272\u3084\u8857\u6b69\u304d\u3060\u3051\u3067\u306f\u306a\u3044\u3001\u305d\u306e\u571f\u5730\u306e\u5473\u3092\u611f\u3058\u308b\u6642\u9593\u3092\u4f5c\u308c\u307e\u3059\u3002'
 }
+
+const createFoodDetail = (city, name, index = 0) => ({
+  name,
+  description: createFoodDescription(city, name),
+  type: getFoodDetailType(name),
+  bestTiming: getFoodBestTiming(name, index),
+  bestAreaHints: getFoodAreaHints(city, name),
+  goodFor: getFoodGoodFor(name),
+})
 
 const localFoodDetailsByCity = Object.fromEntries(Object.entries(localFoodCandidatesByCity).map(([city, foods]) => [
   city,
   foods
     .filter(isConcreteFoodNameForData)
     .slice(0, 4)
-    .map((name) => ({
-      name,
-      description: createFoodDescription(city, name),
-      type: getFoodDetailType(name),
+    .map((name, index) => ({
+      ...createFoodDetail(city, name, index),
     })),
 ]))
 
-const createFallbackTouristSpots = (destination) => {
-  const tags = destination.tags ?? []
-  const city = destination.city
-  const spots = []
-  if (tags.includes('温泉')) spots.push({ name: city + '温泉街', type: '温泉・街歩き', description: '湯けむりや土産店のある温泉街を歩き、宿の前後に短時間で雰囲気を味わえます。', bestFor: ['温泉', 'ゆっくり'], stayTime: '45分〜1時間' })
-  if (tags.includes('海')) spots.push({ name: city + '海辺エリア', type: '海・散歩', description: '海沿いの景色を眺めながら歩き、昼食やカフェ休憩と組み合わせやすいエリアです。', bestFor: ['自然・絶景', '街歩き'], stayTime: '45分〜1時間' })
-  if (tags.includes('山')) spots.push({ name: city + '自然散策エリア', type: '自然・絶景', description: '山や高原の景色を見ながら、短い散策で旅先らしい空気を感じられます。', bestFor: ['自然・絶景', 'アクティビティ'], stayTime: '1時間前後' })
-  if (tags.includes('グルメ')) spots.push({ name: city + '中心街グルメ散策', type: 'グルメ・街歩き', description: '駅周辺や中心街で食事処を探し、地元の味を旅の予定に入れやすいエリアです。', bestFor: ['グルメ', '街歩き'], stayTime: '45分〜1時間' })
-  spots.push({ name: city + '駅周辺散策', type: '街歩き', description: '到着後に土産店やカフェを確認し、移動前後の空き時間を使いやすいエリアです。', bestFor: ['街歩き', '一人旅'], stayTime: '30分〜45分' })
-  spots.push({ name: city + 'ご当地ランチ', type: 'グルメ', description: '昼食に郷土料理やカフェを選び、観光の合間にその土地らしい食事を入れられます。', bestFor: ['グルメ', 'ゆっくり'], stayTime: '45分〜1時間' })
-  return spots.filter((spot, index, list) => list.findIndex((item) => item.name === spot.name) === index).slice(0, 4)
-}
+const createFallbackTouristSpots = () => []
 
 const createLocalFoodDetails = (destination) => {
   const foods = Array.isArray(destination.localFoodCandidates) && destination.localFoodCandidates.length > 0
     ? destination.localFoodCandidates.filter(isConcreteFoodNameForData)
     : getLocalFoodCandidates(destination.city, destination.tags).filter(isConcreteFoodNameForData)
-  return foods.slice(0, 3).map((name) => ({
-    name,
-    description: createFoodDescription(destination.city, name),
-    type: getFoodDetailType(name),
+  return foods.slice(0, 3).map((name, index) => ({
+    ...createFoodDetail(destination.city, name, index),
   }))
 }
 

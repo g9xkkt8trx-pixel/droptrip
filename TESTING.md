@@ -155,3 +155,23 @@
 - Confirm that localFoodDetails cards appear only when the name is a concrete dish or local specialty.
 - Confirm that destinations with only abstract localFoodCandidates hide the local food section naturally.
 - Confirm the developer page flags abstract names, template descriptions, generic food-image risk, and concrete food shortages.
+
+## Concrete Tourist Spot Checks
+
+- Confirm that result cards show real tourist spot names or specific area names.
+- Confirm that generic names such as sightseeing spot, nature spot, or popular spot do not appear as spot card titles.
+- Confirm that simple plans include spot names and local food names when data exists.
+- Confirm that destinations with weak touristSpots do not show forced abstract cards or empty-state text.
+
+## Pseudo Spot Name Checks
+
+- Confirm that generated names such as city + local lunch, seaside area, cafe, and generic sightseeing spot do not appear on result screens.
+- Confirm that destinations without concrete touristSpots hide the spot card section without showing empty-state text.
+- Confirm that Naruto City, when present in data, uses concrete spots and local foods such as Uzu no Michi, Naruto Park, Naruto tai, and Naruto wakame.
+
+## Natural Local Food Copy Checks
+
+- Confirm that local food detail cards do not repeat the same generic sentence across multiple dishes.
+- Confirm that detail cards include concrete timing or area hints when available.
+- Confirm that AI plan prompts include local food description, timing, area hints, and trip-fit context without changing /api files.
+- Confirm that generic or mismatched food images are not promoted as confirmed local specialty photos.

@@ -277,3 +277,21 @@ v0.1.0-beta の主な機能は次のとおりです。
 - Local food sections prioritize concrete dish and specialty names. Generic labels such as category-only gourmet or cafe text are not shown as detail cards.
 - When localFoodDetails is missing, the UI falls back to concrete localFoodCandidates chips only. If no concrete food name exists, the section is hidden without an empty-state message.
 - Generic food images are not promoted as concrete local specialty photos; image gaps continue to be tracked in IMAGE_TODO.md.
+
+## Concrete Tourist Spot Display Policy
+
+- Tourist spot cards prioritize real spot names or specific area names. Generic names such as sightseeing spot or nature spot are filtered from general screens.
+- Simple stay plans now use filtered touristSpots and concrete local food names to describe a realistic day-by-day flow.
+- When touristSpots are not concrete enough, DROPTRIP avoids showing forced abstract cards or empty-state text.
+
+## Pseudo Spot Name Policy
+
+- DROPTRIP does not show generated pseudo spot names such as city + local lunch, seaside area, cafe, or generic sightseeing spot on general result screens.
+- Tourist spot cards use concrete spot names or natural real area names only. If concrete touristSpots are missing, the spot section is hidden instead of creating a generic card.
+- Naruto City data has been prepared with concrete spots such as Uzu no Michi, Otsuka Museum of Art, Naruto Park, and whirlpool sightseeing boats, plus concrete local foods.
+
+## Natural Local Food Copy Policy
+
+- Local food descriptions avoid repeating generic template phrases and instead mention food character, timing, nearby areas, and trip fit.
+- localFoodDetails can include bestTiming, bestAreaHints, and goodFor so result cards and AI plans can suggest when and where the food fits naturally.
+- When exact restaurant names are ever added, they should include source, checkedAt, and status metadata and remain unconfirmed unless manually reviewed.

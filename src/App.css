@@ -6416,3 +6416,17 @@ h1 {
   font-size: 0.82rem;
   line-height: 1.5;
 }
+
+
+.local-food-meta {
+  display: grid;
+  gap: 0.25rem;
+  margin-top: 0.55rem;
+}
+
+.local-food-meta small {
+  display: block;
+  color: #64748b;
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
