@@ -6407,3 +6407,12 @@ h1 {
     text-align: left;
   }
 }
+
+
+.multi-destination-card li small {
+  display: block;
+  margin-top: 0.25rem;
+  color: #64748b;
+  font-size: 0.82rem;
+  line-height: 1.5;
+}

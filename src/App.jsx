@@ -1483,31 +1483,70 @@ const getSpotPurposeLabel = (spot = {}, selectedPurposes = []) => {
   return matched.length > 0 ? matched.slice(0, 2).join('・') + '向き' : (spot.bestFor ?? []).slice(0, 2).join('・') || '立ち寄りやすい'
 }
 
-const getConcreteStayIdeas = (destination = {}, schedule = {}, spots = [], foodDetails = [], selectedPurposes = []) => {
-  const mainSpot = spots[0]?.name ?? destination.city + '中心部'
-  const secondSpot = spots[1]?.name ?? destination.city + '周辺'
-  const food = foodDetails[0]?.name ?? destination.localFoodCandidates?.[0] ?? 'ご当地グルメ'
+const getConcreteStayIdeas = (destination = {}, schedule = {}, spots = [], foodDetails = [], selectedPurposes = [], nearbySuggestions = []) => {
+  const mainSpot = spots[0]
+  const secondSpot = spots[1]
+  const thirdSpot = spots[2]
+  const mainSpotName = mainSpot?.name ?? destination.city + '中心部'
+  const secondSpotName = secondSpot?.name ?? destination.city + '周辺'
+  const food = foodDetails[0]
+  const foodName = food?.name ?? destination.localFoodCandidates?.[0] ?? 'ご当地グルメ'
+  const foodDetail = food?.description ? '。' + food.description : ''
   const purpose = selectedPurposes?.[0] ?? '旅先らしい時間'
+  const nearbyName = nearbySuggestions[0]?.destination?.city ?? nearbySuggestions[0]?.city ?? destination.nearbyDestinationHints?.[0]
   if ((schedule?.days ?? 1) <= 1) {
     return [
-      '午前：移動後、' + mainSpot + 'を中心に短時間で見どころを押さえる',
-      '昼：' + food + 'を候補にして、食事でその土地らしさを入れる',
-      '午後：' + secondSpot + 'や駅周辺を歩き、帰路に合わせて軽めに締める',
+      '午前：移動後、' + mainSpotName + 'へ向かい、' + (mainSpot?.description ?? '旅先の中心になる場所を歩く'),
+      '昼：' + foodName + 'を候補にして食事を入れる' + foodDetail,
+      '午後：' + secondSpotName + 'を歩き、' + (secondSpot?.stayTime ? secondSpot.stayTime + 'を目安に' : '') + '帰路に合わせて軽めに締める',
     ]
   }
   if (schedule?.days === 2) {
     return [
-      '1日目：到着後に' + mainSpot + 'へ行き、夕方は食事や宿でゆっくり過ごす',
-      '2日目：' + secondSpot + 'と' + food + 'を組み合わせて、昼過ぎから帰路へ向かう',
-      '余裕があれば：目的に合わせて' + purpose + 'の時間を少し足す',
+      '1日目：到着後に' + mainSpotName + 'へ行き、' + (mainSpot?.description ?? '旅先らしい景色や街並みを押さえる'),
+      '夜：' + foodName + 'や宿周辺の食事を入れ、移動で詰め込みすぎない流れにする',
+      '2日目：' + secondSpotName + (thirdSpot ? 'と' + thirdSpot.name : '') + 'を組み合わせ、' + purpose + 'の時間を作ってから帰路へ向かう',
     ]
   }
   return [
-    '前半：' + mainSpot + 'を急がず回り、夜は' + food + 'を楽しむ',
-    '中盤：' + secondSpot + 'や周辺候補へ足を伸ばし、同じ地域の違う表情を見る',
-    '後半：街歩き・温泉・自然など目的に合わせて余白を残し、最終日は軽めに動く',
+    '前半：' + mainSpotName + 'を急がず回り、' + foodName + 'を食事候補にして旅先の印象を作る',
+    '中盤：' + secondSpotName + (nearbyName ? 'や' + nearbyName + '方面' : 'や周辺候補') + 'へ足を伸ばし、同じ地域の違う表情を見る',
+    '後半：' + (thirdSpot?.name ?? '街歩き・温泉・自然') + 'など目的に合う時間を残し、最終日は帰路に合わせて軽めに動く',
   ]
 }
+
+const createAiDestinationPayload = (destination = {}, context = {}, featuredSpots = [], foodDetails = [], nearbySuggestions = []) => ({
+  city: destination.city,
+  prefecture: destination.prefecture,
+  region: destination.region,
+  tags: destination.tags ?? [],
+  recommendText: destination.recommendText ?? destination.recommendation ?? '',
+  bestSeasons: destination.bestSeasons ?? [],
+  seasonHighlights: destination.seasonHighlights ?? {},
+  localFoodCandidates: (destination.localFoodCandidates ?? []).slice(0, 5),
+  localFoodDetails: foodDetails.slice(0, 3),
+  touristSpots: (featuredSpots.length > 0 ? featuredSpots : destination.touristSpots ?? []).slice(0, 5).map(({ name, type, description, bestFor, stayTime }) => ({ name, type, description, bestFor, stayTime })),
+  nearbyDestinationHints: (destination.nearbyDestinationHints ?? []).slice(0, 3),
+  companionFit: destination.companionFit ?? {},
+  purposeFit: destination.purposeFit ?? {},
+  stayFit: destination.stayFit ?? {},
+  longStayStyle: destination.longStayStyle ?? '',
+  selectedFilters: context.selectedFilters ?? [],
+  selectedTravelPurposes: context.selectedTravelPurposes ?? [],
+  tripSchedule: context.tripSchedule ?? resolveTripSchedule(context.tripType, context.customNights, context.customDays),
+  customNights: context.customNights,
+  customDays: context.customDays,
+  movementRange: context.movementRange,
+  movementRangeLabel: movementRangeOptions.find((option) => option.value === context.movementRange)?.label ?? 'おまかせ',
+  travelSeason: context.travelSeason,
+  nearbySuggestions: nearbySuggestions.slice(0, 3).map((item) => ({
+    city: item.destination?.city ?? item.city,
+    prefecture: item.destination?.prefecture ?? item.prefecture,
+    reason: item.reason,
+    sharedTags: item.sharedTags ?? [],
+    regionMatch: item.regionMatch ?? 'stay-focus',
+  })),
+})
 
 const normalizeSearchText = (value) => String(value ?? '').toLowerCase()
 
@@ -2162,7 +2201,7 @@ function App() {
     : { matchedStyles: [], summary: '' }
   const currentTripSchedule = planContext?.tripSchedule ?? (planContext ? resolveTripSchedule(planContext.tripType) : tripSchedule)
   const currentTripPlans = destination ? getPlansForSchedule(destination, currentTripSchedule) : []
-  const concreteStayIdeas = destination ? getConcreteStayIdeas(destination, currentTripSchedule, featuredTouristSpots, localFoodDetails, planContext?.selectedTravelPurposes ?? []) : []
+  const concreteStayIdeas = destination ? getConcreteStayIdeas(destination, currentTripSchedule, featuredTouristSpots, localFoodDetails, planContext?.selectedTravelPurposes ?? [], planContext?.tripSuggestions ?? []) : []
   const currentBudget = destination ? getBudgetForSchedule(destination, currentTripSchedule) : '時期により変動'
   const longTripPacingItems = getLongTripPacingItems(currentTripSchedule, Boolean(planContext?.tripSuggestions?.some((item) => !item.isStayFocus)))
 
@@ -3160,13 +3199,17 @@ function App() {
     const season = planContext.travelSeason === '今の季節'
       ? `今の季節（${getCurrentSeason()}）`
       : planContext.travelSeason
+    const aiDestination = createAiDestinationPayload(destination, planContext, featuredTouristSpots, localFoodDetails, planContext.tripSuggestions ?? [])
     const prompt = createAiPlanPrompt({
       departure: planContext.departure,
-      destination,
+      destination: aiDestination,
       tripType: planContext.tripType,
+      tripSchedule: currentTripSchedule,
       season,
       selectedFilters: planContext.selectedFilters,
       selectedTravelPurposes: planContext.selectedTravelPurposes,
+      movementRangeLabel: aiDestination.movementRangeLabel,
+      nearbySuggestions: aiDestination.nearbySuggestions,
       transportComparisons: transportEvaluations.map((item) => ({
         mode: item.mode,
         rating: item.feasibility?.starsLabel ?? '未評価',
@@ -3178,7 +3221,7 @@ function App() {
     try {
       const result = await generateOpenAiPlan({
         prompt,
-        destination: { city: destination.city, prefecture: destination.prefecture },
+        destination: aiDestination,
         travelType: planContext.tripType,
         storedApiKey: savedOpenAiApiKey,
       })
@@ -3701,7 +3744,7 @@ function App() {
                   <p>EXTENDED TRIP</p>
                   <h2 id="multi-destination-title">長めの旅行なら、周辺も一緒に楽しめます</h2>
                 </div>
-                <p className="multi-destination-lead">{currentTripSchedule.label}なら、メインの旅先に加えて周辺エリアも組み合わせると満足度が上がりそうです。</p>
+                <p className="multi-destination-lead">{currentTripSchedule.label}なら、{destination.city}を中心に{planContext.tripSuggestions.map((item) => item.destination?.city ?? item.city).slice(0, 3).join('、')}を組み合わせると、{planContext.selectedTravelPurposes.length > 0 ? planContext.selectedTravelPurposes.slice(0, 2).join('・') : '街歩きやご当地グルメ'}の時間を分けて作りやすくなります。</p>
                 <dl>
                   <div><dt>メイン</dt><dd>{destination.prefecture} {destination.city}</dd></div>
                   <div><dt>一緒に楽しめそうな候補</dt><dd>{planContext.tripSuggestions.map((item) => `${item.destination?.prefecture ?? item.prefecture} ${item.destination?.city ?? item.city}`).join('、')}</dd></div>
@@ -3711,6 +3754,7 @@ function App() {
                     <li key={`${item.destination?.id ?? item.city}-suggestion`}>
                       <strong>{item.destination?.city ?? item.city}</strong>
                       <span>{item.reason}</span>
+                      <small>{(item.sharedTags ?? []).length > 0 ? '合う目的：' + item.sharedTags.slice(0, 2).join('・') : planContext.selectedTravelPurposes.length > 0 ? '合う目的：' + planContext.selectedTravelPurposes.slice(0, 2).join('・') : '周辺散策向き'}</small>
                     </li>
                   ))}
                 </ul>
@@ -5272,6 +5316,13 @@ function App() {
               <div><dt>AIプランモデル</dt><dd>{OPENAI_PLAN_MODEL}</dd></div>
               <div><dt>OpenAI通信方式</dt><dd>{getOpenAiCommunicationModeLabel(openAiCommunicationMode)}</dd></div>
               <div><dt>AIプラン生成状態</dt><dd>{aiPlanStatus}</dd></div>
+              <div><dt>AI送信 touristSpots</dt><dd>{Math.min((featuredTouristSpots.length > 0 ? featuredTouristSpots.length : destination?.touristSpots?.length ?? 0), 5)} / 最大5件</dd></div>
+              <div><dt>AI送信 localFoodDetails</dt><dd>{Math.min(localFoodDetails.length, 3)} / 最大3件</dd></div>
+              <div><dt>AI送信 周辺候補</dt><dd>{planContext?.tripSuggestions?.slice(0, 3).length ?? 0} / 最大3件</dd></div>
+              <div><dt>スポット表示診断</dt><dd>{destination?.touristSpots?.length > 0 && featuredTouristSpots.length === 0 ? 'touristSpotsあり / 結果表示なし' : '表示対象あり'}</dd></div>
+              <div><dt>グルメ説明診断</dt><dd>{destination?.localFoodDetails?.length > 0 && localFoodDetails.length === 0 ? 'localFoodDetailsあり / 表示なし' : '表示対象あり'}</dd></div>
+              <div><dt>長期候補診断</dt><dd>{destination?.nearbyDestinationHints?.length > 0 && currentTripSchedule.days >= 3 && !(planContext?.tripSuggestions?.length > 0) ? 'nearbyDestinationHintsあり / 長期表示なし' : '表示条件に問題なし'}</dd></div>
+              <div><dt>説明強化優先</dt><dd>{featuredTouristSpots.length < 3 || localFoodDetails.length < 2 ? 'スポットまたはグルメ説明を追加確認' : '具体情報あり'}</dd></div>
               <div><dt>本日のAI生成回数</dt><dd>{todayAiPlanUsageCount} / {DAILY_AI_PLAN_LIMIT}回</dd></div>
               <div><dt>プレミアム状態</dt><dd>{isPremiumUser ? '有効（テスト）' : '無効'}</dd></div>
               <div><dt>移動情報取得状態</dt><dd>{travelStatusLabels[travelInfo.status] ?? travelInfo.status}</dd></div>
