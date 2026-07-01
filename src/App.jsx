@@ -1502,6 +1502,10 @@ const isTemplateSpotDescription = (description = '') => {
     '\u663c\u98df\u306b\u90f7\u571f\u6599\u7406\u3084\u30ab\u30d5\u30a7\u3092\u9078\u3073',
     '\u6d77\u6cbf\u3044\u306e\u666f\u8272\u3092\u773a\u3081\u306a\u304c\u3089\u6b69\u304d',
     '\u99c5\u5468\u8fba\u3084\u4e2d\u5fc3\u8857\u3067\u98df\u4e8b\u51e6\u3092\u63a2\u3057',
+    '\u5019\u88dc\u306b\u3057\u3084\u3059\u3044\u3067\u3059',
+    '\u5165\u308c\u3084\u3059\u3044\u3067\u3059',
+    '\u305d\u306e\u571f\u5730\u3089\u3057\u3044',
+    '\u98df\u6587\u5316\u306b\u89e6\u308c\u3084\u3059\u3044',
   ].some((fragment) => text.includes(fragment))
 }
 
@@ -1579,6 +1583,26 @@ const getCourseFoodNames = (destination = {}, foodDetails = []) => [...new Set([
   ...foodDetails.map((food) => food?.name),
   ...getConcreteFoodCandidates(destination.localFoodCandidates),
 ])].filter((name) => isConcreteFoodName(name)).slice(0, 3)
+
+const getConcreteSchedulePlans = (destination = {}, schedule = {}, foodItems = []) => {
+  const plans = getPlansForSchedule(destination, schedule)
+  const foodNames = [...new Set([
+    ...getConcreteFoodCandidates(foodItems),
+    ...getConcreteFoodCandidates(destination.localFoodCandidates),
+  ])].slice(0, 2)
+  const foodLabel = foodNames.join('や')
+  return plans.map((dayPlan) => ({
+    ...dayPlan,
+    items: (dayPlan.items ?? [])
+      .map((item) => {
+        if (String(item).includes('ご当地ランチ')) {
+          return foodLabel ? String(item).replace('ご当地ランチ', foodLabel) : ''
+        }
+        return item
+      })
+      .filter(Boolean),
+  }))
+}
 
 const getCourseNearbyName = (destination = {}, nearbySuggestions = []) => {
   const suggestionName = nearbySuggestions[0]?.destination?.city ?? nearbySuggestions[0]?.city
@@ -1800,7 +1824,7 @@ const getTripProposalText = (destination = {}, context = {}, seasonInfo = {}) =>
       ? destination.recommendText + 'を手がかりに過ごし方を組み立てられます。'
       : ''
   const foodPhrase = foodName
-    ? '食事は' + foodName + 'を昼食や休憩に入れると、その土地らしい味を予定に組み込みやすくなります。'
+    ? '食事は' + foodName + 'を昼食や休憩に入れ、' + (mainSpot ? mainSpot + '周辺の散策' : '旅先での散策') + 'とつなげると流れを作りやすくなります。'
     : ''
   const stayPhrase = schedule?.days <= 1
     ? '日帰りなら、到着後に' + (mainSpot ?? destination.city + '中心部') + 'を歩き、昼食と午後の散策を短くまとめる流れが合います。'
@@ -1971,6 +1995,15 @@ const getConcreteFoodShortageCities = (destinationList = []) => destinationList
 
 const getGenericFoodImageRiskCities = (destinationList = []) => destinationList
   .filter((place) => getConcreteFoodCandidates(place.localFoodCandidates).length > 0 && Boolean(getImageMetaValue(place.foodImage, 'isGeneric')))
+  .map((place) => place.city)
+
+const getFoodImageMismatchRiskCities = (destinationList = []) => destinationList
+  .filter((place) => {
+    const foods = getConcreteFoodCandidates(place.localFoodCandidates)
+    const imageThemes = getConcreteFoodCandidates(splitFoodTheme(getImageMetaValue(place.foodImage, 'foodTheme')))
+    if (foods.length === 0 || imageThemes.length === 0) return false
+    return !imageThemes.some((theme) => foods.some((food) => food.includes(theme) || theme.includes(food)))
+  })
   .map((place) => place.city)
 
 const getAbstractDescriptionRiskCities = (destinationList = []) => destinationList
@@ -2488,7 +2521,7 @@ function App() {
     ? getTravelStyleMatch(destination, planContext.selectedFilters)
     : { matchedStyles: [], summary: '' }
   const currentTripSchedule = planContext?.tripSchedule ?? (planContext ? resolveTripSchedule(planContext.tripType) : tripSchedule)
-  const currentTripPlans = destination ? getPlansForSchedule(destination, currentTripSchedule) : []
+  const currentTripPlans = destination ? getConcreteSchedulePlans(destination, currentTripSchedule, localFoodItems) : []
   const concreteStayIdeas = destination ? getConcreteStayIdeas(destination, currentTripSchedule, featuredTouristSpots, localFoodDetails, planContext?.selectedTravelPurposes ?? [], planContext?.selectedFilters ?? [], planContext?.tripSuggestions ?? []) : []
   const currentBudget = destination ? getBudgetForSchedule(destination, currentTripSchedule) : '時期により変動'
   const longTripPacingItems = getLongTripPacingItems(currentTripSchedule, Boolean(planContext?.tripSuggestions?.some((item) => !item.isStayFocus)))
@@ -5199,6 +5232,7 @@ function App() {
               <div><dt>priority model course strengthening</dt><dd>{formatShortageList(getPriorityModelCourseStrengtheningCities(destinations))}</dd></div>
               <div><dt>具体的な料理名が不足</dt><dd>{formatShortageList(getConcreteFoodShortageCities(destinations))}</dd></div>
               <div><dt>generic food画像の大表示リスク</dt><dd>{formatShortageList(getGenericFoodImageRiskCities(destinations))}</dd></div>
+              <div><dt>food image / dish mismatch risk</dt><dd>{formatShortageList(getFoodImageMismatchRiskCities(destinations))}</dd></div>
               <div><dt>touristSpotsのnameが抽象語</dt><dd>{formatShortageList(getAbstractTouristSpotNameCities(destinations))}</dd></div>
               <div><dt>touristSpots.nameが疑似スポット名</dt><dd>{formatShortageList(getPseudoTouristSpotNameCities(destinations))}</dd></div>
               <div><dt>fallback疑似カード生成リスク</dt><dd>{formatShortageList(getFallbackPseudoSpotGeneratedCities(destinations))}</dd></div>

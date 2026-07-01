@@ -348,3 +348,5 @@
 - Local food copy now names timing and area hints; image follow-up should prioritize photos that match those specific dishes and areas.
 - If a food image is generic or does not match the named dish, keep it visually modest and track the missing dish-specific asset here.
 - Restaurant-level names should not be added from external sources unless manually reviewed with source, checkedAt, and status metadata.
+- Result quality checks now include a food image / dish mismatch risk diagnostic. Destinations flagged there should be reviewed here before adding or promoting food images.
+- Missing or fallback images should stay as tracked local asset needs; do not replace them with unverified external images.

@@ -1737,7 +1737,7 @@ const baseDestinations = rawDestinations.map((destination) => {
     tags: destination.tags,
     recommendation: destination.recommendation,
     recommendText: destination.recommendation,
-    reason: `${destination.city}では「${destination.recommendation}」を軸に、${destination.tags.join('・')}の時間を旅程へ入れやすいです。`,
+    reason: `${destination.city}では「${destination.recommendation}」を軸に、${destination.tags.join('・')}の時間を旅程の柱にできます。`,
     budgets: destination.budget,
     budget: destination.budget,
     plans: normalizePlans(destination.schedule, destination.city),
@@ -1760,7 +1760,7 @@ const expandedDestinations = supplementalDestinations.map((destination) => {
     ...destination,
     id: `${destination.prefecture}-${destination.city}`,
     googleMapsQuery: `${destination.address} 観光`,
-    reason: `${destination.city}では「${destination.recommendText}」を軸に、${destination.tags.join('・')}の時間を旅程へ入れやすいです。`,
+    reason: `${destination.city}では「${destination.recommendText}」を軸に、${destination.tags.join('・')}の時間を旅程の柱にできます。`,
     localFoodCandidates,
     ...images,
   })

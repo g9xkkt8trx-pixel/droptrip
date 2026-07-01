@@ -97,3 +97,9 @@ DROPTRIP のβ版リリース履歴を管理するためのメモです。
 - Improved the simple result-screen plan into a short model-course style flow for day trips, one-night trips, two-night trips, and longer stays.
 - The model course now uses concrete tourist spot names, local food names, and nearbyDestinationHints when available, without inventing pseudo names such as city + lunch or city + sightseeing.
 - Added developer diagnostics for model courses missing concrete spots, local food names, long-stay nearby hints, or containing pseudo-name risks.
+
+## Unreleased
+
+- Ran a result-screen quality pass across local food, tourist spots, model courses, and image-fit diagnostics.
+- Replaced remaining generic lunch wording in detailed schedule display with concrete local food names when available.
+- Tightened developer diagnostics with a food image / dish mismatch risk check and reduced template-like result copy.
