@@ -1440,13 +1440,51 @@ const touristSpotsByCity = {
   ]
 }
 
+const abstractFoodLabelsForData = new Set([
+  'ご当地グルメ', '市場グルメ', 'カフェ', '料理イメージ', '食事', '名物', 'グルメ', 'スイーツ', '軽食',
+  '汎用料理イメージ', 'ご当地グルメ候補', '温泉街グルメ', '港町の食事', '中華街グルメ',
+])
+
+const isConcreteFoodNameForData = (name = '') => {
+  const normalized = String(name).trim()
+  if (!normalized) return false
+  if (abstractFoodLabelsForData.has(normalized)) return false
+  return ![/料理イメージ/, /^汎用/, /^ご当地グルメ$/, /^市場グルメ$/, /^カフェ$/, /^食事$/, /^名物$/, /^グルメ$/, /^スイーツ$/, /^軽食$/].some((pattern) => pattern.test(normalized))
+}
+
+const getFoodDetailType = (name = '') => {
+  if (/寿司|海鮮|牡蠣|穴子|しらす|クエ|イカ|刺身/.test(name)) return '海鮮・食事'
+  if (/ラーメン|そば|うどん|鍋|カレー|牛タン|ジンギスカン|ちゃんぽん|もつ/.test(name)) return '食事'
+  if (/餅|菓子|スイーツ|甘味|プリン|チーズ|メロン|カステラ/.test(name)) return '甘味・軽食'
+  return '名物'
+}
+
+const createFoodDescription = (city, name) => {
+  if (/寿司|海鮮|牡蠣|穴子|しらす|クエ|イカ|刺身/.test(name)) {
+    return '港町や海辺の旅で昼食の中心にしやすく、' + city + 'らしい食事候補として選びやすいです。'
+  }
+  if (/ラーメン|そば|うどん|鍋|カレー|牛タン|ジンギスカン|ちゃんぽん|もつ/.test(name)) {
+    return '昼食や夕食に入れやすい名物で、移動の合間でもその土地らしい食事にしやすいです。'
+  }
+  if (/餅|菓子|スイーツ|甘味|プリン|チーズ|メロン|カステラ|カフェ/.test(name)) {
+    return '街歩きの休憩や食後の甘味として入れやすく、短い滞在でも試しやすい一品です。'
+  }
+  if (/まんじゅう|温泉/.test(name)) {
+    return '温泉街の散策途中に立ち寄りやすく、湯上がりや宿へ向かう前の軽い食べ歩きに向いています。'
+  }
+  return city + 'の食文化に触れやすい料理で、昼食や夕食の候補にしやすいです。'
+}
+
 const localFoodDetailsByCity = Object.fromEntries(Object.entries(localFoodCandidatesByCity).map(([city, foods]) => [
   city,
-  foods.slice(0, 4).map((name, index) => ({
-    name,
-    description: city + 'で選びやすい' + name + '。観光の合間の昼食や休憩に組み込みやすく、街歩きの満足感を上げてくれます。',
-    type: index === 0 ? '名物' : index === 1 ? '食事' : index === 2 ? '甘味・軽食' : 'カフェ・土産',
-  })),
+  foods
+    .filter(isConcreteFoodNameForData)
+    .slice(0, 4)
+    .map((name) => ({
+      name,
+      description: createFoodDescription(city, name),
+      type: getFoodDetailType(name),
+    })),
 ]))
 
 const createFallbackTouristSpots = (destination) => {
@@ -1464,12 +1502,12 @@ const createFallbackTouristSpots = (destination) => {
 
 const createLocalFoodDetails = (destination) => {
   const foods = Array.isArray(destination.localFoodCandidates) && destination.localFoodCandidates.length > 0
-    ? destination.localFoodCandidates
-    : getLocalFoodCandidates(destination.city, destination.tags)
-  return foods.slice(0, 4).map((name, index) => ({
+    ? destination.localFoodCandidates.filter(isConcreteFoodNameForData)
+    : getLocalFoodCandidates(destination.city, destination.tags).filter(isConcreteFoodNameForData)
+  return foods.slice(0, 3).map((name) => ({
     name,
-    description: destination.city + 'で食事候補にしやすい' + name + '。観光スポットの前後に入れると、移動だけで終わらない旅にできます。',
-    type: index === 0 ? '名物' : index === 1 ? '食事' : index === 2 ? '甘味・軽食' : 'カフェ・土産',
+    description: createFoodDescription(destination.city, name),
+    type: getFoodDetailType(name),
   }))
 }
 

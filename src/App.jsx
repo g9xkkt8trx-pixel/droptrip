@@ -1421,15 +1421,39 @@ const splitFoodTheme = (theme = '') => String(theme)
   .map((item) => item.trim())
   .filter(Boolean)
 
+const abstractFoodLabels = new Set([
+  'ご当地グルメ', '市場グルメ', 'カフェ', '料理イメージ', '食事', '名物', 'グルメ', 'スイーツ', '軽食',
+  '汎用料理イメージ', 'ご当地グルメ候補', '温泉街グルメ', '港町の食事', '中華街グルメ',
+])
+
+const abstractFoodLabelPatterns = [/料理イメージ/, /^汎用/, /^ご当地グルメ$/, /^市場グルメ$/, /^カフェ$/, /^食事$/, /^名物$/, /^グルメ$/, /^スイーツ$/, /^軽食$/]
+
+const isConcreteFoodName = (name = '') => {
+  const normalized = String(name).trim()
+  if (!normalized) return false
+  if (abstractFoodLabels.has(normalized)) return false
+  return !abstractFoodLabelPatterns.some((pattern) => pattern.test(normalized))
+}
+
+const isTemplateFoodDescription = (description = '') => {
+  const text = String(description ?? '')
+  if (!text.trim()) return true
+  return [
+    '観光スポットの前後に入れると',
+    '観光の前後に入れると',
+    '移動だけで終わらない旅',
+    '食事候補にしやすい',
+  ].some((fragment) => text.includes(fragment))
+}
+
+const getConcreteFoodCandidates = (items = []) => [...new Set((Array.isArray(items) ? items : [])
+  .map((item) => String(item ?? '').trim())
+  .filter(isConcreteFoodName))]
+
 const getLocalFoodDisplayItems = (destination = {}) => {
-  const fromCandidates = Array.isArray(destination.localFoodCandidates)
-    ? destination.localFoodCandidates
-    : []
-  const fromFoodTheme = splitFoodTheme(getImageMetaValue(destination.foodImage, 'foodTheme'))
-  const fromTags = destination.tags?.includes('グルメ')
-    ? ['ご当地グルメ', 'カフェ']
-    : []
-  return [...new Set([...fromCandidates, ...fromFoodTheme, ...fromTags])]
+  const fromCandidates = getConcreteFoodCandidates(destination.localFoodCandidates)
+  const fromFoodTheme = getConcreteFoodCandidates(splitFoodTheme(getImageMetaValue(destination.foodImage, 'foodTheme')))
+  return [...new Set([...fromCandidates, ...fromFoodTheme])]
     .filter(Boolean)
     .slice(0, 5)
 }
@@ -1447,13 +1471,13 @@ const purposeSpotKeywords = {
 }
 
 const getLocalFoodDetailItems = (destination = {}, fallbackItems = []) => {
+  const fallbackSet = new Set(getConcreteFoodCandidates(fallbackItems))
   const details = Array.isArray(destination.localFoodDetails) ? destination.localFoodDetails : []
-  if (details.length > 0) return details.filter((item) => item?.name).slice(0, 4)
-  return fallbackItems.slice(0, 4).map((name, index) => ({
-    name,
-    type: index === 0 ? '名物' : '食事',
-    description: destination.city + 'で食事候補にしやすい' + name + '。観光の前後に入れると、その土地らしさが出ます。',
-  }))
+  return details
+    .filter((item) => item?.name && isConcreteFoodName(item.name))
+    .filter((item) => !isTemplateFoodDescription(item.description))
+    .filter((item) => fallbackSet.size === 0 || fallbackSet.has(item.name) || isConcreteFoodName(item.name))
+    .slice(0, 3)
 }
 
 const getPurposeMatchedTouristSpots = (destination = {}, selectedPurposes = []) => {
@@ -1490,7 +1514,7 @@ const getConcreteStayIdeas = (destination = {}, schedule = {}, spots = [], foodD
   const mainSpotName = mainSpot?.name ?? destination.city + '中心部'
   const secondSpotName = secondSpot?.name ?? destination.city + '周辺'
   const food = foodDetails[0]
-  const foodName = food?.name ?? destination.localFoodCandidates?.[0] ?? 'ご当地グルメ'
+  const foodName = food?.name ?? getConcreteFoodCandidates(destination.localFoodCandidates)[0] ?? '現地の食事'
   const foodDetail = food?.description ? '。' + food.description : ''
   const purpose = selectedPurposes?.[0] ?? '旅先らしい時間'
   const nearbyName = nearbySuggestions[0]?.destination?.city ?? nearbySuggestions[0]?.city ?? destination.nearbyDestinationHints?.[0]
@@ -1523,7 +1547,7 @@ const createAiDestinationPayload = (destination = {}, context = {}, featuredSpot
   recommendText: destination.recommendText ?? destination.recommendation ?? '',
   bestSeasons: destination.bestSeasons ?? [],
   seasonHighlights: destination.seasonHighlights ?? {},
-  localFoodCandidates: (destination.localFoodCandidates ?? []).slice(0, 5),
+  localFoodCandidates: getConcreteFoodCandidates(destination.localFoodCandidates).slice(0, 5),
   localFoodDetails: foodDetails.slice(0, 3),
   touristSpots: (featuredSpots.length > 0 ? featuredSpots : destination.touristSpots ?? []).slice(0, 5).map(({ name, type, description, bestFor, stayTime }) => ({ name, type, description, bestFor, stayTime })),
   nearbyDestinationHints: (destination.nearbyDestinationHints ?? []).slice(0, 3),
@@ -1617,19 +1641,28 @@ const getTravelPurposeMatch = (destination = {}, selectedTravelPurposes = []) =>
 }
 
 const getFoodThemeText = (destination = {}, foodItems = []) => {
-  const foodTheme = getImageMetaValue(destination.foodImage, 'foodTheme')
-  if (foodTheme) return foodTheme
+  const foodTheme = getConcreteFoodCandidates(splitFoodTheme(getImageMetaValue(destination.foodImage, 'foodTheme')))
+  if (foodTheme.length > 0) return foodTheme.slice(0, 3).join('・')
   if (foodItems.length > 0) return foodItems.slice(0, 3).join('・')
   return ''
 }
 
-const shouldFeatureFoodImage = (destination = {}) => {
+const shouldFeatureFoodImage = (destination = {}, foodItems = []) => {
   const foodImage = destination.foodImage
+  const hasConcreteFood = getConcreteFoodCandidates(foodItems).length > 0
+    || getConcreteFoodCandidates(destination.localFoodCandidates).length > 0
+  const isGeneric = Boolean(getImageMetaValue(foodImage, 'isGeneric'))
+  const isFallback = getImageMetaValue(foodImage, 'status') === 'fallback'
+  const hasConcreteTheme = getConcreteFoodCandidates(splitFoodTheme(getImageMetaValue(foodImage, 'foodTheme'))).length > 0
   return Boolean(
     getImageUrl(foodImage)
+    && hasConcreteFood
+    && !isGeneric
+    && !isFallback
     && (
       getImageMetaValue(foodImage, 'isDestinationSpecific')
       || getImageMetaValue(foodImage, 'isLocalFood')
+      || hasConcreteTheme
     ),
   )
 }
@@ -1644,7 +1677,7 @@ const getTripProposalText = (destination = {}, context = {}, seasonInfo = {}) =>
   const foodDetails = getLocalFoodDetailItems(destination, getLocalFoodDisplayItems(destination))
   const mainSpot = spots[0]?.name
   const secondSpot = spots[1]?.name
-  const foodName = foodDetails[0]?.name ?? destination.localFoodCandidates?.[0]
+  const foodName = foodDetails[0]?.name ?? getConcreteFoodCandidates(destination.localFoodCandidates)[0]
   const nearbyName = context?.tripSuggestions?.[0]?.destination?.city
     ?? context?.tripSuggestions?.[0]?.city
     ?? destination.nearbyDestinationHints?.[0]
@@ -1672,7 +1705,7 @@ const getTripProposalText = (destination = {}, context = {}, seasonInfo = {}) =>
       ? destination.recommendText + 'を手がかりに過ごし方を組み立てられます。'
       : ''
   const foodPhrase = foodName
-    ? '食事は' + foodName + 'を候補に入れると、移動だけで終わらない旅になります。'
+    ? '食事は' + foodName + 'を昼食や休憩に入れると、その土地らしい味を予定に組み込みやすくなります。'
     : ''
   const stayPhrase = schedule?.days <= 1
     ? '日帰りなら、到着後に' + (mainSpot ?? destination.city + '中心部') + 'を歩き、昼食と午後の散策を短くまとめる流れが合います。'
@@ -1712,14 +1745,35 @@ const formatShortageList = (cities = []) => {
 }
 
 const getGourmetFoodShortageCities = (destinationList = []) => destinationList
-  .filter((place) => Number(place.purposeFit?.gourmet ?? 0) >= 70 && (place.localFoodCandidates?.length ?? 0) < 2)
+  .filter((place) => Number(place.purposeFit?.gourmet ?? 0) >= 70 && getConcreteFoodCandidates(place.localFoodCandidates).length < 2)
+  .map((place) => place.city)
+
+
+const getAbstractFoodDetailCities = (destinationList = []) => destinationList
+  .filter((place) => (place.localFoodDetails ?? []).some((food) => food?.name && !isConcreteFoodName(food.name)))
+  .map((place) => place.city)
+
+const getAbstractFoodCandidateOnlyCities = (destinationList = []) => destinationList
+  .filter((place) => (place.localFoodCandidates?.length ?? 0) > 0 && getConcreteFoodCandidates(place.localFoodCandidates).length === 0)
+  .map((place) => place.city)
+
+const getTemplateFoodDescriptionCities = (destinationList = []) => destinationList
+  .filter((place) => (place.localFoodDetails ?? []).some((food) => isTemplateFoodDescription(food?.description)))
+  .map((place) => place.city)
+
+const getConcreteFoodShortageCities = (destinationList = []) => destinationList
+  .filter((place) => getConcreteFoodCandidates(place.localFoodCandidates).length < 3)
+  .map((place) => place.city)
+
+const getGenericFoodImageRiskCities = (destinationList = []) => destinationList
+  .filter((place) => getConcreteFoodCandidates(place.localFoodCandidates).length > 0 && Boolean(getImageMetaValue(place.foodImage, 'isGeneric')))
   .map((place) => place.city)
 
 const getAbstractDescriptionRiskCities = (destinationList = []) => destinationList
   .filter((place) => {
     const spotCount = place.touristSpots?.length ?? 0
     const foodDetailCount = place.localFoodDetails?.length ?? 0
-    const hasSpecificFood = (place.localFoodCandidates?.length ?? 0) > 0
+    const hasSpecificFood = getConcreteFoodCandidates(place.localFoodCandidates).length > 0
     return spotCount < 3 || (foodDetailCount === 0 && !hasSpecificFood)
   })
   .map((place) => place.city)
@@ -2216,7 +2270,7 @@ function App() {
   const localFoodDetails = destination ? getLocalFoodDetailItems(destination, localFoodItems) : []
   const featuredTouristSpots = destination && planContext ? getPurposeMatchedTouristSpots(destination, planContext.selectedTravelPurposes) : []
   const foodThemeText = destination ? getFoodThemeText(destination, localFoodItems) : ''
-  const foodImageIsFeatured = destination ? shouldFeatureFoodImage(destination) : false
+  const foodImageIsFeatured = destination ? shouldFeatureFoodImage(destination, localFoodItems) : false
   const tripProposalText = destination && planContext
     ? getTripProposalText(destination, planContext, seasonCompatibility)
     : ''
@@ -4921,6 +4975,11 @@ function App() {
               <div><dt>グルメ向きなのに料理候補が少ない</dt><dd>{formatShortageList(getGourmetFoodShortageCities(destinations))}</dd></div>
               <div><dt>抽象表現だけになりやすい旅行先</dt><dd>{formatShortageList(getAbstractDescriptionRiskCities(destinations))}</dd></div>
               <div><dt>優先的に説明を強化すべき旅行先</dt><dd>{formatShortageList(getPriorityDescriptionStrengtheningCities(destinations))}</dd></div>
+              <div><dt>localFoodDetailsのnameが抽象語</dt><dd>{formatShortageList(getAbstractFoodDetailCities(destinations))}</dd></div>
+              <div><dt>localFoodCandidatesが抽象語のみ</dt><dd>{formatShortageList(getAbstractFoodCandidateOnlyCities(destinations))}</dd></div>
+              <div><dt>ご当地グルメ説明文がテンプレート化</dt><dd>{formatShortageList(getTemplateFoodDescriptionCities(destinations))}</dd></div>
+              <div><dt>具体的な料理名が不足</dt><dd>{formatShortageList(getConcreteFoodShortageCities(destinations))}</dd></div>
+              <div><dt>generic food画像の大表示リスク</dt><dd>{formatShortageList(getGenericFoodImageRiskCities(destinations))}</dd></div>
             </dl>
           </details>
 

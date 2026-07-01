@@ -148,3 +148,10 @@
 - 東京駅/温泉、東京駅/遠出、東京駅/5泊6日、福岡駅/自然、札幌駅/街歩きなどの条件で、観光スポット名・ご当地グルメ名・周辺候補名が表示されるか確認します。
 - 「魅力的」「おすすめ」だけで終わらず、どこで何をする旅かが分かる文になっているか確認します。
 - スマホ幅では、観光スポットカード、ご当地グルメ説明、長期旅行の周辺候補が横にはみ出さないことを確認します。
+
+## Local Food Display Checks
+
+- Confirm that abstract gourmet categories alone do not create detail cards.
+- Confirm that localFoodDetails cards appear only when the name is a concrete dish or local specialty.
+- Confirm that destinations with only abstract localFoodCandidates hide the local food section naturally.
+- Confirm the developer page flags abstract names, template descriptions, generic food-image risk, and concrete food shortages.

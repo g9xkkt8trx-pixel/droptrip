@@ -330,3 +330,9 @@
 - touristSpots の追加により、観光スポット単位の写真が不足している旅行先があります。まずは優先30件の hero / scenery / food を正式素材へ差し替える方針を継続します。
 - localFoodDetails を表示するため、小樽・福岡・京都・石垣・仙台・金沢・別府などはご当地グルメ写真の追加優先度が高いです。
 - 今回は外部画像取得や無断転載は行わず、既存ローカル画像とカテゴリ代替画像で表示を維持しています。
+
+## Local Food Image Follow-up
+
+- Generic food images should not be promoted as concrete local specialty photos.
+- Priority destinations still need safe local image assets for dishes such as sushi, seafood bowls, tonkotsu ramen, beef tongue, matcha sweets, and onsen manju.
+- Category-only food images should be replaced over time with verified local assets stored under public/images/.

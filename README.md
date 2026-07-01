@@ -271,3 +271,9 @@ v0.1.0-beta の主な機能は次のとおりです。
 - データが不足している旅行先では、tags / recommendText / localFoodCandidates から表示を補い、一般画面に「情報がありません」とは出さない方針です。
 
 結果画面では、旅行先の説明が抽象表現だけにならないよう、観光スポット名・ご当地グルメ名・日程別の過ごし方を優先して組み立てます。長期旅行では、周辺候補名と旅の目的とのつながりも表示します。
+
+## Local Food Display Policy
+
+- Local food sections prioritize concrete dish and specialty names. Generic labels such as category-only gourmet or cafe text are not shown as detail cards.
+- When localFoodDetails is missing, the UI falls back to concrete localFoodCandidates chips only. If no concrete food name exists, the section is hidden without an empty-state message.
+- Generic food images are not promoted as concrete local specialty photos; image gaps continue to be tracked in IMAGE_TODO.md.

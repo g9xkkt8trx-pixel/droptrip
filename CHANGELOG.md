@@ -65,3 +65,9 @@ DROPTRIP のβ版リリース履歴を管理するためのメモです。
 - 長期旅行の周辺候補表示で、候補名と旅の目的とのつながりが見えるようにしました。
 - 開発者ページに、抽象表現だけになりやすい旅行先と説明強化優先リストを追加しました。
 - 福岡市のご当地グルメ候補を、豚骨ラーメン・明太子・屋台グルメが伝わる内容へ調整しました。
+
+## Unreleased
+
+- Suppressed abstract local-food labels and now show detail cards only for concrete dish or specialty names.
+- Removed template-generated local-food detail copy and replaced generated descriptions with food-oriented text.
+- Added developer diagnostics for abstract food names, template food descriptions, generic food-image risk, and destinations lacking concrete food names.
