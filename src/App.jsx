@@ -1434,6 +1434,81 @@ const getLocalFoodDisplayItems = (destination = {}) => {
     .slice(0, 5)
 }
 
+
+const purposeSpotKeywords = {
+  グルメ: ['グルメ', '市場', '商店街', '屋台', '食べ歩き'],
+  '神社・歴史': ['神社', '歴史', '寺', '城', '文化'],
+  温泉: ['温泉', '湯', '湯畑'],
+  '自然・絶景': ['自然', '絶景', '海', '山', '湖', '滝', '公園'],
+  アクティビティ: ['体験', 'アクティビティ', '遊覧', 'サイクリング', 'ロープウェイ'],
+  体験: ['体験', '工芸', '文化', '市場', '美術館'],
+  街歩き: ['街歩き', '商店街', '通り', '町並み', '散歩'],
+  ゆっくり: ['ゆっくり', '温泉', '庭園', '公園', '散歩'],
+}
+
+const getLocalFoodDetailItems = (destination = {}, fallbackItems = []) => {
+  const details = Array.isArray(destination.localFoodDetails) ? destination.localFoodDetails : []
+  if (details.length > 0) return details.filter((item) => item?.name).slice(0, 4)
+  return fallbackItems.slice(0, 4).map((name, index) => ({
+    name,
+    type: index === 0 ? '名物' : '食事',
+    description: destination.city + 'で食事候補にしやすい' + name + '。観光の前後に入れると、その土地らしさが出ます。',
+  }))
+}
+
+const getPurposeMatchedTouristSpots = (destination = {}, selectedPurposes = []) => {
+  const spots = Array.isArray(destination.touristSpots) ? destination.touristSpots : []
+  if (spots.length === 0) return []
+  const purposes = Array.isArray(selectedPurposes) ? selectedPurposes : []
+  return spots
+    .map((spot, index) => {
+      const searchable = [spot.name, spot.type, spot.description, ...(spot.bestFor ?? [])].join(' ')
+      const score = purposes.reduce((total, purpose) => {
+        const keywords = purposeSpotKeywords[purpose] ?? [purpose]
+        const bestForMatch = (spot.bestFor ?? []).some((item) => item === purpose || keywords.some((keyword) => item.includes(keyword)))
+        const textMatch = keywords.some((keyword) => searchable.includes(keyword))
+        return total + (bestForMatch ? 6 : 0) + (textMatch ? 3 : 0)
+      }, 0)
+      return { ...spot, score, order: index }
+    })
+    .sort((left, right) => right.score - left.score || left.order - right.order)
+    .slice(0, 3)
+}
+
+const getSpotPurposeLabel = (spot = {}, selectedPurposes = []) => {
+  const matched = (selectedPurposes ?? []).filter((purpose) => {
+    const keywords = purposeSpotKeywords[purpose] ?? [purpose]
+    return (spot.bestFor ?? []).includes(purpose) || keywords.some((keyword) => (spot.type + ' ' + spot.description).includes(keyword))
+  })
+  return matched.length > 0 ? matched.slice(0, 2).join('・') + '向き' : (spot.bestFor ?? []).slice(0, 2).join('・') || '立ち寄りやすい'
+}
+
+const getConcreteStayIdeas = (destination = {}, schedule = {}, spots = [], foodDetails = [], selectedPurposes = []) => {
+  const mainSpot = spots[0]?.name ?? destination.city + '中心部'
+  const secondSpot = spots[1]?.name ?? destination.city + '周辺'
+  const food = foodDetails[0]?.name ?? destination.localFoodCandidates?.[0] ?? 'ご当地グルメ'
+  const purpose = selectedPurposes?.[0] ?? '旅先らしい時間'
+  if ((schedule?.days ?? 1) <= 1) {
+    return [
+      '午前：移動後、' + mainSpot + 'を中心に短時間で見どころを押さえる',
+      '昼：' + food + 'を候補にして、食事でその土地らしさを入れる',
+      '午後：' + secondSpot + 'や駅周辺を歩き、帰路に合わせて軽めに締める',
+    ]
+  }
+  if (schedule?.days === 2) {
+    return [
+      '1日目：到着後に' + mainSpot + 'へ行き、夕方は食事や宿でゆっくり過ごす',
+      '2日目：' + secondSpot + 'と' + food + 'を組み合わせて、昼過ぎから帰路へ向かう',
+      '余裕があれば：目的に合わせて' + purpose + 'の時間を少し足す',
+    ]
+  }
+  return [
+    '前半：' + mainSpot + 'を急がず回り、夜は' + food + 'を楽しむ',
+    '中盤：' + secondSpot + 'や周辺候補へ足を伸ばし、同じ地域の違う表情を見る',
+    '後半：街歩き・温泉・自然など目的に合わせて余白を残し、最終日は軽めに動く',
+  ]
+}
+
 const normalizeSearchText = (value) => String(value ?? '').toLowerCase()
 
 const getTravelPurposeMatch = (destination = {}, selectedTravelPurposes = []) => {
@@ -1447,6 +1522,8 @@ const getTravelPurposeMatch = (destination = {}, selectedTravelPurposes = []) =>
 
   const tags = destination.tags ?? []
   const localFoods = Array.isArray(destination.localFoodCandidates) ? destination.localFoodCandidates : []
+  const foodDetails = Array.isArray(destination.localFoodDetails) ? destination.localFoodDetails : []
+  const touristSpots = Array.isArray(destination.touristSpots) ? destination.touristSpots : []
   const foodTheme = getImageMetaValue(destination.foodImage, 'foodTheme')
   const searchableText = normalizeSearchText([
     destination.city,
@@ -1458,6 +1535,8 @@ const getTravelPurposeMatch = (destination = {}, selectedTravelPurposes = []) =>
     destination.reason,
     Object.values(destination.seasonHighlights ?? {}).join(' '),
     localFoods.join(' '),
+    foodDetails.map((food) => [food.name, food.description, food.type].join(' ')).join(' '),
+    touristSpots.map((spot) => [spot.name, spot.type, spot.description, ...(spot.bestFor ?? [])].join(' ')).join(' '),
     foodTheme,
     tags.join(' '),
   ].join(' '))
@@ -1470,8 +1549,9 @@ const getTravelPurposeMatch = (destination = {}, selectedTravelPurposes = []) =>
     const tagMatched = profile.tags.some((tag) => tags.includes(tag))
     const cityMatched = profile.cities.some((city) => destination.city === city)
     const keywordMatched = profile.keywords.some((keyword) => searchableText.includes(normalizeSearchText(keyword)))
-    const foodMatched = purpose === 'グルメ' && (localFoods.length > 0 || Boolean(foodTheme))
-    return fitScore >= 58 || tagMatched || cityMatched || keywordMatched || foodMatched
+    const spotMatched = touristSpots.some((spot) => (spot.bestFor ?? []).includes(purpose) || (spot.type + ' ' + spot.description).includes(purpose))
+    const foodMatched = purpose === 'グルメ' && (localFoods.length > 0 || foodDetails.length > 0 || Boolean(foodTheme))
+    return fitScore >= 58 || tagMatched || cityMatched || keywordMatched || spotMatched || foodMatched
   })
 
   const score = matchedPurposes.reduce((total, purpose) => {
@@ -1479,8 +1559,9 @@ const getTravelPurposeMatch = (destination = {}, selectedTravelPurposes = []) =>
     const fitKey = travelPurposeFitKeys[purpose]
     const fitScore = Number(destination.purposeFit?.[fitKey] ?? 0)
     const isStrongCityMatch = profile?.cities?.includes(destination.city)
-    const hasLocalFood = purpose === 'グルメ' && localFoods.length > 0
-    return total + Math.max(isStrongCityMatch || hasLocalFood ? 18 : 13, Math.round(fitScore / 5))
+    const hasLocalFood = purpose === 'グルメ' && (localFoods.length > 0 || foodDetails.length > 0)
+    const spotBonus = touristSpots.some((spot) => (spot.bestFor ?? []).includes(purpose) || (spot.type + ' ' + spot.description).includes(purpose)) ? 4 : 0
+    return total + Math.max(isStrongCityMatch || hasLocalFood ? 18 : 13, Math.round(fitScore / 5)) + spotBonus
   }, 0)
 
   const summary = matchedPurposes.length > 0
@@ -2063,6 +2144,8 @@ function App() {
     })
     : '移動情報を取得すると、最も現実的な交通手段との相性を表示します。'
   const localFoodItems = destination ? getLocalFoodDisplayItems(destination) : []
+  const localFoodDetails = destination ? getLocalFoodDetailItems(destination, localFoodItems) : []
+  const featuredTouristSpots = destination && planContext ? getPurposeMatchedTouristSpots(destination, planContext.selectedTravelPurposes) : []
   const foodThemeText = destination ? getFoodThemeText(destination, localFoodItems) : ''
   const foodImageIsFeatured = destination ? shouldFeatureFoodImage(destination) : false
   const tripProposalText = destination && planContext
@@ -2079,6 +2162,7 @@ function App() {
     : { matchedStyles: [], summary: '' }
   const currentTripSchedule = planContext?.tripSchedule ?? (planContext ? resolveTripSchedule(planContext.tripType) : tripSchedule)
   const currentTripPlans = destination ? getPlansForSchedule(destination, currentTripSchedule) : []
+  const concreteStayIdeas = destination ? getConcreteStayIdeas(destination, currentTripSchedule, featuredTouristSpots, localFoodDetails, planContext?.selectedTravelPurposes ?? []) : []
   const currentBudget = destination ? getBudgetForSchedule(destination, currentTripSchedule) : '時期により変動'
   const longTripPacingItems = getLongTripPacingItems(currentTripSchedule, Boolean(planContext?.tripSuggestions?.some((item) => !item.isStayFocus)))
 
@@ -3543,6 +3627,17 @@ function App() {
                     <div className="local-food-chips" aria-label={`${destination.city}で食べたいご当地グルメ`}>
                       {localFoodItems.map((food) => <span key={food}>{food}</span>)}
                     </div>
+                    {localFoodDetails.length > 0 && (
+                      <ul className="local-food-details">
+                        {localFoodDetails.map((food) => (
+                          <li key={food.name}>
+                            <strong>{food.name}</strong>
+                            <span>{food.type}</span>
+                            <p>{food.description}</p>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                   {isValidImageUrl(destination.foodImage) && (
                     <div className="local-food-image-wrap">
@@ -3560,7 +3655,47 @@ function App() {
               </section>
             )}
 
-            {planContext.hasMultiDestinationSuggestion && planContext.tripSuggestions?.length > 0 && (
+            
+
+            {featuredTouristSpots.length > 0 && (
+              <section className="tourist-spots-card" aria-labelledby="tourist-spots-title">
+                <div className="tourist-spots-heading">
+                  <span aria-hidden="true">📍</span>
+                  <div>
+                    <p>SPOTS</p>
+                    <h2 id="tourist-spots-title">ここで行きたいスポット</h2>
+                  </div>
+                </div>
+                <div className="tourist-spots-grid">
+                  {featuredTouristSpots.map((spot) => (
+                    <article key={spot.name} className="tourist-spot-item">
+                      <div>
+                        <strong>{spot.name}</strong>
+                        <span>{spot.type}</span>
+                      </div>
+                      <p>{spot.description}</p>
+                      <dl>
+                        <div><dt>目安</dt><dd>{spot.stayTime}</dd></div>
+                        <div><dt>相性</dt><dd>{getSpotPurposeLabel(spot, planContext.selectedTravelPurposes)}</dd></div>
+                      </dl>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {concreteStayIdeas.length > 0 && (
+              <section className="stay-ideas-card" aria-labelledby="stay-ideas-title">
+                <div>
+                  <p>HOW TO SPEND</p>
+                  <h2 id="stay-ideas-title">この旅先での過ごし方</h2>
+                </div>
+                <ol>
+                  {concreteStayIdeas.map((idea) => <li key={idea}>{idea}</li>)}
+                </ol>
+              </section>
+            )}
+{planContext.hasMultiDestinationSuggestion && planContext.tripSuggestions?.length > 0 && (
               <section className="multi-destination-card" aria-labelledby="multi-destination-title">
                 <div>
                   <p>EXTENDED TRIP</p>
@@ -4676,8 +4811,12 @@ function App() {
           </div>
 
           <div className="quality-image-status" aria-label="旅行先メタデータの整備状態">
+            <div><span>旅行先件数</span><strong>{destinationQualityReport.metadataStatus.destinationTotal}件</strong></div>
             <div><span>region未設定</span><strong>{destinationQualityReport.metadataStatus.missingRegion.length}件</strong></div>
             <div><span>localFood未設定</span><strong>{destinationQualityReport.metadataStatus.missingLocalFood.length}件</strong></div>
+            <div><span>localFoodDetails未設定</span><strong>{destinationQualityReport.metadataStatus.missingLocalFoodDetails.length}件</strong></div>
+            <div><span>観光スポット未設定</span><strong>{destinationQualityReport.metadataStatus.missingTouristSpots.length}件</strong></div>
+            <div><span>観光スポット3件未満</span><strong>{destinationQualityReport.metadataStatus.touristSpotShortage.length}件</strong></div>
             <div><span>companionFit未設定</span><strong>{destinationQualityReport.metadataStatus.missingCompanionFit.length}件</strong></div>
             <div><span>purposeFit未設定</span><strong>{destinationQualityReport.metadataStatus.missingPurposeFit.length}件</strong></div>
             <div><span>stayFit未設定</span><strong>{destinationQualityReport.metadataStatus.missingStayFit.length}件</strong></div>
@@ -4695,6 +4834,9 @@ function App() {
           <details className="image-reuse-details metadata-shortage-details">
             <summary>旅行先データ不足リストを見る</summary>
             <dl className="debug-details">
+              <div><dt>touristSpots未設定</dt><dd>{formatShortageList(destinationQualityReport.metadataStatus.missingTouristSpots)}</dd></div>
+              <div><dt>touristSpots 3件未満</dt><dd>{formatShortageList(destinationQualityReport.metadataStatus.touristSpotShortage)}</dd></div>
+              <div><dt>localFoodDetails未設定</dt><dd>{formatShortageList(destinationQualityReport.metadataStatus.missingLocalFoodDetails)}</dd></div>
               <div><dt>companionFit未設定</dt><dd>{formatShortageList(destinationQualityReport.metadataStatus.missingCompanionFit)}</dd></div>
               <div><dt>purposeFit未設定</dt><dd>{formatShortageList(destinationQualityReport.metadataStatus.missingPurposeFit)}</dd></div>
               <div><dt>stayFit未設定</dt><dd>{formatShortageList(destinationQualityReport.metadataStatus.missingStayFit)}</dd></div>

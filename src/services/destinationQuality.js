@@ -33,6 +33,9 @@ const priorityQualityCities = [
 const hasFitKeys = (value, keys) => value && typeof value === 'object' && keys.every((key) => Number.isFinite(Number(value[key])))
 const hasLocalFoods = (destination) => Array.isArray(destination.localFoodCandidates) && destination.localFoodCandidates.length > 0
 const hasNearbyHints = (destination) => Array.isArray(destination.nearbyDestinationHints) && destination.nearbyDestinationHints.length > 0
+const hasTouristSpots = (destination) => Array.isArray(destination.touristSpots) && destination.touristSpots.length > 0
+const hasEnoughTouristSpots = (destination) => Array.isArray(destination.touristSpots) && destination.touristSpots.length >= 3
+const hasLocalFoodDetails = (destination) => Array.isArray(destination.localFoodDetails) && destination.localFoodDetails.length > 0
 
 const addIssue = (issues, field, message, recommendation = `${field}の設定内容を確認してください`) => (
   issues.push({ field, message, recommendation })
@@ -200,9 +203,29 @@ export const runDestinationQualityChecks = (destinations) => {
     needsReview: 0,
   })
 
+  const regionCounts = Object.fromEntries(allowedRegions.map((region) => [
+    region,
+    destinations.filter((destination) => destination.region === region).length,
+  ]))
+  const purposeFitStrongCounts = Object.fromEntries(purposeFitKeys.map((key) => [
+    key,
+    destinations.filter((destination) => Number(destination.purposeFit?.[key] ?? 0) >= 70).length,
+  ]))
+  const stayFitStrongCounts = Object.fromEntries(stayFitKeys.map((key) => [
+    key,
+    destinations.filter((destination) => Number(destination.stayFit?.[key] ?? 0) >= 70).length,
+  ]))
+
   const metadataStatus = {
+    destinationTotal: destinations.length,
+    regionCounts,
+    purposeFitStrongCounts,
+    stayFitStrongCounts,
     missingRegion: destinations.filter((destination) => !allowedRegions.includes(destination.region)).map((destination) => destination.city),
     missingLocalFood: destinations.filter((destination) => !hasLocalFoods(destination)).map((destination) => destination.city),
+    missingLocalFoodDetails: destinations.filter((destination) => !hasLocalFoodDetails(destination)).map((destination) => destination.city),
+    missingTouristSpots: destinations.filter((destination) => !hasTouristSpots(destination)).map((destination) => destination.city),
+    touristSpotShortage: destinations.filter((destination) => hasTouristSpots(destination) && !hasEnoughTouristSpots(destination)).map((destination) => destination.city),
     missingCompanionFit: destinations.filter((destination) => !hasFitKeys(destination.companionFit, companionFitKeys)).map((destination) => destination.city),
     missingPurposeFit: destinations.filter((destination) => !hasFitKeys(destination.purposeFit, purposeFitKeys)).map((destination) => destination.city),
     missingStayFit: destinations.filter((destination) => !hasFitKeys(destination.stayFit, stayFitKeys)).map((destination) => destination.city),
@@ -213,6 +236,8 @@ export const runDestinationQualityChecks = (destinations) => {
       return destination
         && allowedRegions.includes(destination.region)
         && hasLocalFoods(destination)
+        && hasLocalFoodDetails(destination)
+        && hasEnoughTouristSpots(destination)
         && hasFitKeys(destination.companionFit, companionFitKeys)
         && hasFitKeys(destination.purposeFit, purposeFitKeys)
         && hasFitKeys(destination.stayFit, stayFitKeys)
@@ -245,8 +270,8 @@ export const runDestinationQualityChecks = (destinations) => {
         passed: duplicateKeys.size === 0,
       },
       {
-        label: `旅行先件数（${destinations.length}件 / 目標80〜100件）`,
-        passed: destinations.length >= 80 && destinations.length <= 100,
+        label: `旅行先件数（${destinations.length}件 / 目標120件以上）`,
+        passed: destinations.length >= 120,
       },
       {
         label: `都道府県カバー（${coveredPrefectures} / ${prefectureTarget}）`,
