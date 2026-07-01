@@ -272,6 +272,14 @@ v0.1.0-beta の主な機能は次のとおりです。
 
 結果画面では、旅行先の説明が抽象表現だけにならないよう、観光スポット名・ご当地グルメ名・日程別の過ごし方を優先して組み立てます。長期旅行では、周辺候補名と旅の目的とのつながりも表示します。
 
+### 簡易モデルコース
+
+- 通常結果画面の「ざっくりモデルコース」は、日帰り / 1泊2日 / 2泊3日 / 3泊以上で表示の流れを切り替えます。
+- touristSpots と localFoodDetails / localFoodCandidates に具体名がある場合だけ、スポット名・料理名として本文に入れます。
+- nearbyDestinationHints がある長めの日程では、周辺候補を中盤の過ごし方として短く表示します。
+- データが不足している場合は、都市名 + ランチ、都市名 + 観光スポットのような疑似名称を作らず、短い補足に留めます。
+- 通常画面は短く具体的な流れを見せ、AIプラン生成はより詳しい日程別提案を出す役割にしています。
+
 ## Local Food Display Policy
 
 - Local food sections prioritize concrete dish and specialty names. Generic labels such as category-only gourmet or cafe text are not shown as detail cards.

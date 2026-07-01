@@ -175,3 +175,10 @@
 - Confirm that detail cards include concrete timing or area hints when available.
 - Confirm that AI plan prompts include local food description, timing, area hints, and trip-fit context without changing /api files.
 - Confirm that generic or mismatched food images are not promoted as confirmed local specialty photos.
+## 簡易モデルコース確認
+
+- 日帰りでは、午前 / 昼 / 午後 / 夕方の流れに具体スポット名または具体グルメ名が入ることを確認します。
+- 1泊2日では、1日目と2日目に分かれ、スポット名と料理名が最低1つずつ入ることを確認します。
+- 2泊3日では、中心エリア、観光、食事、帰路の流れが短くまとまっていることを確認します。
+- 3泊以上では、nearbyDestinationHints がある場合に周辺候補名が自然に表示されることを確認します。
+- touristSpots や localFoodDetails が不足している旅行先で、都市名 + ランチ、都市名 + 観光スポットのような疑似名称が出ないことを確認します。

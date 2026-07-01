@@ -1565,44 +1565,72 @@ const getSpotPurposeLabel = (spot = {}, selectedPurposes = []) => {
   return matched.length > 0 ? matched.slice(0, 2).join('・') + '向き' : (spot.bestFor ?? []).slice(0, 2).join('・') || '立ち寄りやすい'
 }
 
-const getConcreteStayIdeas = (destination = {}, schedule = {}, spots = [], foodDetails = [], selectedPurposes = [], nearbySuggestions = []) => {
-  const mainSpot = spots[0]
-  const secondSpot = spots[1]
-  const thirdSpot = spots[2]
-  const mainSpotName = mainSpot?.name ?? destination.city + '中心エリア'
-  const secondSpotName = secondSpot?.name ?? destination.city + '周辺'
-  const thirdSpotName = thirdSpot?.name
-  const food = foodDetails[0]
-  const foodName = food?.name ?? getConcreteFoodCandidates(destination.localFoodCandidates)[0]
-  const purpose = selectedPurposes?.slice(0, 2).join('・') || '街歩きや食事'
-  const nearbyName = nearbySuggestions[0]?.destination?.city ?? nearbySuggestions[0]?.city ?? destination.nearbyDestinationHints?.[0]
-  const foodPhrase = foodName ? foodName + 'を食事候補にする' : '現地の食事を短く入れる'
-  if ((schedule?.days ?? 1) <= 1) {
+const getModelCourseTone = (selectedPurposes = [], selectedStyles = []) => {
+  const purposeText = (selectedPurposes ?? []).slice(0, 2).join('・')
+  if ((selectedPurposes ?? []).includes('ゆっくり') || (selectedStyles ?? []).includes('ファミリー')) return '移動を詰め込みすぎず、' + (purposeText || '散策') + 'の時間を少し長めに取ると過ごしやすいです。'
+  if ((selectedPurposes ?? []).includes('グルメ') || (selectedStyles ?? []).includes('友達')) return '食事の時間を少し厚めに取り、' + (purposeText || '街歩き') + 'と組み合わせると流れを作りやすいです。'
+  if ((selectedStyles ?? []).includes('一人旅')) return '気ままに歩ける余白を残し、' + (purposeText || '街歩き') + 'を軸にすると動きやすいです。'
+  if ((selectedStyles ?? []).includes('カップル')) return '景色や夕食の時間を急がず入れると、' + (purposeText || '街歩き') + 'を落ち着いて味わいやすいです。'
+  if ((selectedStyles ?? []).includes('ペットあり')) return '屋外で歩きやすい時間を中心にしつつ、入場条件は事前確認しておくと安心です。'
+  return purposeText ? purposeText + 'を軸に、移動と食事の間に余白を残すと組み立てやすいです。' : '移動と食事の間に余白を残すと、ざっくりした流れを組み立てやすいです。'
+}
+
+const getCourseFoodNames = (destination = {}, foodDetails = []) => [...new Set([
+  ...foodDetails.map((food) => food?.name),
+  ...getConcreteFoodCandidates(destination.localFoodCandidates),
+])].filter((name) => isConcreteFoodName(name)).slice(0, 3)
+
+const getCourseNearbyName = (destination = {}, nearbySuggestions = []) => {
+  const suggestionName = nearbySuggestions[0]?.destination?.city ?? nearbySuggestions[0]?.city
+  const hintName = (destination.nearbyDestinationHints ?? []).find((hint) => hint && !isPseudoSpotName(hint))
+  return suggestionName || hintName || ''
+}
+
+const getConcreteStayIdeas = (destination = {}, schedule = {}, spots = [], foodDetails = [], selectedPurposes = [], selectedStyles = [], nearbySuggestions = []) => {
+  const spotNames = spots.map((spot) => spot?.name).filter((name) => isConcreteSpotName(name)).slice(0, 3)
+  const [mainSpotName, secondSpotName, thirdSpotName] = spotNames
+  const foodNames = getCourseFoodNames(destination, foodDetails)
+  const foodText = foodNames.slice(0, 2).join('や')
+  const nearbyName = getCourseNearbyName(destination, nearbySuggestions)
+  const tone = getModelCourseTone(selectedPurposes, selectedStyles)
+  const days = schedule?.days ?? 1
+  const fallbackLead = destination.recommendText ? destination.recommendText : tone
+
+  if (days <= 1) {
+    const ideas = []
+    ideas.push(mainSpotName ? '午前：移動・到着後、' + mainSpotName + 'から歩き始める流れにすると、最初の目的地を決めやすいです。' : '午前：移動・到着後は、無理に詰め込まず旅先の雰囲気をつかむ時間にします。')
+    if (foodText) ideas.push('昼：' + foodText + 'を候補にし、食事を旅の区切りとして入れると動きやすいです。')
+    if (mainSpotName || secondSpotName) ideas.push('午後：' + [mainSpotName, secondSpotName].filter(Boolean).join('や') + 'を組み合わせ、' + tone)
+    else ideas.push('午後：' + fallbackLead)
+    ideas.push(thirdSpotName ? '夕方：帰路に合わせて' + thirdSpotName + 'を軽めに入れます。' : '夕方：帰路に合わせて、短めの散策や買い物で締めると負担を抑えやすいです。')
+    return ideas.slice(0, 4)
+  }
+
+  if (days === 2) {
+    const firstDayParts = [mainSpotName ? '到着後に' + mainSpotName : '到着後は中心になるエリア', foodText ? '夕食は' + foodText : '夕方は宿周辺の時間']
+    const secondDayParts = [secondSpotName ? secondSpotName : thirdSpotName, foodNames[2] ? foodNames[2] : null].filter(Boolean)
     return [
-      '午前：移動・到着後、' + mainSpotName + '周辺から歩き始める',
-      '昼：' + foodPhrase + (food?.description ? '。' + food.description : ''),
-      '午後：' + mainSpotName + (secondSpot ? 'と' + secondSpotName : '') + 'を組み合わせて、' + purpose + 'の時間を作る',
-      '夕方：帰路に合わせて軽めに散策して戻る',
+      '1日目：' + firstDayParts.join('、') + 'を入れ、宿泊前に余白を残すと1泊2日でも慌ただしくなりにくいです。',
+      secondDayParts.length > 0
+        ? '2日目：朝の散策後、' + secondDayParts.join('や') + 'を軽めに組み合わせて帰路へ向かいます。'
+        : '2日目：朝の散策後、帰路に合わせて短めに立ち寄る流れにすると動きやすいです。',
     ]
   }
-  if (schedule?.days === 2) {
+
+  if (days === 3) {
+    const nearbyText = nearbyName ? '余裕があれば' + nearbyName + 'も候補に入れます。' : ''
     return [
-      '1日目：到着後に' + mainSpotName + 'を訪れ、夕方は' + (foodName ?? '現地の食事') + 'や宿周辺の時間を確保する',
-      '2日目：朝の散策後、' + secondSpotName + (thirdSpotName ? 'や' + thirdSpotName : '') + 'へ広げてから帰路に向かう',
-    ]
+      '1日目：' + (mainSpotName ? mainSpotName + 'を軸に' : '到着後は旅先の中心になる場所を軸に') + '、到着後の散策と食事をまとめます。',
+      '2日目：' + [secondSpotName, thirdSpotName].filter(Boolean).join('や') + (secondSpotName || thirdSpotName ? 'を入れ、' : '') + tone,
+      '3日目：' + (foodText ? foodText + 'を食事候補にし、' : '') + '帰路に合わせて短めに動きます。' + nearbyText,
+    ].filter((item) => item.trim())
   }
-  if (schedule?.days === 3) {
-    return [
-      '1日目：' + mainSpotName + 'を軸に、到着後の街歩きと食事をまとめる',
-      '2日目：' + secondSpotName + (thirdSpotName ? 'と' + thirdSpotName : '') + 'を入れ、' + purpose + 'をしっかり取る',
-      '3日目：' + (foodName ? foodName + 'や軽い散策を入れて、' : '') + '帰路に合わせて短めに動く',
-    ]
-  }
+
   return [
-    '前半：' + mainSpotName + 'を中心に、無理に移動しすぎず深く見る',
-    '中盤：' + (nearbyName ? nearbyName + '方面' : secondSpotName) + 'へ足を伸ばし、メイン旅先と違う表情を入れる',
-    '後半：' + (foodName ? foodName + 'などの食事と' : '') + purpose + 'に合わせて過ごす',
-    '最終日：帰路に合わせて、' + (thirdSpotName ?? secondSpotName) + '周辺を軽めに回る',
+    '前半：' + (mainSpotName ? mainSpotName + 'を中心に' : 'メイン旅先を中心に') + '、到着後すぐ遠くへ動きすぎず旅先の軸を作ります。',
+    '中盤：' + (nearbyName ? nearbyName + 'へ足を伸ばし、' : secondSpotName ? secondSpotName + 'も組み合わせ、' : '') + 'メイン旅先とは違う景色や街歩きを入れます。',
+    '後半：' + (foodText ? foodText + 'などの食事と' : '') + tone,
+    '最終日：' + (thirdSpotName ? thirdSpotName + 'を軽めに入れてから' : '帰路に合わせて短めに整えてから') + '戻る流れにします。',
   ]
 }
 
@@ -1848,6 +1876,55 @@ const getStayPlanSpotNameMissingCities = (destinationList = []) => destinationLi
 
 const getStayPlanFoodNameMissingCities = (destinationList = []) => destinationList
   .filter((place) => getConcreteFoodCandidates(place.localFoodCandidates).length === 0 && getLocalFoodDetailItems(place, []).length === 0)
+  .map((place) => place.city)
+
+const getModelCourseDiagnosticItems = (place = {}, days = 4) => getConcreteStayIdeas(
+  place,
+  { days, label: days >= 4 ? '3泊4日以上' : days === 3 ? '2泊3日' : days === 2 ? '1泊2日' : '日帰り' },
+  getPurposeMatchedTouristSpots(place, []),
+  getLocalFoodDetailItems(place, getLocalFoodDisplayItems(place)),
+  [],
+  [],
+  (place.nearbyDestinationHints ?? []).slice(0, 1).map((city) => ({ city })),
+)
+
+const getModelCourseMissingSpotCities = (destinationList = []) => destinationList
+  .filter((place) => {
+    const spots = getConcreteTouristSpots(place)
+    if (spots.length === 0) return false
+    const courseText = getModelCourseDiagnosticItems(place, 2).join(' ')
+    return !spots.some((spot) => courseText.includes(spot.name))
+  })
+  .map((place) => place.city)
+
+const getModelCourseMissingFoodCities = (destinationList = []) => destinationList
+  .filter((place) => {
+    const foodNames = getCourseFoodNames(place, getLocalFoodDetailItems(place, getLocalFoodDisplayItems(place)))
+    if (foodNames.length === 0) return false
+    const courseText = getModelCourseDiagnosticItems(place, 2).join(' ')
+    return !foodNames.some((name) => courseText.includes(name))
+  })
+  .map((place) => place.city)
+
+const getLongModelCourseMissingNearbyCities = (destinationList = []) => destinationList
+  .filter((place) => (place.nearbyDestinationHints?.length ?? 0) > 0)
+  .filter((place) => {
+    const courseText = getModelCourseDiagnosticItems(place, 5).join(' ')
+    return !(place.nearbyDestinationHints ?? []).some((hint) => courseText.includes(hint))
+  })
+  .map((place) => place.city)
+
+const getModelCoursePseudoNameRiskCities = (destinationList = []) => destinationList
+  .filter((place) => getModelCourseDiagnosticItems(place, 3).some((line) => isPseudoSpotName(line)))
+  .map((place) => place.city)
+
+const getModelCourseGenerationShortageCities = (destinationList = []) => destinationList
+  .filter((place) => getModelCourseDiagnosticItems(place, 2).length === 0)
+  .map((place) => place.city)
+
+const getPriorityModelCourseStrengtheningCities = (destinationList = []) => destinationList
+  .filter((place) => qualityPriorityCities.includes(place.city))
+  .filter((place) => getConcreteTouristSpots(place).length < 2 || getCourseFoodNames(place, getLocalFoodDetailItems(place, getLocalFoodDisplayItems(place))).length === 0 || (place.nearbyDestinationHints?.length ?? 0) === 0)
   .map((place) => place.city)
 
 
@@ -2412,7 +2489,7 @@ function App() {
     : { matchedStyles: [], summary: '' }
   const currentTripSchedule = planContext?.tripSchedule ?? (planContext ? resolveTripSchedule(planContext.tripType) : tripSchedule)
   const currentTripPlans = destination ? getPlansForSchedule(destination, currentTripSchedule) : []
-  const concreteStayIdeas = destination ? getConcreteStayIdeas(destination, currentTripSchedule, featuredTouristSpots, localFoodDetails, planContext?.selectedTravelPurposes ?? [], planContext?.tripSuggestions ?? []) : []
+  const concreteStayIdeas = destination ? getConcreteStayIdeas(destination, currentTripSchedule, featuredTouristSpots, localFoodDetails, planContext?.selectedTravelPurposes ?? [], planContext?.selectedFilters ?? [], planContext?.tripSuggestions ?? []) : []
   const currentBudget = destination ? getBudgetForSchedule(destination, currentTripSchedule) : '時期により変動'
   const longTripPacingItems = getLongTripPacingItems(currentTripSchedule, Boolean(planContext?.tripSuggestions?.some((item) => !item.isStayFocus)))
 
@@ -3948,7 +4025,7 @@ function App() {
               <section className="stay-ideas-card" aria-labelledby="stay-ideas-title">
                 <div>
                   <p>HOW TO SPEND</p>
-                  <h2 id="stay-ideas-title">この旅先での過ごし方</h2>
+                  <h2 id="stay-ideas-title">ざっくりモデルコース</h2>
                 </div>
                 <ol>
                   {concreteStayIdeas.map((idea) => <li key={idea}>{idea}</li>)}
@@ -4016,9 +4093,7 @@ function App() {
                   </div>
                   {isPremiumUser && <b>有効</b>}
                 </div>
-                <p className="premium-guide-description">
-                  もっと具体的に計画したいときは、出発地・旅先・季節・交通手段・予算をもとに、AIがあなた向けの日程案を作成します。
-                </p>
+                <p className="premium-guide-description">{'\u8a73\u3057\u3044\u56de\u308a\u65b9\u3092\u898b\u305f\u3044\u5834\u5408\u306f\u3001AI\u30d7\u30e9\u30f3\u3067\u65e5\u7a0b\u5225\u306b\u6574\u7406\u3067\u304d\u307e\u3059\u3002'}</p>
                 <ul>
                   <li>AIが日程別プランを作成</li>
                   <li>食事・カフェ案を提案</li>
@@ -5116,6 +5191,12 @@ function App() {
               <div><dt>localFoodDetails missing bestTiming</dt><dd>{formatShortageList(getLocalFoodMissingTimingCities(destinations))}</dd></div>
               <div><dt>localFoodDetails missing bestAreaHints</dt><dd>{formatShortageList(getLocalFoodMissingAreaHintCities(destinations))}</dd></div>
               <div><dt>restaurantHints review metadata missing</dt><dd>{formatShortageList(getUnreviewedRestaurantHintCities(destinations))}</dd></div>
+              <div><dt>model course missing concrete spot</dt><dd>{formatShortageList(getModelCourseMissingSpotCities(destinations))}</dd></div>
+              <div><dt>model course missing concrete food</dt><dd>{formatShortageList(getModelCourseMissingFoodCities(destinations))}</dd></div>
+              <div><dt>long model course missing nearby hint</dt><dd>{formatShortageList(getLongModelCourseMissingNearbyCities(destinations))}</dd></div>
+              <div><dt>model course pseudo name risk</dt><dd>{formatShortageList(getModelCoursePseudoNameRiskCities(destinations))}</dd></div>
+              <div><dt>model course generation shortage</dt><dd>{formatShortageList(getModelCourseGenerationShortageCities(destinations))}</dd></div>
+              <div><dt>priority model course strengthening</dt><dd>{formatShortageList(getPriorityModelCourseStrengtheningCities(destinations))}</dd></div>
               <div><dt>具体的な料理名が不足</dt><dd>{formatShortageList(getConcreteFoodShortageCities(destinations))}</dd></div>
               <div><dt>generic food画像の大表示リスク</dt><dd>{formatShortageList(getGenericFoodImageRiskCities(destinations))}</dd></div>
               <div><dt>touristSpotsのnameが抽象語</dt><dd>{formatShortageList(getAbstractTouristSpotNameCities(destinations))}</dd></div>

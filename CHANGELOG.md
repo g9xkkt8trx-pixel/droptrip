@@ -91,3 +91,9 @@ DROPTRIP のβ版リリース履歴を管理するためのメモです。
 - Natural local food copy: regenerated localFoodDetails descriptions with timing, area hints, and trip-fit context instead of generic template wording.
 - Added bestTiming, bestAreaHints, and goodFor metadata to generated local food details and passed those hints into AI plan prompts.
 - Added developer diagnostics for duplicated food descriptions, template phrase risk, missing timing/area hints, and unreviewed restaurant hints.
+
+## Unreleased
+
+- Improved the simple result-screen plan into a short model-course style flow for day trips, one-night trips, two-night trips, and longer stays.
+- The model course now uses concrete tourist spot names, local food names, and nearbyDestinationHints when available, without inventing pseudo names such as city + lunch or city + sightseeing.
+- Added developer diagnostics for model courses missing concrete spots, local food names, long-stay nearby hints, or containing pseudo-name risks.
