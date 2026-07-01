@@ -136,7 +136,7 @@ const localFoodCandidatesByCity = {
   横浜市: ['中華街グルメ', '洋食', 'スイーツ', 'カフェ'],
   松島町: ['牡蠣', '海鮮', '笹かまぼこ', 'ずんだスイーツ'],
   仙台市: ['牛タン', 'ずんだ餅', '笹かまぼこ', '海鮮'],
-  福岡市: ['博多ラーメン', 'もつ鍋', '水炊き', '屋台グルメ'],
+  福岡市: ['豚骨ラーメン', 'もつ鍋', '明太子', '屋台グルメ'],
   長崎市: ['ちゃんぽん', '皿うどん', 'トルコライス', 'カステラ'],
   広島市: ['お好み焼き', '牡蠣', '穴子飯', '瀬戸内レモン'],
   廿日市市: ['あなごめし', '牡蠣', 'もみじ饅頭', '瀬戸内海鮮'],
@@ -578,7 +578,7 @@ const touristSpotsByCity = {
     {
       "name": "中禅寺湖",
       "type": "自然・散策",
-      "description": "湖畔を歩き、カフェや遊覧船と合わせてゆっくり過ごせます。",
+      "description": "湖畔を歩き、カフェや遊覧船を組み合わせて滞在時間に余白を作れます。",
       "bestFor": [
         "自然・絶景",
         "ゆっくり"
@@ -1632,7 +1632,7 @@ const baseDestinations = rawDestinations.map((destination) => {
     tags: destination.tags,
     recommendation: destination.recommendation,
     recommendText: destination.recommendation,
-    reason: `${destination.city}は「${destination.recommendation}」をテーマにした旅行ができ、${destination.tags.join('・')}を重視する方におすすめです。`,
+    reason: `${destination.city}では「${destination.recommendation}」を軸に、${destination.tags.join('・')}の時間を旅程へ入れやすいです。`,
     budgets: destination.budget,
     budget: destination.budget,
     plans: normalizePlans(destination.schedule, destination.city),
@@ -1655,7 +1655,7 @@ const expandedDestinations = supplementalDestinations.map((destination) => {
     ...destination,
     id: `${destination.prefecture}-${destination.city}`,
     googleMapsQuery: `${destination.address} 観光`,
-    reason: `${destination.city}は「${destination.recommendText}」をテーマにした旅行ができ、${destination.tags.join('・')}を重視する方におすすめです。`,
+    reason: `${destination.city}では「${destination.recommendText}」を軸に、${destination.tags.join('・')}の時間を旅程へ入れやすいです。`,
     localFoodCandidates,
     ...images,
   })

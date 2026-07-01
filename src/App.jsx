@@ -799,7 +799,7 @@ const calculateFeasibility = (durationMinutes, tripType, transportMode = '車', 
   if (tripType === '日帰り') {
     detail = hours <= 4
       ? '日帰りでも余裕を持って楽しめる距離です。'
-      : '日帰りにはやや遠いため、早朝出発や宿泊への変更がおすすめです。'
+      : '日帰りにはやや遠いため、早朝出発にするか、宿泊へ変えて現地で歩く時間を確保してください。'
   } else if (tripType === '1泊2日') {
     detail = hours <= 6
       ? '1泊2日なら無理なく楽しめる距離です。'
@@ -807,7 +807,7 @@ const calculateFeasibility = (durationMinutes, tripType, transportMode = '車', 
   } else {
     detail = hours <= 8
       ? `${scheduleLabel}なら移動を含めてもゆっくり楽しめる距離です。`
-      : `${scheduleLabel}でも長距離移動になるため、余裕のある計画がおすすめです。`
+      : `${scheduleLabel}でも長距離移動になるため、到着日は移動と食事を中心にして、観光を翌日に回すと無理が出にくいです。`
   }
 
   if (transportMode === '飛行機') {
@@ -1015,7 +1015,7 @@ const getFeasibilityTransportReason = (recommended, tripType) => {
       : `長距離ですが、飛行機なら${tripType}でも現実的です。`
   }
   if (recommended.mode === '電車') {
-    return `${recommended.basis.duration}の電車移動なら、運転の負担を抑えて${tripType}を楽しめます。`
+    return `${recommended.basis.duration}の電車移動なら、運転の負担を抑えながら現地で歩く時間を作れます。`
   }
   return `${recommended.basis.duration}の車移動で、現地での移動も自由に組み立てやすいです。`
 }
@@ -1640,6 +1640,14 @@ const getTripProposalText = (destination = {}, context = {}, seasonInfo = {}) =>
   const selectedPurposes = context?.selectedTravelPurposes ?? []
   const purposeMatch = getTravelPurposeMatch(destination, selectedPurposes)
   const schedule = context?.tripSchedule ?? resolveTripSchedule(context?.tripType)
+  const spots = getPurposeMatchedTouristSpots(destination, selectedPurposes)
+  const foodDetails = getLocalFoodDetailItems(destination, getLocalFoodDisplayItems(destination))
+  const mainSpot = spots[0]?.name
+  const secondSpot = spots[1]?.name
+  const foodName = foodDetails[0]?.name ?? destination.localFoodCandidates?.[0]
+  const nearbyName = context?.tripSuggestions?.[0]?.destination?.city
+    ?? context?.tripSuggestions?.[0]?.city
+    ?? destination.nearbyDestinationHints?.[0]
   const stylePhrase = selectedStyles.includes('ファミリー')
     ? '家族で'
     : selectedStyles.includes('一人旅')
@@ -1652,29 +1660,37 @@ const getTripProposalText = (destination = {}, context = {}, seasonInfo = {}) =>
   const purposePhrase = purposeMatch.matchedPurposes.length > 0
     ? purposeMatch.matchedPurposes.slice(0, 2).join('や')
     : tags.includes('温泉')
-      ? '温泉でゆっくり過ごすこと'
+      ? '温泉街の散策'
       : tags.includes('海') || tags.includes('山')
-        ? '自然を楽しむこと'
+        ? '自然の景色'
         : tags.includes('グルメ')
-          ? 'ご当地グルメ'
-          : '旅先の魅力'
+          ? foodName ?? 'ご当地グルメ'
+          : mainSpot ?? '旅先の中心エリア'
+  const spotPhrase = mainSpot
+    ? mainSpot + (secondSpot ? 'と' + secondSpot : '') + 'を軸に回れます。'
+    : destination.recommendText
+      ? destination.recommendText + 'を手がかりに過ごし方を組み立てられます。'
+      : ''
+  const foodPhrase = foodName
+    ? '食事は' + foodName + 'を候補に入れると、移動だけで終わらない旅になります。'
+    : ''
   const stayPhrase = schedule?.days <= 1
-    ? '日帰り旅に選びやすい旅先です。'
+    ? '日帰りなら、到着後に' + (mainSpot ?? destination.city + '中心部') + 'を歩き、昼食と午後の散策を短くまとめる流れが合います。'
     : schedule?.days === 2
-      ? '1泊2日で無理なく過ごしやすい旅先です。'
+      ? '1泊2日なら、1日目に' + (mainSpot ?? destination.city + '中心部') + '、2日目に' + (secondSpot ?? '周辺散策') + 'を分けると詰め込みすぎを避けられます。'
       : schedule?.days >= 5
-        ? '長めの日程で周辺も組み合わせやすい旅先です。'
-        : schedule.label + 'で周辺も少し楽しみやすい旅先です。'
+        ? '長めの日程なら、' + (mainSpot ?? destination.city) + 'を深く見たうえで' + (nearbyName ? nearbyName + '方面' : '周辺エリア') + 'へ足を伸ばせます。'
+        : schedule.label + 'なら、' + (mainSpot ?? destination.city) + 'を中心に、' + (nearbyName ? nearbyName + '方面' : '近いエリア') + 'を1つ足す余白があります。'
   const season = seasonInfo?.season && seasonInfo.season !== 'おまかせ'
-    ? seasonInfo.season + 'の魅力も楽しめます。'
+    ? seasonInfo.season + 'は' + (Object.values(destination.seasonHighlights ?? {})[0] ?? '季節の景色や食事') + 'も意識できます。'
     : ''
   const lead = stylePhrase
-    ? stylePhrase + purposePhrase + 'を楽しみたい旅に合いそうです。'
-    : purposePhrase + 'を楽しみたい旅に合いそうです。'
-  const longStayNote = schedule?.days >= 3
-    ? destination.longStayStyle ?? schedule.label + 'なら、周辺の旅先も組み合わせて楽しめます。'
+    ? stylePhrase + purposePhrase + 'を入れたい旅なら、'
+    : purposePhrase + 'を入れたい旅なら、'
+  const longStayNote = schedule?.days >= 3 && destination.longStayStyle
+    ? destination.longStayStyle
     : ''
-  return lead + stayPhrase + season + longStayNote + (destination.recommendText ?? destination.recommendation ?? '')
+  return [lead + spotPhrase, stayPhrase, foodPhrase, season, longStayNote].filter(Boolean).join('')
 }
 const getTripEnjoymentItems = (destination = {}, foodItems = []) => {
   const tagItems = (destination.tags ?? []).slice(0, 4)
@@ -1697,6 +1713,20 @@ const formatShortageList = (cities = []) => {
 
 const getGourmetFoodShortageCities = (destinationList = []) => destinationList
   .filter((place) => Number(place.purposeFit?.gourmet ?? 0) >= 70 && (place.localFoodCandidates?.length ?? 0) < 2)
+  .map((place) => place.city)
+
+const getAbstractDescriptionRiskCities = (destinationList = []) => destinationList
+  .filter((place) => {
+    const spotCount = place.touristSpots?.length ?? 0
+    const foodDetailCount = place.localFoodDetails?.length ?? 0
+    const hasSpecificFood = (place.localFoodCandidates?.length ?? 0) > 0
+    return spotCount < 3 || (foodDetailCount === 0 && !hasSpecificFood)
+  })
+  .map((place) => place.city)
+
+const getPriorityDescriptionStrengtheningCities = (destinationList = []) => destinationList
+  .filter((place) => qualityPriorityCities.includes(place.city))
+  .filter((place) => (place.touristSpots?.length ?? 0) < 3 || (place.localFoodDetails?.length ?? 0) < 2 || (place.nearbyDestinationHints?.length ?? 0) === 0)
   .map((place) => place.city)
 
 const createImagePreviewData = (destinationList) => {
@@ -3742,7 +3772,7 @@ function App() {
               <section className="multi-destination-card" aria-labelledby="multi-destination-title">
                 <div>
                   <p>EXTENDED TRIP</p>
-                  <h2 id="multi-destination-title">長めの旅行なら、周辺も一緒に楽しめます</h2>
+                  <h2 id="multi-destination-title">長めの旅行なら、周辺まで広げられます</h2>
                 </div>
                 <p className="multi-destination-lead">{currentTripSchedule.label}なら、{destination.city}を中心に{planContext.tripSuggestions.map((item) => item.destination?.city ?? item.city).slice(0, 3).join('、')}を組み合わせると、{planContext.selectedTravelPurposes.length > 0 ? planContext.selectedTravelPurposes.slice(0, 2).join('・') : '街歩きやご当地グルメ'}の時間を分けて作りやすくなります。</p>
                 <dl>
@@ -4889,6 +4919,8 @@ function App() {
               <div><dt>region未設定</dt><dd>{formatShortageList(destinationQualityReport.metadataStatus.missingRegion)}</dd></div>
               <div><dt>長期旅行向きなのに周遊ヒントなし</dt><dd>{formatShortageList(destinationQualityReport.metadataStatus.longStayHintShortage)}</dd></div>
               <div><dt>グルメ向きなのに料理候補が少ない</dt><dd>{formatShortageList(getGourmetFoodShortageCities(destinations))}</dd></div>
+              <div><dt>抽象表現だけになりやすい旅行先</dt><dd>{formatShortageList(getAbstractDescriptionRiskCities(destinations))}</dd></div>
+              <div><dt>優先的に説明を強化すべき旅行先</dt><dd>{formatShortageList(getPriorityDescriptionStrengtheningCities(destinations))}</dd></div>
             </dl>
           </details>
 
