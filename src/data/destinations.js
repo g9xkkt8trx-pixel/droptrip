@@ -162,15 +162,150 @@ const getLocalFoodCandidates = (city, tags = []) => {
   return ['ご当地グルメ', 'カフェ', '郷土料理']
 }
 
+const prefectureRegionMap = {
+  北海道: '北海道',
+  青森県: '東北', 岩手県: '東北', 宮城県: '東北', 秋田県: '東北', 山形県: '東北', 福島県: '東北',
+  茨城県: '関東', 栃木県: '関東', 群馬県: '関東', 埼玉県: '関東', 千葉県: '関東', 東京都: '関東', 神奈川県: '関東',
+  新潟県: '中部', 富山県: '中部', 石川県: '中部', 福井県: '中部', 山梨県: '中部', 長野県: '中部', 岐阜県: '中部', 静岡県: '中部', 愛知県: '中部',
+  三重県: '関西', 滋賀県: '関西', 京都府: '関西', 大阪府: '関西', 兵庫県: '関西', 奈良県: '関西', 和歌山県: '関西',
+  鳥取県: '中国', 島根県: '中国', 岡山県: '中国', 広島県: '中国', 山口県: '中国',
+  徳島県: '四国', 香川県: '四国', 愛媛県: '四国', 高知県: '四国',
+  福岡県: '九州', 佐賀県: '九州', 長崎県: '九州', 熊本県: '九州', 大分県: '九州', 宮崎県: '九州', 鹿児島県: '九州',
+  沖縄県: '沖縄',
+}
+
+const normalizeRegion = (prefecture, region) => {
+  if (prefectureRegionMap[prefecture]) return prefectureRegionMap[prefecture]
+  if (['北海道', '東北', '関東', '中部', '関西', '中国', '四国', '九州', '沖縄'].includes(region)) return region
+  return region === '中国四国' ? '中国' : region
+}
+
+const destinationHintMap = {
+  京都市: ['奈良市', '大阪市', '宇治方面', '滋賀方面'],
+  奈良市: ['京都市', '大阪市', '宇治方面'],
+  小樽市: ['札幌市', '函館市', '余市方面'],
+  札幌市: ['小樽市', '富良野市', '函館市'],
+  函館市: ['札幌市', '小樽市', '大沼方面'],
+  金沢市: ['高山市', '富山方面', '能登方面'],
+  箱根町: ['小田原方面', '熱海市', '鎌倉市'],
+  熱海市: ['箱根町', '伊東市', '伊豆方面'],
+  草津町: ['軽井沢町', '伊香保方面', '長野方面'],
+  日光市: ['那須塩原市', '宇都宮方面', '会津若松市'],
+  鎌倉市: ['横浜市', '箱根町', '湘南方面'],
+  横浜市: ['鎌倉市', '箱根町', '東京方面'],
+  松島町: ['仙台市', '石巻方面', '蔵王方面'],
+  仙台市: ['松島町', '山形方面', '会津若松市'],
+  福岡市: ['長崎市', '別府市', '熊本方面'],
+  長崎市: ['福岡市', '佐世保市', '熊本方面'],
+  広島市: ['廿日市市', '尾道市', '倉敷市'],
+  廿日市市: ['広島市', '宮島周辺', '尾道市'],
+  那覇市: ['石垣市', '宮古島市', '沖縄本島周辺'],
+  石垣市: ['石垣島周辺', '離島方面', '自然・海辺滞在'],
+  高山市: ['金沢市', '白川郷方面', '松本市'],
+  伊勢市: ['鳥羽方面', '志摩方面', '名古屋市'],
+  白浜町: ['和歌山市', '熊野方面', '大阪市'],
+  軽井沢町: ['草津町', '小諸方面', '長野方面'],
+  富良野市: ['札幌市', '美瑛方面', '旭川方面'],
+  会津若松市: ['日光市', '仙台市', '喜多方方面'],
+  尾道市: ['広島市', '倉敷市', 'しまなみ海道方面'],
+  倉敷市: ['尾道市', '広島市', '岡山市'],
+  松江市: ['出雲市', '鳥取市', '境港方面'],
+  別府市: ['福岡市', '由布市', '熊本方面'],
+}
+
+const scoreCap = (value) => Math.max(0, Math.min(100, Math.round(value)))
+const hasAnyTag = (destination, tags) => tags.some((tag) => destination.tags?.includes(tag))
+const inCityList = (destination, cities) => cities.includes(destination.city)
+
+const createCompanionFit = (destination) => {
+  const scenic = hasAnyTag(destination, ['温泉', '海', '山', 'カップル向け'])
+  const easyAccess = Number.isFinite(destination.stationAccessMinutes) && destination.stationAccessMinutes <= 35
+  return {
+    couple: scoreCap((scenic ? 48 : 22) + (hasAnyTag(destination, ['温泉', '海', 'カップル向け']) ? 24 : 0) + (easyAccess ? 8 : 0)),
+    solo: scoreCap(36 + (hasAnyTag(destination, ['グルメ', '山']) ? 18 : 0) + (inCityList(destination, ['京都市', '奈良市', '鎌倉市', '金沢市', '小樽市', '尾道市', '倉敷市', '高山市']) ? 24 : 0)),
+    friends: scoreCap(34 + (hasAnyTag(destination, ['グルメ', '海']) ? 22 : 0) + (inCityList(destination, ['札幌市', '福岡市', '大阪市', '横浜市', '那覇市', '長崎市', '広島市']) ? 20 : 0)),
+    family: scoreCap(32 + (hasAnyTag(destination, ['山', '海']) ? 18 : 0) + (easyAccess ? 18 : 0) + (inCityList(destination, ['横浜市', '浦安市', '日光市', '仙台市', '札幌市', '福岡市', '軽井沢町']) ? 14 : 0)),
+    pet: scoreCap(18 + (hasAnyTag(destination, ['山', '海']) ? 22 : 0) + (inCityList(destination, ['軽井沢町', '鎌倉市', '箱根町', '富良野市', '石垣市', '日光市']) ? 16 : 0)),
+  }
+}
+
+const createPurposeFit = (destination) => {
+  const foods = Array.isArray(destination.localFoodCandidates) ? destination.localFoodCandidates : []
+  const historyCities = ['京都市', '奈良市', '鎌倉市', '伊勢市', '廿日市市', '日光市', '高山市', '会津若松市', '松江市', '金沢市', '尾道市', '倉敷市', '長崎市', '広島市']
+  const onsenCities = ['箱根町', '熱海市', '草津町', '別府市', '白浜町', '伊東市', '由布市', '下呂市']
+  const walkingCities = ['小樽市', '金沢市', '鎌倉市', '横浜市', '京都市', '尾道市', '倉敷市', '高山市', '長崎市', '函館市', '松江市']
+  return {
+    gourmet: scoreCap((foods.length > 0 ? 68 : 30) + (hasAnyTag(destination, ['グルメ']) ? 22 : 0)),
+    history: scoreCap((inCityList(destination, historyCities) ? 78 : 24) + (hasAnyTag(destination, ['カップル向け']) ? 8 : 0)),
+    onsen: scoreCap((hasAnyTag(destination, ['温泉']) ? 82 : 18) + (inCityList(destination, onsenCities) ? 12 : 0)),
+    nature: scoreCap((hasAnyTag(destination, ['山', '海']) ? 72 : 28) + (['北海道', '沖縄'].includes(destination.region) ? 12 : 0)),
+    activity: scoreCap((hasAnyTag(destination, ['山', '海']) ? 62 : 22) + (['沖縄', '北海道'].includes(destination.region) ? 10 : 0)),
+    experience: scoreCap(34 + (hasAnyTag(destination, ['温泉', 'グルメ']) ? 20 : 0) + (inCityList(destination, historyCities) ? 18 : 0)),
+    walking: scoreCap(34 + (inCityList(destination, walkingCities) ? 42 : 0) + (hasAnyTag(destination, ['グルメ', 'カップル向け']) ? 12 : 0)),
+    relax: scoreCap(32 + (hasAnyTag(destination, ['温泉', '山', '海']) ? 34 : 0) + (inCityList(destination, ['箱根町', '熱海市', '草津町', '別府市', '軽井沢町', '富良野市', '石垣市']) ? 18 : 0)),
+  }
+}
+
+const createStayFit = (destination, purposeFit) => {
+  const accessMinutes = Number.isFinite(destination.stationAccessMinutes) ? destination.stationAccessMinutes : 45
+  const hintCount = destinationHintMap[destination.city]?.length ?? 0
+  const isHub = ['京都市', '大阪市', '福岡市', '金沢市', '札幌市', '長崎市', '広島市', '那覇市', '仙台市', '横浜市'].includes(destination.city)
+  const themeWidth = ['gourmet', 'history', 'onsen', 'nature', 'walking'].filter((key) => purposeFit[key] >= 60).length
+  return {
+    dayTrip: scoreCap(78 - Math.min(accessMinutes, 90) * 0.35 + (hasAnyTag(destination, ['グルメ', '温泉']) ? 8 : 0)),
+    oneNight: scoreCap(48 + (hasAnyTag(destination, ['温泉', '海', '山', 'グルメ']) ? 22 : 0) + (accessMinutes <= 60 ? 8 : 0)),
+    twoNights: scoreCap(42 + themeWidth * 8 + Math.min(hintCount, 2) * 10 + (isHub ? 8 : 0)),
+    longStay: scoreCap(30 + themeWidth * 9 + Math.min(hintCount, 3) * 11 + (isHub ? 14 : 0) + (['北海道', '沖縄', '九州', '関西'].includes(destination.region) ? 8 : 0)),
+  }
+}
+
+const createLongStayStyle = (destination, stayFit) => {
+  if (stayFit.longStay < 55) return 'メイン旅先をゆっくり楽しむ滞在向きです。'
+  if (destination.region === '沖縄') return '島内や離島方面を組み合わせ、自然・海辺・グルメを深く楽しむ滞在向きです。'
+  if (destination.region === '北海道') return '広い地域の自然・街歩き・食をゆったり組み合わせる滞在向きです。'
+  return '同じ地域の周辺候補を組み合わせる周遊滞在に向いています。'
+}
+
+const createTravelBaseScoreNote = (destination, purposeFit, stayFit) => {
+  const strongPurposes = Object.entries(purposeFit).filter(([, value]) => value >= 70).map(([key]) => key).slice(0, 3)
+  const stayLabels = Object.entries(stayFit).filter(([, value]) => value >= 70).map(([key]) => key).slice(0, 2)
+  return destination.city + 'は' + (strongPurposes.join('・') || '複数テーマ') + 'に強く、' + (stayLabels.join('・') || '滞在') + 'の加点対象です。'
+}
+
+const enrichDestination = (destination) => {
+  const region = normalizeRegion(destination.prefecture, destination.region)
+  const base = { ...destination, region }
+  const companionFit = destination.companionFit ?? createCompanionFit(base)
+  const purposeFit = destination.purposeFit ?? createPurposeFit(base)
+  const stayFit = destination.stayFit ?? createStayFit(base, purposeFit)
+  const nearbyDestinationHints = destination.nearbyDestinationHints ?? destinationHintMap[base.city] ?? []
+  return {
+    ...base,
+    companionFit,
+    purposeFit,
+    stayFit,
+    nearbyDestinationHints,
+    goodForDayTrip: destination.goodForDayTrip ?? stayFit.dayTrip >= 62,
+    goodForOneNight: destination.goodForOneNight ?? stayFit.oneNight >= 62,
+    goodForLongStay: destination.goodForLongStay ?? stayFit.longStay >= 62,
+    longStayStyle: destination.longStayStyle ?? createLongStayStyle(base, stayFit),
+    travelBaseScoreNote: destination.travelBaseScoreNote ?? createTravelBaseScoreNote(base, purposeFit, stayFit),
+  }
+}
+
 const baseDestinations = rawDestinations.map((destination) => {
   const [latitude, longitude] = destinationCoordinates[destination.city]
   const address = destinationAddresses[destination.city]
     ?? `${destination.prefecture}${destination.city}`
   const seasonProfile = getSeasonProfile(destination)
-  const images = getDestinationImages(destination.prefecture, destination.city, destination.tags)
+  const localFoodCandidates = getLocalFoodCandidates(destination.city, destination.tags)
+  const images = getDestinationImages(destination.prefecture, destination.city, destination.tags, {
+    localFoodCandidates,
+    region: normalizeRegion(destination.prefecture, destination.region),
+  })
   const transit = getDestinationTransit(destination.city)
 
-  return {
+  return enrichDestination({
     id: `${destination.prefecture}-${destination.city}`,
     city: destination.city,
     prefecture: destination.prefecture,
@@ -189,22 +324,26 @@ const baseDestinations = rawDestinations.map((destination) => {
     highlights: destination.highlight,
     bestSeasons: seasonProfile.bestSeasons,
     seasonHighlights: seasonProfile.seasonHighlights,
-    localFoodCandidates: getLocalFoodCandidates(destination.city, destination.tags),
+    localFoodCandidates,
     ...images,
     ...transit,
-  }
+  })
 })
 
 const expandedDestinations = supplementalDestinations.map((destination) => {
-  const images = getDestinationImages(destination.prefecture, destination.city, destination.tags)
-  return {
+  const localFoodCandidates = getLocalFoodCandidates(destination.city, destination.tags)
+  const images = getDestinationImages(destination.prefecture, destination.city, destination.tags, {
+    localFoodCandidates,
+    region: normalizeRegion(destination.prefecture, destination.region),
+  })
+  return enrichDestination({
     ...destination,
     id: `${destination.prefecture}-${destination.city}`,
     googleMapsQuery: `${destination.address} 観光`,
     reason: `${destination.city}は「${destination.recommendText}」をテーマにした旅行ができ、${destination.tags.join('・')}を重視する方におすすめです。`,
-    localFoodCandidates: getLocalFoodCandidates(destination.city, destination.tags),
+    localFoodCandidates,
     ...images,
-  }
+  })
 })
 
 const destinations = [...baseDestinations, ...expandedDestinations]

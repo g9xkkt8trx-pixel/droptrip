@@ -33,7 +33,7 @@ export const createAiPlanPrompt = ({
     `旅先: ${destination.prefecture} ${destination.city}`,
     `旅行タイプ: ${tripType}`,
     `旅行予定季節: ${season}`,
-    `こだわり条件: ${joinOrDefault(selectedFilters)}`,
+    `同行者・旅のスタイル: ${joinOrDefault(selectedFilters)}`,
     `旅の目的: ${joinOrDefault(selectedTravelPurposes)}`,
     `予算目安: 1人あたり ${budget}`,
     `旅先の特徴: ${destination.recommendation}`,

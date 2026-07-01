@@ -20,6 +20,20 @@ const tagKeywords = {
   カップル向け: ['夜景', '街並み', '散策', 'ロマン', 'デート', '景色', '絶景', '温泉'],
 }
 
+const allowedRegions = ['北海道', '東北', '関東', '中部', '関西', '中国', '四国', '九州', '沖縄']
+const companionFitKeys = ['couple', 'solo', 'friends', 'family', 'pet']
+const purposeFitKeys = ['gourmet', 'history', 'onsen', 'nature', 'activity', 'experience', 'walking', 'relax']
+const stayFitKeys = ['dayTrip', 'oneNight', 'twoNights', 'longStay']
+const priorityQualityCities = [
+  '京都市', '奈良市', '小樽市', '札幌市', '函館市', '金沢市', '箱根町', '熱海市', '草津町', '日光市',
+  '鎌倉市', '横浜市', '松島町', '仙台市', '福岡市', '長崎市', '広島市', '廿日市市', '那覇市', '石垣市',
+  '高山市', '伊勢市', '白浜町', '軽井沢町', '富良野市', '会津若松市', '尾道市', '倉敷市', '松江市', '別府市',
+]
+
+const hasFitKeys = (value, keys) => value && typeof value === 'object' && keys.every((key) => Number.isFinite(Number(value[key])))
+const hasLocalFoods = (destination) => Array.isArray(destination.localFoodCandidates) && destination.localFoodCandidates.length > 0
+const hasNearbyHints = (destination) => Array.isArray(destination.nearbyDestinationHints) && destination.nearbyDestinationHints.length > 0
+
 const addIssue = (issues, field, message, recommendation = `${field}の設定内容を確認してください`) => (
   issues.push({ field, message, recommendation })
 )
@@ -94,6 +108,13 @@ export const runDestinationQualityChecks = (destinations) => {
     if (!Array.isArray(destination.bestSeasons) || destination.bestSeasons.length === 0) {
       addIssue(issues, 'bestSeasons', 'ベストシーズンがありません')
     }
+    if (!allowedRegions.includes(destination.region)) addIssue(issues, 'region', 'regionが9分類のいずれにも設定されていません', 'prefectureに対応するregionを設定してください')
+    if (!hasLocalFoods(destination)) addIssue(issues, 'localFoodCandidates', 'ご当地グルメ候補が未設定です', 'localFoodCandidatesを1件以上設定してください')
+    if (!hasFitKeys(destination.companionFit, companionFitKeys)) addIssue(issues, 'companionFit', '同行者・旅のスタイル相性が未設定です', 'couple / solo / friends / family / pet のスコアを設定してください')
+    if (!hasFitKeys(destination.purposeFit, purposeFitKeys)) addIssue(issues, 'purposeFit', '旅の目的相性が未設定です', '目的別スコアを設定してください')
+    if (!hasFitKeys(destination.stayFit, stayFitKeys)) addIssue(issues, 'stayFit', '旅行日程との相性が未設定です', 'dayTrip / oneNight / twoNights / longStay のスコアを設定してください')
+    if (!hasNearbyHints(destination)) addIssue(issues, 'nearbyDestinationHints', '長期旅行向けの周遊候補ヒントが未設定です', '同じ地域・近隣県・方面表現のヒントを設定してください')
+
     if (!destination.seasonHighlights || typeof destination.seasonHighlights !== 'object') {
       addIssue(issues, 'seasonHighlights', '季節の見どころがありません', '春・夏・秋・冬の見どころを設定してください')
     } else {
@@ -179,11 +200,34 @@ export const runDestinationQualityChecks = (destinations) => {
     needsReview: 0,
   })
 
+  const metadataStatus = {
+    missingRegion: destinations.filter((destination) => !allowedRegions.includes(destination.region)).map((destination) => destination.city),
+    missingLocalFood: destinations.filter((destination) => !hasLocalFoods(destination)).map((destination) => destination.city),
+    missingCompanionFit: destinations.filter((destination) => !hasFitKeys(destination.companionFit, companionFitKeys)).map((destination) => destination.city),
+    missingPurposeFit: destinations.filter((destination) => !hasFitKeys(destination.purposeFit, purposeFitKeys)).map((destination) => destination.city),
+    missingStayFit: destinations.filter((destination) => !hasFitKeys(destination.stayFit, stayFitKeys)).map((destination) => destination.city),
+    missingNearbyHints: destinations.filter((destination) => !hasNearbyHints(destination)).map((destination) => destination.city),
+    priorityTotal: priorityQualityCities.length,
+    priorityCompleted: priorityQualityCities.filter((city) => {
+      const destination = destinations.find((item) => item.city === city)
+      return destination
+        && allowedRegions.includes(destination.region)
+        && hasLocalFoods(destination)
+        && hasFitKeys(destination.companionFit, companionFitKeys)
+        && hasFitKeys(destination.purposeFit, purposeFitKeys)
+        && hasFitKeys(destination.stayFit, stayFitKeys)
+        && hasNearbyHints(destination)
+    }).length,
+    priorityMissing: priorityQualityCities.filter((city) => !destinations.find((destination) => destination.city === city)),
+    longStayHintShortage: destinations.filter((destination) => destination.goodForLongStay && !hasNearbyHints(destination)).map((destination) => destination.city),
+  }
+
   return {
     total: results.length,
     passed: results.length - warnings.length,
     warningCount: warnings.length,
     warnings,
+    metadataStatus,
     imageStatus,
     imageReuse: {
       categoryUsage: categoryUsageEntries,

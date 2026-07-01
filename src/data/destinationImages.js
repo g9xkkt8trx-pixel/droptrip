@@ -55,6 +55,21 @@ const CATEGORY_PATHS = {
   nature: ['/images/categories/nature-1.jpg', '/images/categories/nature-2.jpg'],
 }
 
+const CATEGORY_ALIASES = {
+  自然: 'nature',
+  街歩き: 'city',
+  歴史: 'history',
+  神社仏閣: 'history',
+  ファミリー向け: 'nature',
+  一人旅向け: 'city',
+  アクティビティ: 'nature',
+  体験: 'history',
+  夜景: 'couple',
+  離島: 'sea',
+  雪景色: 'mountain',
+  花: 'nature',
+}
+
 const CATEGORY_VARIANT_TARGET = 3
 
 Object.values(CATEGORY_PATHS).forEach((paths) => {
@@ -66,6 +81,10 @@ Object.values(CATEGORY_PATHS).forEach((paths) => {
     const nextPath = `/images/categories/${match[1]}-${index}.jpg`
     if (!paths.includes(nextPath)) paths.push(nextPath)
   }
+})
+
+Object.entries(CATEGORY_ALIASES).forEach(([aliasKey, targetKey]) => {
+  CATEGORY_PATHS[aliasKey] = CATEGORY_PATHS[targetKey] ?? CATEGORY_PATHS.nature
 })
 
 // 権利確認済みの個別画像を追加したときは、この対応表へ登録する。
@@ -312,9 +331,19 @@ const getCommonAsset = (imageType) => {
   return DEFAULT_TRAVEL_IMAGE
 }
 
-const getPreferredCategory = (tags = [], imageType = 'hero') => {
+const getPreferredCategory = (destinationOrTags = [], imageType = 'hero') => {
+  const destination = Array.isArray(destinationOrTags) ? { tags: destinationOrTags } : destinationOrTags
+  const tags = destination.tags ?? []
+  const purposeFit = destination.purposeFit ?? {}
+  const localFoods = destination.localFoodCandidates ?? []
   if (imageType === 'food') return 'グルメ'
+  if (destination.city === '石垣市' || destination.city === '那覇市' || destination.region === '沖縄') return imageType === 'scenery' ? '離島' : '海'
+  if (destination.region === '北海道' && ['札幌市', '函館市', '富良野市', '小樽市'].includes(destination.city)) return imageType === 'scenery' ? '雪景色' : '自然'
+  if (Number(purposeFit.history ?? 0) >= 70) return '歴史'
+  if (Number(purposeFit.walking ?? 0) >= 70) return '街歩き'
+  if (Number(purposeFit.nature ?? 0) >= 70) return '自然'
   if (imageType === 'scenery' && tags.length === 1 && tags[0] === 'グルメ') return 'nature'
+  if (localFoods.some((food) => /海鮮|寿司|魚|牡蠣/.test(food)) && imageType === 'hero') return '海'
   const priorities = imageType === 'scenery'
     ? ['海', '山', '温泉', 'カップル向け', 'グルメ']
     : ['温泉', '海', '山', 'カップル向け', 'グルメ']
@@ -325,8 +354,8 @@ const stableHash = (value = '') => [...String(value)].reduce((hash, character) =
   ((hash * 31) + character.codePointAt(0)) >>> 0
 ), 7)
 
-export const getThemeImageFallback = (tags = [], imageType = 'hero', seed = '') => {
-  const category = getPreferredCategory(tags, imageType)
+export const getThemeImageFallback = (destinationOrTags = [], imageType = 'hero', seed = '') => {
+  const category = getPreferredCategory(destinationOrTags, imageType)
   const variants = CATEGORY_PATHS[category] ?? []
   const typeOffset = imageType === 'hero' ? 0 : imageType === 'food' ? 1 : 2
   const url = variants[
@@ -385,22 +414,22 @@ export const getDestinationImage = (destination = {}, imageType = 'hero') => {
   }
   if (configuredUrl.startsWith('/images/destinations/') && isValidImageUrl(configured)) return configured
 
-  const categoryAsset = getThemeImageFallback(destination.tags ?? [], imageType, seed)
+  const categoryAsset = getThemeImageFallback(destination, imageType, seed)
   if (isValidImageUrl(categoryAsset)) return categoryAsset
   return getCommonAsset(imageType)
 }
 
 export const getDestinationImageCandidates = (destination = {}, imageType = 'hero') => {
   const primary = getDestinationImage(destination, imageType)
-  const category = getThemeImageFallback(destination.tags ?? [], imageType, destination.id ?? destination.city ?? '')
+  const category = getThemeImageFallback(destination, imageType, destination.id ?? destination.city ?? '')
   const common = getCommonAsset(imageType)
   return [primary, category, common]
     .filter(isValidImageUrl)
     .filter((image, index, images) => images.findIndex((candidate) => getImageUrl(candidate) === getImageUrl(image)) === index)
 }
 
-export const getDestinationImages = (prefecture, city, tags = []) => {
-  const destination = { prefecture, city, tags }
+export const getDestinationImages = (prefecture, city, tags = [], details = {}) => {
+  const destination = { prefecture, city, tags, ...details }
   const heroImage = getDestinationImage(destination, 'hero')
   const foodImage = getDestinationImage(destination, 'food')
   const sceneryImage = getDestinationImage(destination, 'scenery')
