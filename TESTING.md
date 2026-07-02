@@ -181,6 +181,8 @@
 - Confirm that detail cards include concrete timing or area hints when available.
 - Confirm that AI plan prompts include local food description, timing, area hints, and trip-fit context without changing /api files.
 - Confirm that generic or mismatched food images are not promoted as confirmed local specialty photos.
+- Confirm that abstract gourmet names such as local cuisine, local ramen, cafe, bakery, sashimi, seafood, and walking snacks do not appear as food chips or detail card names.
+- Confirm that food images disappear when the image is generic, fallback, temporary, abstract-themed, or mismatched with the displayed dish name.
 ## グルメ / スポット詳細ページ確認
 
 - 結果画面の初期表示では、グルメ / スポットの2つだけが大きなボタンとして表示されることを確認します。

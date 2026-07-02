@@ -291,6 +291,8 @@ v0.1.0-beta の主な機能は次のとおりです。
 - Local food sections prioritize concrete dish and specialty names. Generic labels such as category-only gourmet or cafe text are not shown as detail cards.
 - When localFoodDetails is missing, the UI falls back to concrete localFoodCandidates chips only. If no concrete food name exists, the section is hidden without an empty-state message.
 - Generic food images are not promoted as concrete local specialty photos; image gaps continue to be tracked in IMAGE_TODO.md.
+- Local food names avoid abstract labels such as local cuisine, local ramen, cafe, bakery, market gourmet, and walking snacks. Use concrete dish, ingredient, fish, meat, noodle, or sweet names instead.
+- Food images are shown only when the image is local-food-specific, has an allowed review status, and its foodTheme matches the displayed dish name.
 
 ## Concrete Tourist Spot Display Policy
 

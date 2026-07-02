@@ -1408,9 +1408,16 @@ const splitFoodTheme = (theme = '') => String(theme)
 const abstractFoodLabels = new Set([
   'ご当地グルメ', '市場グルメ', 'カフェ', '料理イメージ', '食事', '名物', 'グルメ', 'スイーツ', '軽食',
   '汎用料理イメージ', 'ご当地グルメ候補', '温泉街グルメ', '港町の食事', '中華街グルメ',
+  '郷土料理', '地元料理', '地元野菜料理', 'きのこ料理', '山菜料理', '刺身', '海鮮', '地元ラーメン',
+  'ご当地ラーメン', 'ベーカリー', '高原スイーツ', '食べ歩き', '料理イメージ', '市場惣菜', '地元スイーツ',
+  '地元カフェスイーツ', '商店街の食べ歩き', '温泉街の食べ歩き', '地元ベーカリー',
 ])
 
-const abstractFoodLabelPatterns = [/料理イメージ/, /^汎用/, /^ご当地グルメ$/, /^市場グルメ$/, /^カフェ$/, /^食事$/, /^名物$/, /^グルメ$/, /^スイーツ$/, /^軽食$/]
+const abstractFoodLabelPatterns = [
+  /料理イメージ/, /^汎用/, /^ご当地グルメ$/, /^市場グルメ$/, /^カフェ$/, /^食事$/, /^名物$/, /^グルメ$/, /^スイーツ$/, /^軽食$/,
+  /^郷土料理$/, /^地元料理$/, /^地元野菜料理$/, /^きのこ料理$/, /^山菜料理$/, /^刺身$/, /^海鮮$/, /^地元ラーメン$/, /^ご当地ラーメン$/,
+  /^ベーカリー$/, /^高原スイーツ$/, /食べ歩き$/, /周辺カフェ$/, /カフェごはん$/, /^市場惣菜$/, /^地元スイーツ$/,
+]
 
 const isConcreteFoodName = (name = '') => {
   const normalized = String(name).trim()
@@ -1737,21 +1744,23 @@ const getFoodThemeText = (destination = {}, foodItems = []) => {
 
 const shouldFeatureFoodImage = (destination = {}, foodItems = []) => {
   const foodImage = destination.foodImage
-  const hasConcreteFood = getConcreteFoodCandidates(foodItems).length > 0
-    || getConcreteFoodCandidates(destination.localFoodCandidates).length > 0
+  const concreteFoods = getConcreteFoodCandidates(foodItems).length > 0
+    ? getConcreteFoodCandidates(foodItems)
+    : getConcreteFoodCandidates(destination.localFoodCandidates)
   const isGeneric = Boolean(getImageMetaValue(foodImage, 'isGeneric'))
-  const isFallback = getImageMetaValue(foodImage, 'status') === 'fallback'
-  const hasConcreteTheme = getConcreteFoodCandidates(splitFoodTheme(getImageMetaValue(foodImage, 'foodTheme'))).length > 0
+  const status = getImageMetaValue(foodImage, 'status')
+  const isFallback = status === 'fallback'
+  const isAllowedStatus = ['confirmed', 'needs_review'].includes(status)
+  const foodThemes = getConcreteFoodCandidates(splitFoodTheme(getImageMetaValue(foodImage, 'foodTheme')))
+  const hasMatchingTheme = foodThemes.some((theme) => concreteFoods.some((food) => food.includes(theme) || theme.includes(food)))
   return Boolean(
     getImageUrl(foodImage)
-    && hasConcreteFood
+    && concreteFoods.length > 0
     && !isGeneric
     && !isFallback
-    && (
-      getImageMetaValue(foodImage, 'isDestinationSpecific')
-      || getImageMetaValue(foodImage, 'isLocalFood')
-      || hasConcreteTheme
-    ),
+    && isAllowedStatus
+    && getImageMetaValue(foodImage, 'isLocalFood')
+    && hasMatchingTheme,
   )
 }
 
@@ -1952,6 +1961,18 @@ const getAbstractFoodDetailCities = (destinationList = []) => destinationList
 
 const getAbstractFoodCandidateOnlyCities = (destinationList = []) => destinationList
   .filter((place) => (place.localFoodCandidates?.length ?? 0) > 0 && getConcreteFoodCandidates(place.localFoodCandidates).length === 0)
+  .map((place) => place.city)
+
+const getAbstractFoodCandidateNameCities = (destinationList = []) => destinationList
+  .filter((place) => (place.localFoodCandidates ?? []).some((food) => !isConcreteFoodName(food)))
+  .map((place) => place.city)
+
+const getSeafoodBowlWithoutLocalFishCities = (destinationList = []) => destinationList
+  .filter((place) => (place.localFoodCandidates ?? []).includes('海鮮丼'))
+  .filter((place) => {
+    const text = (place.localFoodCandidates ?? []).join(' ')
+    return !/鯛|牡蠣|ほたて|白えび|寒ブリ|のどぐろ|しらす|穴子|イカ|いか|クエ|まぐろ|かつお|きびなご|鳴門|氷見|関あじ|関さば|うに|いくら/.test(text)
+  })
   .map((place) => place.city)
 
 const getTemplateFoodDescriptionCities = (destinationList = []) => destinationList
@@ -4935,7 +4956,9 @@ function App() {
               <div><dt>抽象表現だけになりやすい旅行先</dt><dd>{formatShortageList(getAbstractDescriptionRiskCities(destinations))}</dd></div>
               <div><dt>優先的に説明を強化すべき旅行先</dt><dd>{formatShortageList(getPriorityDescriptionStrengtheningCities(destinations))}</dd></div>
               <div><dt>localFoodDetailsのnameが抽象語</dt><dd>{formatShortageList(getAbstractFoodDetailCities(destinations))}</dd></div>
+              <div><dt>localFoodCandidatesに抽象グルメ名あり</dt><dd>{formatShortageList(getAbstractFoodCandidateNameCities(destinations))}</dd></div>
               <div><dt>localFoodCandidatesが抽象語のみ</dt><dd>{formatShortageList(getAbstractFoodCandidateOnlyCities(destinations))}</dd></div>
+              <div><dt>海鮮丼あり / 地域魚名なし</dt><dd>{formatShortageList(getSeafoodBowlWithoutLocalFishCities(destinations))}</dd></div>
               <div><dt>ご当地グルメ説明文がテンプレート化</dt><dd>{formatShortageList(getTemplateFoodDescriptionCities(destinations))}</dd></div>
               <div><dt>localFoodDetails duplicate descriptions</dt><dd>{formatShortageList(getLocalFoodDescriptionDuplicateCities(destinations))}</dd></div>
               <div><dt>localFoodDetails template phrase risk</dt><dd>{formatShortageList(getLocalFoodPhraseRiskCities(destinations))}</dd></div>
