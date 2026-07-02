@@ -1381,6 +1381,7 @@ h1 {
 
 .result-primary-actions {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
 
@@ -1422,12 +1423,6 @@ h1 {
   background: linear-gradient(135deg, #edfff6 0%, #ccefe2 100%);
   border-color: rgba(93, 172, 139, 0.34);
   box-shadow: 0 14px 28px rgba(60, 119, 96, 0.13);
-}
-
-.result-primary-actions button:nth-child(3) {
-  background: linear-gradient(135deg, #f2f5ff 0%, #e3dcff 100%);
-  border-color: rgba(135, 130, 208, 0.32);
-  box-shadow: 0 14px 28px rgba(83, 87, 154, 0.13);
 }
 
 .result-primary-actions button strong {
@@ -1492,6 +1487,93 @@ h1 {
 
 .result-primary-actions button:disabled::after {
   opacity: 0.36;
+}
+
+.result-detail-page {
+  display: grid;
+  gap: 14px;
+}
+
+.result-detail-back-button {
+  width: fit-content;
+  min-height: 42px;
+  padding: 0 15px;
+  color: #315f55;
+  background: #fff;
+  border: 1px solid #dbe8e3;
+  border-radius: 999px;
+  box-shadow: 0 8px 18px rgba(44, 81, 72, 0.08);
+  font-size: 0.75rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.result-detail-back-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 11px 22px rgba(44, 81, 72, 0.12);
+}
+
+.result-detail-back-button:focus-visible {
+  outline: 3px solid rgba(47, 111, 97, 0.32);
+  outline-offset: 3px;
+}
+
+.result-detail-page-heading {
+  padding: 18px;
+  background: linear-gradient(135deg, #fffaf1 0%, #eefbf5 100%);
+  border: 1px solid #e2ece7;
+  border-radius: 22px;
+  box-shadow: 0 14px 28px rgba(43, 80, 71, 0.08);
+}
+
+.result-detail-page-heading p,
+.result-detail-page-heading h2,
+.result-detail-page-heading span {
+  margin: 0;
+}
+
+.result-detail-page-heading p {
+  color: #e08768;
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.result-detail-page-heading h2 {
+  margin-top: 5px;
+  color: #315f55;
+  font-size: 1.28rem;
+  line-height: 1.35;
+}
+
+.result-detail-page-heading span {
+  display: block;
+  margin-top: 8px;
+  color: #60746e;
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1.7;
+}
+
+.result-detail-fit-card {
+  padding: 14px 15px;
+  color: #49645d;
+  background: #f8fcfa;
+  border: 1px solid #dfeae5;
+  border-radius: 18px;
+}
+
+.result-detail-fit-card strong {
+  display: block;
+  color: #315f55;
+  font-size: 0.82rem;
+}
+
+.result-detail-fit-card p {
+  margin: 6px 0 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.75;
 }
 
 .access-confirm-card {
@@ -1633,7 +1715,8 @@ h1 {
   letter-spacing: 0.08em;
 }
 
-.local-food-heading h2 {
+.local-food-heading h2,
+.local-food-heading h3 {
   margin-top: 2px;
   color: #315f55;
   font-size: 0.98rem;
@@ -1645,6 +1728,10 @@ h1 {
   gap: 12px;
   align-items: stretch;
   margin-top: 13px;
+}
+
+.no-food-image .local-food-content {
+  grid-template-columns: 1fr;
 }
 
 .local-food-text {
@@ -6516,8 +6603,7 @@ h1 {
 }
 
 
-.tourist-spots-card,
-.stay-ideas-card {
+.tourist-spots-card {
   margin: 1rem 0;
   padding: 1rem;
   border: 1px solid rgba(15, 23, 42, 0.1);
@@ -6532,9 +6618,14 @@ h1 {
   align-items: center;
 }
 
-.tourist-spots-heading p,
-.stay-ideas-card p {
+.tourist-spots-heading p {
   margin: 0;
+}
+
+.tourist-spots-heading h3 {
+  margin: 2px 0 0;
+  color: #315f55;
+  font-size: 0.98rem;
 }
 
 .tourist-spots-grid {
@@ -6616,20 +6707,8 @@ h1 {
   background: rgba(248, 250, 252, 0.95);
 }
 
-.stay-ideas-card ol {
-  display: grid;
-  gap: 0.65rem;
-  margin: 0.85rem 0 0;
-  padding-left: 1.2rem;
-}
-
-.stay-ideas-card li {
-  line-height: 1.65;
-}
-
 @media (max-width: 430px) {
-  .tourist-spots-card,
-  .stay-ideas-card {
+  .tourist-spots-card {
     padding: 0.85rem;
   }
 

@@ -1568,26 +1568,6 @@ const getCourseFoodNames = (destination = {}, foodDetails = []) => [...new Set([
   ...getConcreteFoodCandidates(destination.localFoodCandidates),
 ])].filter((name) => isConcreteFoodName(name)).slice(0, 3)
 
-const getConcreteSchedulePlans = (destination = {}, schedule = {}, foodItems = []) => {
-  const plans = getPlansForSchedule(destination, schedule)
-  const foodNames = [...new Set([
-    ...getConcreteFoodCandidates(foodItems),
-    ...getConcreteFoodCandidates(destination.localFoodCandidates),
-  ])].slice(0, 2)
-  const foodLabel = foodNames.join('や')
-  return plans.map((dayPlan) => ({
-    ...dayPlan,
-    items: (dayPlan.items ?? [])
-      .map((item) => {
-        if (String(item).includes('ご当地ランチ')) {
-          return foodLabel ? String(item).replace('ご当地ランチ', foodLabel) : ''
-        }
-        return item
-      })
-      .filter(Boolean),
-  }))
-}
-
 const getCourseNearbyName = (destination = {}, nearbySuggestions = []) => {
   const suggestionName = nearbySuggestions[0]?.destination?.city ?? nearbySuggestions[0]?.city
   const hintName = (destination.nearbyDestinationHints ?? []).find((hint) => hint && !isPseudoSpotName(hint))
@@ -1640,15 +1620,6 @@ const getConcreteStayIdeas = (destination = {}, schedule = {}, spots = [], foodD
     '後半：' + (foodText ? foodText + 'などの食事と' : '') + tone,
     '最終日：' + (thirdSpotName ? thirdSpotName + 'を軽めに入れてから' : '帰路に合わせて短めに整えてから') + '戻る流れにします。',
   ]
-}
-
-const canShowConcreteModelCourse = (destination = {}, schedule = {}, spots = [], foodDetails = [], nearbySuggestions = []) => {
-  const hasSpot = spots.some((spot) => isConcreteSpotName(spot?.name))
-  const hasFood = getCourseFoodNames(destination, foodDetails).length > 0
-  const hasNearbyForLongStay = (schedule?.days ?? 1) < 4
-    || nearbySuggestions.length > 0
-    || (destination.nearbyDestinationHints?.length ?? 0) > 0
-  return hasSpot && hasFood && hasNearbyForLongStay
 }
 
 const createAiDestinationPayload = (destination = {}, context = {}, featuredSpots = [], foodDetails = [], nearbySuggestions = []) => ({
@@ -2509,10 +2480,6 @@ function App() {
     ? getTravelStyleMatch(destination, planContext.selectedFilters)
     : { matchedStyles: [], summary: '' }
   const currentTripSchedule = planContext?.tripSchedule ?? (planContext ? resolveTripSchedule(planContext.tripType) : tripSchedule)
-  const currentTripPlans = destination ? getConcreteSchedulePlans(destination, currentTripSchedule, localFoodItems) : []
-  const concreteStayIdeas = destination && canShowConcreteModelCourse(destination, currentTripSchedule, featuredTouristSpots, localFoodDetails, planContext?.tripSuggestions ?? [])
-    ? getConcreteStayIdeas(destination, currentTripSchedule, featuredTouristSpots, localFoodDetails, planContext?.selectedTravelPurposes ?? [], planContext?.selectedFilters ?? [], planContext?.tripSuggestions ?? [])
-    : []
   const currentBudget = destination ? getBudgetForSchedule(destination, currentTripSchedule) : '時期により変動'
   const longTripPacingItems = getLongTripPacingItems(currentTripSchedule, Boolean(planContext?.tripSuggestions?.some((item) => !item.isStayFocus)))
 
@@ -2816,6 +2783,16 @@ function App() {
       setResultDetailView('overview')
     }
     setCurrentPage(page)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const showResultDetailPage = (view) => {
+    setResultDetailView(view)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const backToResultOverview = () => {
+    setResultDetailView('overview')
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -3613,7 +3590,7 @@ function App() {
             <div className="developer-page-icon result-page-icon" aria-hidden="true">✦</div>
             <p>{selectionMeta?.source === 'destination-list' ? 'DESTINATION DETAIL' : 'DRAW RESULT'}</p>
             <h1 id="result-page-title">{selectionMeta?.source === 'destination-list' ? '旅行先一覧から表示中' : '抽選結果'}</h1>
-            <span>選ばれた旅先の理由・プラン・行きやすさをまとめて確認できます。</span>
+            <span>選ばれた旅先の理由・グルメ・スポット・アクセスを確認できます。</span>
             <div className="result-page-actions">
               {selectionMeta?.source !== 'destination-list' && (
                 <button type="button" className="result-redraw-button" onClick={chooseDestination}>
@@ -3627,6 +3604,110 @@ function App() {
 
         {currentPage === 'result' && destination && (
           <div className="result-area" aria-live="polite">
+            {resultDetailView === 'food' && (
+              <section className="result-detail-page result-food-page" aria-labelledby="result-food-page-title">
+                <button type="button" className="result-detail-back-button" onClick={backToResultOverview}>← 結果に戻る</button>
+                <div className="result-detail-page-heading">
+                  <p>{destination.prefecture} {destination.city}</p>
+                  <h2 id="result-food-page-title">この旅で食べたいもの</h2>
+                  <span>{planContext.selectedTravelPurposes.length > 0 ? `${planContext.selectedTravelPurposes.join('・')}の旅に合わせて、具体的な名物を中心に表示しています。` : '具体的な料理名があるものだけを表示しています。'}</span>
+                </div>
+
+                <section className={`local-food-card ${foodImageIsFeatured ? 'compact-food-image' : 'no-food-image'}`} aria-labelledby="local-food-title">
+                  <div className="local-food-heading">
+                    <span aria-hidden="true">🍴</span>
+                    <div>
+                      <p>LOCAL FOOD</p>
+                      <h3 id="local-food-title">食べたいものリスト</h3>
+                    </div>
+                  </div>
+                  <div className="local-food-content">
+                    <div className="local-food-text">
+                      {foodThemeText && (
+                        <p className="local-food-theme">候補：{foodThemeText}</p>
+                      )}
+                      <div className="local-food-chips" aria-label={`${destination.city}で食べたいご当地グルメ`}>
+                        {localFoodItems.map((food) => <span key={food}>{food}</span>)}
+                      </div>
+                      {localFoodDetails.length > 0 && (
+                        <ul className="local-food-details">
+                          {localFoodDetails.map((food) => (
+                            <li key={food.name}>
+                              <strong>{food.name}</strong>
+                              <span>{food.type}</span>
+                              <p>{food.description}</p>
+                              {(food.bestTiming?.length > 0 || food.bestAreaHints?.length > 0 || food.goodFor?.length > 0) && (
+                                <div className="local-food-meta">
+                                  {food.bestTiming?.length > 0 && <small>タイミング：{food.bestTiming.join('・')}</small>}
+                                  {food.bestAreaHints?.length > 0 && <small>エリア：{food.bestAreaHints.join('・')}</small>}
+                                  {food.goodFor?.length > 0 && <small>相性：{food.goodFor.slice(0, 3).join('・')}</small>}
+                                </div>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                    {foodImageIsFeatured && isValidImageUrl(destination.foodImage) && (
+                      <div className="local-food-image-wrap">
+                        <SafeImage
+                          destination={destination}
+                          imageType="food"
+                          alt={`${destination.city}のご当地グルメイメージ`}
+                          className="local-food-image"
+                          showCredit
+                          onLoadFailure={(fallbackType) => reportImageFailure(destination.id, 'food', fallbackType)}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </section>
+
+                <div className="result-detail-fit-card">
+                  <strong>今回の条件との相性</strong>
+                  <p>{planContext.selectedFilters.length > 0 ? `${planContext.selectedFilters.join('・')}の旅で、` : ''}{planContext.selectedTravelPurposes.length > 0 ? `${planContext.selectedTravelPurposes.join('・')}を楽しみたい時に、食事の候補を選びやすくしています。` : '旅先で食べるものを先に決めたい時に見やすいよう整理しています。'}</p>
+                </div>
+              </section>
+            )}
+
+            {resultDetailView === 'spots' && (
+              <section className="result-detail-page result-spots-page" aria-labelledby="result-spots-page-title">
+                <button type="button" className="result-detail-back-button" onClick={backToResultOverview}>← 結果に戻る</button>
+                <div className="result-detail-page-heading">
+                  <p>{destination.prefecture} {destination.city}</p>
+                  <h2 id="result-spots-page-title">ここで行きたい場所</h2>
+                  <span>{planContext.selectedTravelPurposes.length > 0 ? `${planContext.selectedTravelPurposes.join('・')}に合うスポットを上位にしています。` : '具体的なスポット名がある場所だけを表示しています。'}</span>
+                </div>
+
+                <section className="tourist-spots-card" aria-labelledby="tourist-spots-title">
+                  <div className="tourist-spots-heading">
+                    <span aria-hidden="true">📍</span>
+                    <div>
+                      <p>SPOTS</p>
+                      <h3 id="tourist-spots-title">スポットリスト</h3>
+                    </div>
+                  </div>
+                  <div className="tourist-spots-grid">
+                    {featuredTouristSpots.map((spot) => (
+                      <article key={spot.name} className="tourist-spot-item">
+                        <div>
+                          <strong>{spot.name}</strong>
+                          <span>{spot.type}</span>
+                        </div>
+                        <p>{spot.description}</p>
+                        <dl>
+                          <div><dt>目安</dt><dd>{spot.stayTime}</dd></div>
+                          <div><dt>相性</dt><dd>{getSpotPurposeLabel(spot, planContext.selectedTravelPurposes)}</dd></div>
+                        </dl>
+                      </article>
+                    ))}
+                  </div>
+                </section>
+              </section>
+            )}
+
+            {resultDetailView === 'overview' && (
+            <>
             <section className="result-card result-proposal-hero" aria-label="旅先の提案">
               <SafeImage
                 key={`${destination.id}-hero`}
@@ -3759,17 +3840,13 @@ function App() {
                 <h2 id="result-primary-action-title">この旅をもっと楽しむ</h2>
               </div>
             <div className="result-primary-actions" aria-label="旅行内容の詳細ページ">
-              <button type="button" className={resultDetailView === 'food' ? 'active' : ''} onClick={() => setResultDetailView('food')} disabled={localFoodItems.length === 0} aria-pressed={resultDetailView === 'food'}>
+              <button type="button" onClick={() => showResultDetailPage('food')} disabled={localFoodItems.length === 0}>
                 <strong><span aria-hidden="true">🍽</span> グルメ</strong>
-                <span>食べたいもの</span>
+                <span>この旅で食べたいもの</span>
               </button>
-              <button type="button" className={resultDetailView === 'spots' ? 'active' : ''} onClick={() => setResultDetailView('spots')} disabled={featuredTouristSpots.length === 0} aria-pressed={resultDetailView === 'spots'}>
+              <button type="button" onClick={() => showResultDetailPage('spots')} disabled={featuredTouristSpots.length === 0}>
                 <strong><span aria-hidden="true">📍</span> スポット</strong>
-                <span>行きたい場所</span>
-              </button>
-              <button type="button" className={resultDetailView === 'course' ? 'active' : ''} onClick={() => setResultDetailView('course')} disabled={concreteStayIdeas.length === 0} aria-pressed={resultDetailView === 'course'}>
-                <strong><span aria-hidden="true">🗺</span> モデルコース</strong>
-                <span>旅の流れ</span>
+                <span>ここで行きたい場所</span>
               </button>
             </div>
             </section>
@@ -3783,99 +3860,7 @@ function App() {
               <p className="access-confirm-note">移動時間・乗換・料金はGoogle Mapsで確認してください。</p>
               <a href={drivingMapsUrl} target="_blank" rel="noopener noreferrer">Google Mapsで経路を見る</a>
             </section>
-
-            {resultDetailView === 'food' && localFoodItems.length > 0 && (
-              <section className={`local-food-card ${foodImageIsFeatured ? 'featured-food-image' : 'compact-food-image'}`} aria-labelledby="local-food-title">
-                <div className="local-food-heading">
-                  <span aria-hidden="true">🍴</span>
-                  <div>
-                    <p>LOCAL FOOD</p>
-                    <h2 id="local-food-title">ご当地グルメ</h2>
-                  </div>
-                </div>
-                <div className="local-food-content">
-                  <div className="local-food-text">
-                    {foodThemeText && (
-                      <p className="local-food-theme">この旅先で食べたいもの：{foodThemeText}</p>
-                    )}
-                    <div className="local-food-chips" aria-label={`${destination.city}で食べたいご当地グルメ`}>
-                      {localFoodItems.map((food) => <span key={food}>{food}</span>)}
-                    </div>
-                    {localFoodDetails.length > 0 && (
-                      <ul className="local-food-details">
-                        {localFoodDetails.map((food) => (
-                          <li key={food.name}>
-                            <strong>{food.name}</strong>
-                            <span>{food.type}</span>
-                            <p>{food.description}</p>
-                            {(food.bestTiming?.length > 0 || food.bestAreaHints?.length > 0) && (
-                              <div className="local-food-meta">
-                                {food.bestTiming?.length > 0 && <small>{'\u5165\u308c\u3084\u3059\u3044\u30bf\u30a4\u30df\u30f3\u30b0: '}{food.bestTiming.join('\u30fb')}</small>}
-                                {food.bestAreaHints?.length > 0 && <small>{'\u5408\u308f\u305b\u3084\u3059\u3044\u30a8\u30ea\u30a2: '}{food.bestAreaHints.join('\u30fb')}</small>}
-                              </div>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                  {isValidImageUrl(destination.foodImage) && (
-                    <div className="local-food-image-wrap">
-                      <SafeImage
-                        destination={destination}
-                        imageType="food"
-                        alt={`${destination.city}のご当地グルメイメージ`}
-                        className="local-food-image"
-                        showCredit={foodImageIsFeatured}
-                        onLoadFailure={(fallbackType) => reportImageFailure(destination.id, 'food', fallbackType)}
-                      />
-                    </div>
-                  )}
-                </div>
-              </section>
-            )}
-
-            
-
-            {resultDetailView === 'spots' && featuredTouristSpots.length > 0 && (
-              <section className="tourist-spots-card" aria-labelledby="tourist-spots-title">
-                <div className="tourist-spots-heading">
-                  <span aria-hidden="true">📍</span>
-                  <div>
-                    <p>SPOTS</p>
-                    <h2 id="tourist-spots-title">ここで行きたいスポット</h2>
-                  </div>
-                </div>
-                <div className="tourist-spots-grid">
-                  {featuredTouristSpots.map((spot) => (
-                    <article key={spot.name} className="tourist-spot-item">
-                      <div>
-                        <strong>{spot.name}</strong>
-                        <span>{spot.type}</span>
-                      </div>
-                      <p>{spot.description}</p>
-                      <dl>
-                        <div><dt>目安</dt><dd>{spot.stayTime}</dd></div>
-                        <div><dt>相性</dt><dd>{getSpotPurposeLabel(spot, planContext.selectedTravelPurposes)}</dd></div>
-                      </dl>
-                    </article>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {resultDetailView === 'course' && concreteStayIdeas.length > 0 && (
-              <section className="stay-ideas-card" aria-labelledby="stay-ideas-title">
-                <div>
-                  <p>HOW TO SPEND</p>
-                  <h2 id="stay-ideas-title">ざっくりモデルコース</h2>
-                </div>
-                <ol>
-                  {concreteStayIdeas.map((idea) => <li key={idea}>{idea}</li>)}
-                </ol>
-              </section>
-            )}
-{planContext.hasMultiDestinationSuggestion && planContext.tripSuggestions?.length > 0 && (
+            {planContext.hasMultiDestinationSuggestion && planContext.tripSuggestions?.length > 0 && (
               <section className="multi-destination-card" aria-labelledby="multi-destination-title">
                 <div>
                   <p>EXTENDED TRIP</p>
@@ -3912,53 +3897,24 @@ function App() {
               <p>{seasonCompatibility.description}</p>
               <span>ベストシーズン：{destination.bestSeasons.join('・')}</span>
             </section>
-
-            {resultDetailView === 'course' && (
-            <section className="detail-plan" aria-labelledby="detail-plan-title">
-              <div className="detail-heading">
-                <span className="detail-heading-icon" aria-hidden="true">✦</span>
+            <section className={`premium-guide-card ${isPremiumUser ? 'active' : ''}`} aria-labelledby="premium-guide-title">
+              <div className="premium-guide-heading">
+                <span aria-hidden="true">✦</span>
                 <div>
-                  <p>MODEL COURSE</p>
-                  <h2 id="detail-plan-title">この旅のモデルコース</h2>
+                  <p>PREMIUM AI PLAN</p>
+                  <h2 id="premium-guide-title">もっと詳しい旅程はAIプランで</h2>
                 </div>
+                {isPremiumUser && <b>有効</b>}
               </div>
-
-              <p className="plan-route-title">
-                {planContext.departure}から{destination.city}への
-                <strong>{currentTripSchedule.label}</strong>旅行プラン
-              </p>
-
-              {resultDetailView === 'course' && (
-              <section className={`premium-guide-card ${isPremiumUser ? 'active' : ''}`} aria-labelledby="premium-guide-title">
-                <div className="premium-guide-heading">
-                  <span aria-hidden="true">✦</span>
-                  <div>
-                    <p>PREMIUM AI PLAN</p>
-                    <h3 id="premium-guide-title">AIプラン生成はプレミアム機能です</h3>
-                  </div>
-                  {isPremiumUser && <b>有効</b>}
-                </div>
-                <p className="premium-guide-description">{'\u8a73\u3057\u3044\u56de\u308a\u65b9\u3092\u898b\u305f\u3044\u5834\u5408\u306f\u3001AI\u30d7\u30e9\u30f3\u3067\u65e5\u7a0b\u5225\u306b\u6574\u7406\u3067\u304d\u307e\u3059\u3002'}</p>
-                <ul>
-                  <li>AIが日程別プランを作成</li>
-                  <li>食事・カフェ案を提案</li>
-                  <li>移動の注意点を整理</li>
-                  <li>旅行を楽しむコツを提案</li>
-                </ul>
-              </section>
-              )}
-
-              {resultDetailView === 'course' && (
-              <>
+              <p className="premium-guide-description">観光スポットやご当地グルメを使って、日程別にもう少し詳しい回り方を整理できます。</p>
               <button type="button" className={`ai-plan-button ${isPremiumUser ? 'premium-active' : 'premium-locked'}`} onClick={generateAiPlan} disabled={aiPlanStatus === 'loading'}>
                 <span aria-hidden="true">✦</span>
-                {aiPlanStatus === 'loading' ? 'AIプランを生成中...' : 'プレミアムでAIプランを作成'}
+                {aiPlanStatus === 'loading' ? 'AIプランを生成中...' : 'AIプランを作成'}
               </button>
               {aiPlanNotice && <p className="ai-plan-key-notice" role="status">{aiPlanNotice}</p>}
               {aiPlanStatus === 'loading' && (
                 <div className="ai-plan-loading" role="status"><span aria-hidden="true" />AIプランを生成中...</div>
               )}
-
               {aiPlanStatus === 'success' && aiPlanResult && (
                 <section className="ai-plan-card" aria-labelledby="ai-plan-title">
                   <div className="ai-plan-heading">
@@ -3977,38 +3933,7 @@ function App() {
                   </dl>
                 </section>
               )}
-
-              {currentTripPlans.length > 0 && (
-              <details className="plan-card schedule-card collapsible-plan-card">
-                <summary>
-                  <span aria-hidden="true">▦</span>
-                  <b>詳細プランを見る</b>
-                  <small>{currentTripSchedule.label}の流れを確認できます</small>
-                </summary>
-                {currentTripPlans.map((dayPlan) => (
-                  <div className="schedule-day" key={dayPlan.day}>
-                    <h4>{dayPlan.day}</h4>
-                    <ol>
-                      {dayPlan.items.map((item) => {
-                        const [time, ...activity] = item.split(' ')
-                        return (
-                          <li key={item}>
-                            <time>{time}</time>
-                            <span>{activity.join(' ')}</span>
-                          </li>
-                        )
-                      })}
-                    </ol>
-                  </div>
-                ))}
-              </details>
-              )}
-              </>
-              )}
-
             </section>
-
-            )}
 
             <nav className="result-bottom-actions" aria-label="抽選結果画面の操作">
               <button type="button" onClick={() => switchPage('main')}>条件を変えて探す</button>
@@ -4019,6 +3944,8 @@ function App() {
               )}
               <button type="button" onClick={() => switchPage('destinations')}>旅行先一覧を見る</button>
             </nav>
+            </>
+            )}
           </div>
         )}
 
