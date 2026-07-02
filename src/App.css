@@ -1305,22 +1305,19 @@ h1 {
 }
 
 .journey-gallery {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 10px;
   margin-top: 12px;
   padding-bottom: 5px;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: thin;
+  overflow: visible;
 }
 
 .journey-image-card {
   position: relative;
-  flex: 0 0 76%;
   overflow: hidden;
   background: #f3f6f5;
   border-radius: 14px;
-  scroll-snap-align: start;
 }
 
 .journey-image {
@@ -1357,6 +1354,105 @@ h1 {
   text-overflow: ellipsis;
   white-space: nowrap;
   backdrop-filter: blur(5px);
+}
+
+.result-detail-card {
+  display: grid;
+  gap: 14px;
+  margin-top: 12px;
+  padding: 17px;
+  background: #fff;
+  border: 1px solid #e1e9e6;
+  border-radius: 16px;
+}
+
+.result-detail-card p,
+.result-detail-card h2,
+.result-detail-card span {
+  margin: 0;
+}
+
+.result-detail-card p {
+  color: #e76f51;
+  font-size: 0.52rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+.result-detail-card h2 {
+  color: #294f46;
+  font-size: 0.95rem;
+}
+
+.result-detail-card span {
+  display: block;
+  margin-top: 4px;
+  color: #647873;
+  font-size: 0.72rem;
+  line-height: 1.6;
+}
+
+.result-detail-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.result-detail-tabs button {
+  min-height: 38px;
+  padding: 0 13px;
+  color: #315850;
+  background: #f5f8f7;
+  border: 1px solid #d8e5e0;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.result-detail-tabs button.active {
+  color: #fff;
+  background: #2f6f61;
+  border-color: #2f6f61;
+}
+
+.result-detail-tabs button:disabled {
+  color: #9bacA6;
+  background: #f3f5f4;
+  cursor: not-allowed;
+}
+
+.transport-empty-state {
+  padding: 14px;
+  color: #536962;
+  background: #f7faf8;
+  border: 1px solid #dce8e3;
+  border-radius: 14px;
+  font-size: 0.72rem;
+  line-height: 1.7;
+}
+
+.transport-empty-state strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #294f46;
+  font-size: 0.82rem;
+}
+
+.transport-empty-state p {
+  margin: 0 0 10px;
+}
+
+.transport-empty-state a {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  padding: 0 12px;
+  color: #fff;
+  background: #315f55;
+  border-radius: 999px;
+  font-weight: 800;
+  text-decoration: none;
 }
 
 .local-food-card {
@@ -6001,8 +6097,7 @@ h1 {
   .reason-summary { padding: 12px 13px; font-size: 0.72rem; line-height: 1.7; }
 
   .journey-gallery-card { padding: 14px; }
-  .journey-gallery { gap: 9px; margin-right: -14px; padding-right: 14px; }
-  .journey-image-card { flex-basis: 82%; }
+  .journey-gallery { grid-template-columns: 1fr; gap: 9px; margin-right: 0; padding-right: 0; }
   .journey-image { height: 180px; }
   .local-food-card { padding: 14px; border-radius: 16px; }
   .local-food-content,

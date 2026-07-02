@@ -956,6 +956,16 @@ const getTransportEvaluations = (travelInfo, tripType, destination = null) => {
   })
 }
 
+const shouldShowTransportEvaluation = (item = {}, travelInfo = {}) => {
+  if (item.mode === '車') return Boolean(travelInfo.car?.durationMinutes)
+  if (item.mode === '電車') return Boolean(item.basis?.durationMinutes && Number.isFinite(item.distanceKm))
+  if (item.mode === '飛行機') return Boolean(item.basis?.durationMinutes && Number.isFinite(item.distanceKm) && item.distanceKm >= 500)
+  return Boolean(item.basis?.durationMinutes)
+}
+
+const getVisibleTransportEvaluations = (evaluations = [], travelInfo = {}) => evaluations
+  .filter((item) => shouldShowTransportEvaluation(item, travelInfo))
+
 const getBestPrimaryTransport = (evaluations) => [...evaluations]
   .filter((item) => item.feasibility)
   .sort((a, b) => (
@@ -975,6 +985,23 @@ const getPlaneCostLabel = (distanceKm) => {
   if (distanceKm < 900) return '20,000円〜45,000円'
   return '30,000円〜70,000円'
 }
+
+const getRouteDestinationQuery = (destination = {}) => {
+  const concreteSpot = getConcreteTouristSpots(destination)[0]?.name
+  return destination.nearestStation
+    || destination.googleMapsQuery
+    || (concreteSpot ? `${concreteSpot}, ${destination.prefecture}${destination.city}` : '')
+    || destination.address
+    || `${destination.prefecture ?? ''}${destination.city ?? ''}`
+}
+
+const getRouteDestinationLabel = (destination = {}) => (
+  destination.nearestStationLabel
+  || destination.nearestStation
+  || destination.googleMapsQuery
+  || destination.address
+  || `${destination.prefecture ?? ''}${destination.city ?? ''}`
+)
 
 const getCarTravelComment = (durationMinutes) => {
   if (!Number.isFinite(durationMinutes)) return null
@@ -1005,39 +1032,6 @@ const getRecommendedTransportReason = (recommended, evaluations, tripType) => {
   return tripType === '日帰り'
     ? '目安時間が比較的短く、現地で自由に移動しやすいため車を優先しました。'
     : '人数や荷物に合わせやすく、現地移動の自由度が高いため車を優先しました。'
-}
-
-const getFeasibilityTransportReason = (recommended, tripType) => {
-  if (!recommended) return '移動情報の取得後に理由を表示します。'
-  if (recommended.mode === '飛行機') {
-    return tripType === '日帰り'
-      ? '長距離のため飛行機が有力ですが、空港アクセスを含めた時間確認が必要です。'
-      : `長距離ですが、飛行機なら${tripType}でも現実的です。`
-  }
-  if (recommended.mode === '電車') {
-    return `${recommended.basis.duration}の電車移動なら、運転の負担を抑えながら現地で歩く時間を作れます。`
-  }
-  return `${recommended.basis.duration}の車移動で、現地での移動も自由に組み立てやすいです。`
-}
-
-const getTransportCompatibility = ({ transportMode, tripType, travelInfo, transportEvaluation }) => {
-  const tripNote = tripType === '日帰り'
-    ? '日帰りでは、現地で過ごす時間を確保できるか確認しましょう。'
-    : `${tripType}なら、移動を含めた余裕のある計画を立てやすいです。`
-
-  if (transportMode === '車') {
-    const car = travelInfo.car
-    if (!car) return `車の移動時間と距離を取得すると、より具体的な相性を表示できます。${tripNote}`
-    return `車で${car.duration}${car.distance ? `・${car.distance}` : ''}の移動です。${tripNote} 現地での移動もしやすく、自由度の高い旅になりやすいです。`
-  }
-
-  if (transportMode === '電車') {
-    return transportEvaluation?.basis
-      ? `距離をもとに${transportEvaluation.basis.trainType}で${transportEvaluation.basis.duration}と概算しています。正確な経路はGoogle Mapsで確認してください。${tripNote}`
-      : `距離を取得すると電車の目安時間を概算できます。正確な経路はGoogle Mapsで確認してください。${tripNote}`
-  }
-
-  return `${tripType === '日帰り' ? '日帰りでは空港までの移動や搭乗手続き時間に注意が必要です。' : `${tripType}なら、長距離でも移動時間を短縮できる候補です。`} 空港から旅先までの二次交通も含めて計画しましょう。詳細な時刻・料金は今後対応予定です。`
 }
 
 const getTravelCacheKey = (origin, destinationId) => (
@@ -1398,6 +1392,24 @@ const getImageCategoryFromUrl = (image) => (
   getImageUrl(image).match(/\/images\/categories\/([a-z]+)-\d+\.jpg$/)?.[1] ?? ''
 )
 
+const isStrongResultImage = (image) => {
+  if (!isValidImageUrl(image)) return false
+  const status = getImageMetaValue(image, 'status')
+  const source = getImageMetaValue(image, 'source')
+  return Boolean(getImageMetaValue(image, 'isDestinationSpecific'))
+    && source !== 'fallback'
+    && !['fallback', 'missing', 'placeholder'].includes(status)
+}
+
+const getResultJourneyImages = (destination = {}) => [
+  { key: 'hero', label: '旅先の雰囲気', alt: `${destination.city}の旅先イメージ`, image: destination.heroImage },
+  { key: 'scenery', label: '見たい景色', alt: `${destination.city}の景色イメージ`, image: destination.sceneryImage },
+  { key: 'food', label: '食のイメージ', alt: `${destination.city}のご当地グルメイメージ`, image: destination.foodImage },
+]
+  .filter((item) => isStrongResultImage(item.image))
+  .filter((item, index, items) => items.findIndex((candidate) => getImageUrl(candidate.image) === getImageUrl(item.image)) === index)
+  .slice(0, 2)
+
 const getExpectedImageCategories = (destination = {}, imageType = 'hero') => {
   const tags = destination.tags ?? []
   const categories = new Set(['city', 'history', 'nature'])
@@ -1656,6 +1668,15 @@ const getConcreteStayIdeas = (destination = {}, schedule = {}, spots = [], foodD
     '後半：' + (foodText ? foodText + 'などの食事と' : '') + tone,
     '最終日：' + (thirdSpotName ? thirdSpotName + 'を軽めに入れてから' : '帰路に合わせて短めに整えてから') + '戻る流れにします。',
   ]
+}
+
+const canShowConcreteModelCourse = (destination = {}, schedule = {}, spots = [], foodDetails = [], nearbySuggestions = []) => {
+  const hasSpot = spots.some((spot) => isConcreteSpotName(spot?.name))
+  const hasFood = getCourseFoodNames(destination, foodDetails).length > 0
+  const hasNearbyForLongStay = (schedule?.days ?? 1) < 4
+    || nearbySuggestions.length > 0
+    || (destination.nearbyDestinationHints?.length ?? 0) > 0
+  return hasSpot && hasFood && hasNearbyForLongStay
 }
 
 const createAiDestinationPayload = (destination = {}, context = {}, featuredSpots = [], foodDetails = [], nearbySuggestions = []) => ({
@@ -2003,6 +2024,17 @@ const getFoodImageMismatchRiskCities = (destinationList = []) => destinationList
     const imageThemes = getConcreteFoodCandidates(splitFoodTheme(getImageMetaValue(place.foodImage, 'foodTheme')))
     if (foods.length === 0 || imageThemes.length === 0) return false
     return !imageThemes.some((theme) => foods.some((food) => food.includes(theme) || theme.includes(food)))
+  })
+  .map((place) => place.city)
+
+const getResultJourneyImageShortageCities = (destinationList = []) => destinationList
+  .filter((place) => getResultJourneyImages(place).length === 0)
+  .map((place) => place.city)
+
+const getBroadRouteDestinationRiskCities = (destinationList = []) => destinationList
+  .filter((place) => {
+    const query = getRouteDestinationQuery(place)
+    return query === place.address || query === `${place.prefecture ?? ''}${place.city ?? ''}`
   })
   .map((place) => place.city)
 
@@ -2358,6 +2390,7 @@ function App() {
   })
   const [betaFeedbackNotice, setBetaFeedbackNotice] = useState('')
   const [openAiCommunicationMode, setOpenAiCommunicationMode] = useState('server')
+  const [resultDetailView, setResultDetailView] = useState('overview')
   const [destinationSearch, setDestinationSearch] = useState('')
   const [destinationPrefectureFilter, setDestinationPrefectureFilter] = useState('all')
   const [destinationTagFilter, setDestinationTagFilter] = useState('all')
@@ -2484,30 +2517,26 @@ function App() {
   const transportEvaluations = planContext
     ? getTransportEvaluations({ ...travelInfo, transitFallback }, planContext.tripType, destination)
     : []
+  const visibleTransportEvaluations = getVisibleTransportEvaluations(transportEvaluations, travelInfo)
+  const routeDestinationQuery = destination ? getRouteDestinationQuery(destination) : ''
+  const routeDestinationLabel = destination ? getRouteDestinationLabel(destination) : ''
   const drivingMapsUrl = destination && planContext
-    ? `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(planContext.departure)}&destination=${encodeURIComponent(destination.googleMapsQuery ?? destination.address ?? `${destination.prefecture}${destination.city}`)}&travelmode=driving`
+    ? `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(planContext.departure)}&destination=${encodeURIComponent(routeDestinationQuery)}&travelmode=driving`
     : 'https://www.google.com/maps'
   const transitMapsUrl = transitFallback?.googleMapsUrl ?? 'https://www.google.com/maps'
-  const bestTransportEvaluation = getBestPrimaryTransport(transportEvaluations)
+  const bestTransportEvaluation = getBestPrimaryTransport(visibleTransportEvaluations)
   const bestTransportReason = getRecommendedTransportReason(
     bestTransportEvaluation,
-    transportEvaluations,
+    visibleTransportEvaluations,
     planContext?.tripType,
   )
   const feasibility = bestTransportEvaluation?.feasibility ?? null
-  const transportCompatibility = destination && planContext && bestTransportEvaluation
-    ? getTransportCompatibility({
-      transportMode: bestTransportEvaluation.mode,
-      tripType: planContext.tripType,
-      travelInfo,
-      transportEvaluation: bestTransportEvaluation,
-    })
-    : '移動情報を取得すると、最も現実的な交通手段との相性を表示します。'
   const localFoodItems = destination ? getLocalFoodDisplayItems(destination) : []
   const localFoodDetails = destination ? getLocalFoodDetailItems(destination, localFoodItems) : []
   const featuredTouristSpots = destination && planContext ? getPurposeMatchedTouristSpots(destination, planContext.selectedTravelPurposes) : []
   const foodThemeText = destination ? getFoodThemeText(destination, localFoodItems) : ''
   const foodImageIsFeatured = destination ? shouldFeatureFoodImage(destination, localFoodItems) : false
+  const journeyImages = destination ? getResultJourneyImages(destination) : []
   const tripProposalText = destination && planContext
     ? getTripProposalText(destination, planContext, seasonCompatibility)
     : ''
@@ -2522,7 +2551,9 @@ function App() {
     : { matchedStyles: [], summary: '' }
   const currentTripSchedule = planContext?.tripSchedule ?? (planContext ? resolveTripSchedule(planContext.tripType) : tripSchedule)
   const currentTripPlans = destination ? getConcreteSchedulePlans(destination, currentTripSchedule, localFoodItems) : []
-  const concreteStayIdeas = destination ? getConcreteStayIdeas(destination, currentTripSchedule, featuredTouristSpots, localFoodDetails, planContext?.selectedTravelPurposes ?? [], planContext?.selectedFilters ?? [], planContext?.tripSuggestions ?? []) : []
+  const concreteStayIdeas = destination && canShowConcreteModelCourse(destination, currentTripSchedule, featuredTouristSpots, localFoodDetails, planContext?.tripSuggestions ?? [])
+    ? getConcreteStayIdeas(destination, currentTripSchedule, featuredTouristSpots, localFoodDetails, planContext?.selectedTravelPurposes ?? [], planContext?.selectedFilters ?? [], planContext?.tripSuggestions ?? [])
+    : []
   const currentBudget = destination ? getBudgetForSchedule(destination, currentTripSchedule) : '時期により変動'
   const longTripPacingItems = getLongTripPacingItems(currentTripSchedule, Boolean(planContext?.tripSuggestions?.some((item) => !item.isStayFocus)))
 
@@ -2828,6 +2859,9 @@ function App() {
   }
 
   const switchPage = (page) => {
+    if (page === 'result') {
+      setResultDetailView('overview')
+    }
     setCurrentPage(page)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -2949,6 +2983,7 @@ function App() {
           latitude: place.latitude,
           longitude: place.longitude,
           googleMapsQuery: place.googleMapsQuery,
+          routeDestinationQuery: getRouteDestinationQuery(place),
           nearestStation: place.nearestStation,
           nearestStationLabel: place.nearestStationLabel,
           transitQuery: place.transitQuery,
@@ -3073,6 +3108,7 @@ function App() {
           latitude: place.latitude,
           longitude: place.longitude,
           googleMapsQuery: place.googleMapsQuery,
+          routeDestinationQuery: getRouteDestinationQuery(place),
           nearestStation: place.nearestStation,
           nearestStationLabel: place.nearestStationLabel,
           transitQuery: place.transitQuery,
@@ -3445,6 +3481,7 @@ function App() {
           latitude: next.latitude,
           longitude: next.longitude,
           googleMapsQuery: next.googleMapsQuery,
+          routeDestinationQuery: getRouteDestinationQuery(next),
           nearestStation: next.nearestStation,
           nearestStationLabel: next.nearestStationLabel,
           transitQuery: next.transitQuery,
@@ -3531,7 +3568,7 @@ function App() {
       selectedTravelPurposes: planContext.selectedTravelPurposes,
       movementRangeLabel: aiDestination.movementRangeLabel,
       nearbySuggestions: aiDestination.nearbySuggestions,
-      transportComparisons: transportEvaluations.map((item) => ({
+      transportComparisons: visibleTransportEvaluations.map((item) => ({
         mode: item.mode,
         rating: item.feasibility?.starsLabel ?? '未評価',
         duration: item.isReference ? null : item.basis?.duration,
@@ -3948,21 +3985,18 @@ function App() {
               </section>
             )}
 
+            {journeyImages.length > 0 && (
             <section className="journey-gallery-card" aria-labelledby="journey-gallery-title">
               <div className="journey-gallery-heading">
                 <p>TRIP INSPIRATION</p>
                 <h2 id="journey-gallery-title">旅のイメージ</h2>
               </div>
               <div className="journey-gallery" role="list">
-                {[
-                  { key: 'hero', label: '観光地写真', alt: `${destination.city}の観光イメージ` },
-                  { key: 'food', label: 'グルメ写真', alt: `${destination.city}のグルメイメージ` },
-                  { key: 'scenery', label: '風景写真', alt: `${destination.city}の風景イメージ` },
-                ].map((image) => (
+                {journeyImages.map((image) => (
                   <article className="journey-image-card" role="listitem" key={`${destination.id}-${image.key}`}>
                     <SafeImage
-                      destination={destination}
                       imageType={image.key}
+                      src={image.image}
                       alt={image.alt}
                       className="journey-image"
                       showCredit
@@ -3973,8 +4007,34 @@ function App() {
                 ))}
               </div>
             </section>
+            )}
 
-            {localFoodItems.length > 0 && (
+            <section className="result-detail-card" aria-labelledby="result-detail-title">
+              <div>
+                <p>DEEP DIVE</p>
+                <h2 id="result-detail-title">気になるところを深掘り</h2>
+                <span>必要な情報だけ開けるように、結果画面を短く整理しています。</span>
+              </div>
+              <div className="result-detail-tabs" role="tablist" aria-label="結果画面の詳細表示">
+                <button type="button" className={resultDetailView === 'overview' ? 'active' : ''} onClick={() => setResultDetailView('overview')} aria-pressed={resultDetailView === 'overview'}>
+                  概要
+                </button>
+                <button type="button" className={resultDetailView === 'food' ? 'active' : ''} onClick={() => setResultDetailView('food')} disabled={localFoodItems.length === 0} aria-pressed={resultDetailView === 'food'}>
+                  グルメ
+                </button>
+                <button type="button" className={resultDetailView === 'spots' ? 'active' : ''} onClick={() => setResultDetailView('spots')} disabled={featuredTouristSpots.length === 0} aria-pressed={resultDetailView === 'spots'}>
+                  スポット
+                </button>
+                <button type="button" className={resultDetailView === 'course' ? 'active' : ''} onClick={() => setResultDetailView('course')} disabled={concreteStayIdeas.length === 0} aria-pressed={resultDetailView === 'course'}>
+                  モデルコース
+                </button>
+                <button type="button" className={resultDetailView === 'access' ? 'active' : ''} onClick={() => setResultDetailView('access')} aria-pressed={resultDetailView === 'access'}>
+                  移動
+                </button>
+              </div>
+            </section>
+
+            {resultDetailView === 'food' && localFoodItems.length > 0 && (
               <section className={`local-food-card ${foodImageIsFeatured ? 'featured-food-image' : 'compact-food-image'}`} aria-labelledby="local-food-title">
                 <div className="local-food-heading">
                   <span aria-hidden="true">🍴</span>
@@ -4027,7 +4087,7 @@ function App() {
 
             
 
-            {featuredTouristSpots.length > 0 && (
+            {resultDetailView === 'spots' && featuredTouristSpots.length > 0 && (
               <section className="tourist-spots-card" aria-labelledby="tourist-spots-title">
                 <div className="tourist-spots-heading">
                   <span aria-hidden="true">📍</span>
@@ -4054,7 +4114,7 @@ function App() {
               </section>
             )}
 
-            {concreteStayIdeas.length > 0 && (
+            {resultDetailView === 'course' && concreteStayIdeas.length > 0 && (
               <section className="stay-ideas-card" aria-labelledby="stay-ideas-title">
                 <div>
                   <p>HOW TO SPEND</p>
@@ -4103,6 +4163,7 @@ function App() {
               <span>ベストシーズン：{destination.bestSeasons.join('・')}</span>
             </section>
 
+            {(resultDetailView === 'course' || resultDetailView === 'access') && (
             <section className="detail-plan" aria-labelledby="detail-plan-title">
               <div className="detail-heading">
                 <span className="detail-heading-icon" aria-hidden="true">✦</span>
@@ -4117,6 +4178,7 @@ function App() {
                 <strong>{currentTripSchedule.label}</strong>旅行プラン
               </p>
 
+              {resultDetailView === 'course' && (
               <section className={`premium-guide-card ${isPremiumUser ? 'active' : ''}`} aria-labelledby="premium-guide-title">
                 <div className="premium-guide-heading">
                   <span aria-hidden="true">✦</span>
@@ -4134,7 +4196,10 @@ function App() {
                   <li>旅行を楽しむコツを提案</li>
                 </ul>
               </section>
+              )}
 
+              {resultDetailView === 'course' && (
+              <>
               <button type="button" className={`ai-plan-button ${isPremiumUser ? 'premium-active' : 'premium-locked'}`} onClick={generateAiPlan} disabled={aiPlanStatus === 'loading'}>
                 <span aria-hidden="true">✦</span>
                 {aiPlanStatus === 'loading' ? 'AIプランを生成中...' : 'プレミアムでAIプランを作成'}
@@ -4159,12 +4224,11 @@ function App() {
                     <div><dt>季節</dt><dd>{planContext.travelSeason === '今の季節' ? `今の季節（${getCurrentSeason()}）` : planContext.travelSeason}</dd></div>
                     <div><dt>同行者・旅のスタイル</dt><dd>{planContext.selectedFilters.length > 0 ? planContext.selectedFilters.join('、') : '指定なし'}</dd></div>
                     <div><dt>旅の目的</dt><dd>{planContext.selectedTravelPurposes.length > 0 ? planContext.selectedTravelPurposes.join('、') : '指定なし'}</dd></div>
-                    <div><dt>交通手段比較の結果</dt><dd>{bestTransportEvaluation ? `${bestTransportEvaluation.mode}が最も現実的（${bestTransportEvaluation.feasibility.starsLabel}）` : '移動情報取得後に評価'}</dd></div>
-                    <div><dt>予算目安</dt><dd>1人あたり {currentBudget}</dd></div>
                   </dl>
                 </section>
               )}
 
+              {currentTripPlans.length > 0 && (
               <details className="plan-card schedule-card collapsible-plan-card">
                 <summary>
                   <span aria-hidden="true">▦</span>
@@ -4188,11 +4252,15 @@ function App() {
                   </div>
                 ))}
               </details>
+              )}
+              </>
+              )}
 
+              {resultDetailView === 'access' && (
               <div className="plan-card travel-card">
                   <h3><span aria-hidden="true">⌁</span>交通手段比較</h3>
                   <p className="transport-introduction">車・電車・飛行機で、行きやすさをざっくり比較できます。</p>
-                  <p className="travel-destination">目的地：{destination.address}</p>
+                  <p className="travel-destination">目的地：{routeDestinationLabel}</p>
                   {travelInfo.status === 'loading' && (
                     <div className="travel-state travel-loading" role="status">
                       <span className="travel-spinner" aria-hidden="true" />
@@ -4202,8 +4270,9 @@ function App() {
                       </div>
                     </div>
                   )}
+                  {visibleTransportEvaluations.length > 0 ? (
                   <div className="transport-comparison-list">
-                      {transportEvaluations.map((item) => (
+                      {visibleTransportEvaluations.map((item) => (
                         <article
                           className={`transport-comparison-item ${item.isReference ? 'reference' : ''} ${bestTransportEvaluation?.mode === item.mode ? 'best' : ''}`}
                           key={item.mode}
@@ -4275,6 +4344,13 @@ function App() {
                         </article>
                       ))}
                   </div>
+                  ) : (
+                    <div className="transport-empty-state">
+                      <strong>移動時間を表示できませんでした</strong>
+                      <p>出発地または目的地の指定が広すぎる可能性があります。詳しい移動はGoogle Mapsで確認してください。</p>
+                      <a href={drivingMapsUrl} target="_blank" rel="noopener noreferrer">Google Mapsで確認する</a>
+                    </div>
+                  )}
                   {travelInfo.status === 'unconfigured' && (
                     <div className="travel-state travel-unconfigured">
                       <strong>移動情報を取得できませんでした。</strong>
@@ -4297,57 +4373,11 @@ function App() {
                     計算方法の内容はこちら <span aria-hidden="true">→</span>
                   </button>
               </div>
+              )}
 
-              <section className="feasibility-card" aria-labelledby="feasibility-title">
-                <div className="feasibility-heading">
-                  <div>
-                    <p>TRIP FEASIBILITY</p>
-                    <h3 id="feasibility-title">行けそう度</h3>
-                  </div>
-                  {feasibility && <span className="feasibility-stars" aria-label={`${feasibility.stars}つ星`}>{feasibility.starsLabel}</span>}
-                </div>
-
-                {feasibility ? (
-                  <div className="feasibility-result">
-                    <strong>{feasibility.label}</strong>
-                    <div className="feasibility-transport-choice">
-                      <span>採用交通手段</span>
-                      <b>{bestTransportEvaluation.mode}</b>
-                    </div>
-                    <p><b>理由：</b>{getFeasibilityTransportReason(bestTransportEvaluation, planContext.tripType)}</p>
-                    <span>予算目安：1人あたり {currentBudget}</span>
-                    {travelInfo.publicTransit?.duration && (
-                      <span className="feasibility-transit">公共交通機関：{travelInfo.publicTransit.duration}</span>
-                    )}
-                  </div>
-                ) : (
-                  <p className="feasibility-placeholder">
-                    {travelInfo.status === 'loading'
-                      ? '移動情報を取得中です...'
-                      : travelInfo.status === 'unconfigured'
-                        ? '移動情報を取得すると表示されます'
-                        : travelInfo.status === 'error' || travelInfo.status === 'api-error'
-                          ? '移動情報を取得できると表示されます'
-                          : '車の移動時間を取得すると表示されます'}
-                  </p>
-                )}
-
-                <div className="transport-compatibility">
-                  <strong>最も現実的な移動手段：{bestTransportEvaluation?.mode ?? '判定中'}</strong>
-                  <p>{transportCompatibility}</p>
-                </div>
-              </section>
-
-              <div className="plan-card budget-card">
-                <h3><span aria-hidden="true">¥</span>予算目安</h3>
-                <p>1人あたり {currentBudget}</p>
-              </div>
-
-              <div className="plan-card highlight-card">
-                <h3><span aria-hidden="true">♡</span>おすすめポイント</h3>
-                <p>{destination.highlights}</p>
-              </div>
             </section>
+
+            )}
 
             <nav className="result-bottom-actions" aria-label="抽選結果画面の操作">
               <button type="button" onClick={() => switchPage('main')}>条件を変えて探す</button>
@@ -5233,6 +5263,8 @@ function App() {
               <div><dt>具体的な料理名が不足</dt><dd>{formatShortageList(getConcreteFoodShortageCities(destinations))}</dd></div>
               <div><dt>generic food画像の大表示リスク</dt><dd>{formatShortageList(getGenericFoodImageRiskCities(destinations))}</dd></div>
               <div><dt>food image / dish mismatch risk</dt><dd>{formatShortageList(getFoodImageMismatchRiskCities(destinations))}</dd></div>
+              <div><dt>result journey image shortage</dt><dd>{formatShortageList(getResultJourneyImageShortageCities(destinations))}</dd></div>
+              <div><dt>broad route destination risk</dt><dd>{formatShortageList(getBroadRouteDestinationRiskCities(destinations))}</dd></div>
               <div><dt>touristSpotsのnameが抽象語</dt><dd>{formatShortageList(getAbstractTouristSpotNameCities(destinations))}</dd></div>
               <div><dt>touristSpots.nameが疑似スポット名</dt><dd>{formatShortageList(getPseudoTouristSpotNameCities(destinations))}</dd></div>
               <div><dt>fallback疑似カード生成リスク</dt><dd>{formatShortageList(getFallbackPseudoSpotGeneratedCities(destinations))}</dd></div>
@@ -5655,6 +5687,9 @@ function App() {
               <div><dt>ローカル開発用Google Mapsキー</dt><dd>{apiKeyDebugStatus}</dd></div>
               <div><dt>Google Routes API診断</dt><dd>{travelInfo.routeDiagnostics ? '取得済み' : '未実行'}</dd></div>
               <div><dt>通信方式</dt><dd>{getGoogleMapsCommunicationModeLabel(travelInfo.routeDiagnostics?.communicationMode ?? travelInfo.communicationMode)}</dd></div>
+              <div><dt>route destination query</dt><dd>{routeDestinationQuery || '未設定'}</dd></div>
+              <div><dt>交通比較 表示カード数</dt><dd>{visibleTransportEvaluations.length} / {transportEvaluations.length}</dd></div>
+              <div><dt>交通比較 非表示カード</dt><dd>{transportEvaluations.filter((item) => !visibleTransportEvaluations.includes(item)).map((item) => item.mode).join('・') || 'なし'}</dd></div>
               <div><dt>route-time API応答</dt><dd>{travelInfo.routeDiagnostics?.routeTimeHttpStatus ? `HTTP ${travelInfo.routeDiagnostics.routeTimeHttpStatus}` : '未確認'}</dd></div>
               <div><dt>環境変数</dt><dd>{travelInfo.routeDiagnostics?.hasGoogleMapsApiKey === true ? '設定済み' : travelInfo.routeDiagnostics?.hasGoogleMapsApiKey === false ? 'Google Maps APIキー未設定：GOOGLE_MAPS_API_KEY がサーバー環境変数にありません' : '未確認'}</dd></div>
               <div><dt>最終HTTPステータス</dt><dd>{travelInfo.routeDiagnostics?.httpStatus ?? '未確認'}</dd></div>

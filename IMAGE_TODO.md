@@ -350,3 +350,5 @@
 - Restaurant-level names should not be added from external sources unless manually reviewed with source, checkedAt, and status metadata.
 - Result quality checks now include a food image / dish mismatch risk diagnostic. Destinations flagged there should be reviewed here before adding or promoting food images.
 - Missing or fallback images should stay as tracked local asset needs; do not replace them with unverified external images.
+- Result screens now omit the trip image gallery when only category fallback or weak generic images are available. Add verified destination-specific hero/scenery/food assets here before promoting images back into that section.
+- Osaka City needs safe local image coverage for Dotonbori, Osaka Castle Park, Shinsekai, Nakanoshima, takoyaki, okonomiyaki, and kushikatsu before image-led presentation is expanded.

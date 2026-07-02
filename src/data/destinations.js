@@ -123,6 +123,7 @@ const normalizePlans = (plans, city) => Object.fromEntries(
  */
 const localFoodCandidatesByCity = {
   京都市: ['湯豆腐', '抹茶スイーツ', '京料理', '和カフェ'],
+  大阪市: ['たこ焼き', 'お好み焼き', '串カツ', '肉吸い'],
   奈良市: ['柿の葉寿司', '茶粥', '奈良漬', '和スイーツ'],
   小樽市: ['寿司', '海鮮丼', 'ルタオ系スイーツ', '市場グルメ'],
   札幌市: ['スープカレー', '味噌ラーメン', 'ジンギスカン', '海鮮'],
@@ -1492,6 +1493,7 @@ const getFoodDetailType = (name = '') => {
 
 const foodAreaHintsByCity = {
   '\u4eac\u90fd\u5e02': ['\u5357\u7985\u5bfa\u5468\u8fba', '\u5d50\u5c71\u65b9\u9762', '\u7957\u5712\u5468\u8fba'],
+  '\u5927\u962a\u5e02': ['\u9053\u9813\u5800\u5468\u8fba', '\u65b0\u4e16\u754c', '\u5927\u962a\u57ce\u516c\u5712\u5468\u8fba'],
   '\u5948\u826f\u5e02': ['\u5948\u826f\u516c\u5712\u5468\u8fba', '\u306a\u3089\u307e\u3061'],
   '\u5c0f\u6a3d\u5e02': ['\u5c0f\u6a3d\u904b\u6cb3\u5468\u8fba', '\u4e09\u89d2\u5e02\u5834', '\u580a\u753a\u901a\u308a'],
   '\u672d\u5e4c\u5e02': ['\u5927\u901a\u30fb\u3059\u3059\u304d\u306e\u5468\u8fba', '\u672d\u5e4c\u99c5\u5468\u8fba'],
@@ -1598,6 +1600,7 @@ const normalizeRegion = (prefecture, region) => {
 
 const destinationHintMap = {
   京都市: ['奈良市', '大阪市', '宇治方面', '滋賀方面'],
+  大阪市: ['京都市', '奈良市', '神戸市', '堺方面'],
   奈良市: ['京都市', '大阪市', '宇治方面'],
   小樽市: ['札幌市', '函館市', '余市方面'],
   札幌市: ['小樽市', '富良野市', '函館市'],
@@ -1688,6 +1691,39 @@ const createTravelBaseScoreNote = (destination, purposeFit, stayFit) => {
   return destination.city + 'は' + (strongPurposes.join('・') || '複数テーマ') + 'に強く、' + (stayLabels.join('・') || '滞在') + 'の加点対象です。'
 }
 
+const explicitTouristSpotsByCity = {
+  大阪市: [
+    {
+      name: '道頓堀',
+      type: '街歩き・グルメ',
+      description: '戎橋周辺の看板や川沿いを歩き、たこ焼きやお好み焼きなど大阪らしい食事と合わせやすいエリアです。',
+      bestFor: ['グルメ', '街歩き', '友達'],
+      stayTime: '1〜2時間',
+    },
+    {
+      name: '大阪城公園',
+      type: '歴史・公園',
+      description: '天守閣周辺や堀沿いを歩ける広い公園で、歴史と散策を同じ流れに入れやすい場所です。',
+      bestFor: ['神社・歴史', '自然・絶景', 'ファミリー'],
+      stayTime: '1〜2時間',
+    },
+    {
+      name: '新世界',
+      type: '街歩き・グルメ',
+      description: '通天閣周辺のレトロな街並みを歩き、串カツなどの食事と組み合わせやすいエリアです。',
+      bestFor: ['グルメ', '街歩き', '友達'],
+      stayTime: '1〜2時間',
+    },
+    {
+      name: '中之島',
+      type: '街歩き・景色',
+      description: '川沿いの建築や公園を歩ける落ち着いたエリアで、にぎやかな大阪観光の合間に入れやすいです。',
+      bestFor: ['街歩き', 'ゆっくり', 'カップル'],
+      stayTime: '45分〜1時間',
+    },
+  ],
+}
+
 const enrichDestination = (destination) => {
   const region = normalizeRegion(destination.prefecture, destination.region)
   const base = { ...destination, region }
@@ -1695,7 +1731,7 @@ const enrichDestination = (destination) => {
   const purposeFit = destination.purposeFit ?? createPurposeFit(base)
   const stayFit = destination.stayFit ?? createStayFit(base, purposeFit)
   const nearbyDestinationHints = destination.nearbyDestinationHints ?? destinationHintMap[base.city] ?? []
-  const touristSpots = destination.touristSpots ?? touristSpotsByCity[base.city] ?? createFallbackTouristSpots(base)
+  const touristSpots = destination.touristSpots ?? explicitTouristSpotsByCity[base.city] ?? touristSpotsByCity[base.city] ?? createFallbackTouristSpots(base)
   const localFoodDetails = destination.localFoodDetails ?? localFoodDetailsByCity[base.city] ?? createLocalFoodDetails(base)
   return {
     ...base,

@@ -109,6 +109,11 @@ const getTransitDepartureTimes = () => {
 }
 
 const toDestinationWaypoint = (destination) => {
+  if (destination && typeof destination === 'object') {
+    const routeDestinationQuery = destination.routeDestinationQuery?.trim()
+    if (routeDestinationQuery) return { address: appendJapan(routeDestinationQuery) }
+  }
+
   if (
     destination
     && typeof destination === 'object'

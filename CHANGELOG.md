@@ -68,6 +68,9 @@ DROPTRIP のβ版リリース履歴を管理するためのメモです。
 
 ## Unreleased
 
+- Reorganized the result screen into a short overview plus deep-dive views for gourmet, spots, model course, and access.
+- Removed the general result-screen feasibility, budget estimate, and thin recommendation-point cards from the main display.
+- Kept transport comparison in the access view and model-course / AI planning in the course view so weak route data does not dominate the first result impression.
 - Suppressed abstract local-food labels and now show detail cards only for concrete dish or specialty names.
 - Removed template-generated local-food detail copy and replaced generated descriptions with food-oriented text.
 - Added developer diagnostics for abstract food names, template food descriptions, generic food-image risk, and destinations lacking concrete food names.
@@ -103,3 +106,12 @@ DROPTRIP のβ版リリース履歴を管理するためのメモです。
 - Ran a result-screen quality pass across local food, tourist spots, model courses, and image-fit diagnostics.
 - Replaced remaining generic lunch wording in detailed schedule display with concrete local food names when available.
 - Tightened developer diagnostics with a food image / dish mismatch risk check and reduced template-like result copy.
+
+## Unreleased
+
+- Reworked result-screen quality gates for transport comparison, model courses, and trip image display.
+- Transport comparison now hides weak or unavailable cards instead of showing large unevaluated placeholders, and links users to Google Maps when route data is insufficient.
+- Route lookup destination queries now prefer a concrete frontend query such as nearest station or specific destination query before falling back to broad municipality text.
+- Model courses now require concrete tourist spot and local food data before appearing on the general result screen.
+- Trip image sections now show only stronger destination-specific images; fallback/category images stay modest or are omitted from the inspiration section.
+- Added concrete Osaka City spots and local food metadata for result-screen display.
