@@ -6703,9 +6703,52 @@ h1 {
 }
 
 .local-food-details li {
+  display: grid;
+  gap: 0.55rem;
   padding: 0.75rem;
   border-radius: 8px;
   background: rgba(248, 250, 252, 0.95);
+}
+
+.food-map-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-height: 40px;
+  padding: 0.5rem 0.82rem;
+  border-radius: 999px;
+  background: #fff7ed;
+  color: #9a3412;
+  font-size: 0.86rem;
+  font-weight: 800;
+  text-decoration: none;
+  box-shadow: inset 0 0 0 1px rgba(234, 88, 12, 0.16);
+}
+
+.food-map-link:hover,
+.food-map-link:focus-visible {
+  background: #ffedd5;
+  color: #7c2d12;
+}
+
+.food-search-guide {
+  margin: 1rem 0 0;
+  padding: 0.9rem;
+  border: 1px solid rgba(234, 88, 12, 0.14);
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(255, 247, 237, 0.96), rgba(255, 255, 255, 0.94));
+}
+
+.food-search-guide strong {
+  display: block;
+  color: #7c2d12;
+}
+
+.food-search-guide p {
+  margin: 0.35rem 0 0;
+  color: #475569;
+  line-height: 1.65;
 }
 
 .restaurant-hints-card {

@@ -166,7 +166,7 @@
 - Confirm that local food pages show about five concrete food chips and at least three concrete detail cards.
 - Confirm that remaining tourist spot shortages are tracked in DATA_TODO.md rather than filled with pseudo names.
 - Confirm that local food pages can show seven to ten concrete food chips, about five detail cards, and restaurant/area search hints when available.
-- Confirm that restaurantHints are displayed as unconfirmed search candidates with a visit-before-check note.
+- Confirm that generated restaurantHints are not shown on general food pages, and each dish card has a Google Maps search link instead.
 - Confirm that priority 30 destinations have about seven concrete tourist spot cards, while remaining 7-item gaps are tracked in DATA_TODO.md.
 
 ## Pseudo Spot Name Checks
@@ -188,13 +188,16 @@
 - 結果画面の初期表示では、グルメ / スポットの2つだけが大きなボタンとして表示されることを確認します。
 - 移動は2ボタンとは別のアクセス確認枠に分かれ、移動時間・料金を出さずにGoogle Maps確認だけへ誘導することを確認します。
 - グルメ、スポットを押したとき、それぞれ別ページ風に切り替わり、結果画面の下部に追加表示されないことを確認します。
-- グルメページでは、7〜10件程度の具体料理名、5件程度の説明カード、店名・エリア候補が表示されることを確認します。
-- 店名・エリア候補は未確認候補として表示され、営業時間・定休日・提供内容は訪問前確認の注意文が出ることを確認します。
+- グルメページでは、7〜10件程度の具体料理名、3〜5件程度の説明カード、料理名ごとの Google Maps 検索リンクが表示されることを確認します。
+- 店名・エリア候補の自動生成、タイミング/相性表示、料理名と一致しない画像が表示されないことを確認します。
 - スポットページでは、実在スポット名、温泉街、商店街、市場、通り名、施設名が7件程度表示されることを確認します。
 - touristSpots や localFoodDetails が不足している旅行先で、都市名 + ランチ、都市名 + 観光スポットのような疑似名称が出ないことを確認します。
 - 「自然スポット」「街歩き」「温泉街」「市場」などの抽象語単体がスポット名として出ていないことを確認します。
 - 施設名・観光船・ロープウェイ・美術館・温泉施設などは、営業時間・料金・営業状況を訪問前に確認する注意が控えめに出ていることを確認します。
 - 権利確認できていないスポット画像や、旅先と一致しない汎用画像がスポットカードに表示されていないことを確認します。
+- グルメページでは、郷土料理、地元料理、地元ラーメン、刺身、海鮮、スイーツ、カフェなどの抽象語だけで料理カードが出ていないことを確認します。
+- 結果画面では、モデルコース、交通手段比較、行けそう度、予算目安、移動時間取得失敗カードが復活していないことを確認します。
+- グルメ/スポットの大ボタンは、下部展開ではなく別ページ風に切り替わり、戻るボタンで結果概要へ戻れることを確認します。
 - 開発者ページで、疑似スポット名、抽象グルメ名、restaurantHints、food image / dish mismatch risk を確認します。
 - 一般結果画面に交通手段比較、未取得の車ルート、近距離の飛行機カード、取得失敗メッセージが表示されないことを確認します。
 - ルート確認リンクの目的地が、広すぎる市区町村だけではなく最寄り駅や具体クエリに寄っていることを確認します。

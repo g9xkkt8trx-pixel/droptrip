@@ -266,21 +266,22 @@ v0.1.0-beta の主な機能は次のとおりです。
 ### AIプラン生成で使う具体情報
 
 - AIプラン生成には、旅行先名・都道府県・region・tags・季節情報に加えて、観光スポット、説明付きご当地グルメ、周辺候補ヒント、同行者/目的/日程との相性を圧縮して渡します。
-- localFoodCandidates は最大10件、localFoodDetails は最大5件、restaurantHints は最大5件、touristSpots は最大7件、nearbyDestinationHints と周辺候補は最大5件を目安にし、送信データが大きくなりすぎないようにしています。
+- localFoodCandidates は最大10件、localFoodDetails は最大5件、touristSpots は最大7件、nearbyDestinationHints と周辺候補は最大5件を目安にし、送信データが大きくなりすぎないようにしています。店名候補はAIへ送らず、料理名と説明文を優先します。
 - データが不足している旅行先では、tags / recommendText / localFoodCandidates から表示を補い、一般画面に「情報がありません」とは出さない方針です。
 
-結果画面では、旅行先の説明が抽象表現だけにならないよう、観光スポット名・ご当地グルメ名・日程別の過ごし方を優先して組み立てます。長期旅行では、周辺候補名と旅の目的とのつながりも表示します。
+結果画面では、旅行先名、合いそうな理由、グルメ/スポットの大きな2ボタン、Google Mapsのアクセス確認を中心に短く見せます。詳しい旅程はAIプラン生成に任せ、一般結果画面にはモデルコースや交通手段比較を出しません。
 
 ### グルメ/スポット詳細ページ
 
 - 通常結果画面からは、大きな「グルメ」「スポット」ボタンで別ページ風の詳細表示へ切り替えます。
-- グルメページでは、料理名チップ、説明付きご当地グルメ、店名・エリア候補を表示します。
+- グルメページでは、料理名チップ、豆知識・味・背景が分かる説明付きご当地グルメ、料理名ごとの Google Maps 検索ボタンを表示します。
+- グルメページではタイミング/相性表示、店名候補の自動生成、料理名と一致しない画像を表示しません。
 - スポットページでは、実在スポット名、通り名、温泉街、市場、雨の日施設などを具体名中心で表示します。
 - 代表スポットカードは、Google Mapsで検索できる粒度の施設名・地名・通り名・温泉街名だけを表示します。
 - 施設名や観光船、ロープウェイ、美術館、温泉施設などは `needs_review` として扱い、営業時間・料金・営業状況は訪問前確認が必要な情報として表示します。
 - スポットページでは、代表スポットとは別に「エリア・通り・温泉街候補」を短くまとめて確認できます。
 - データが不足している場合は、都市名 + ランチ、都市名 + 観光スポットのような疑似名称を作らず、短い補足に留めます。
-- 通常画面は短く具体的な流れを見せ、AIプラン生成はより詳しい日程別提案を出す役割にしています。
+- 通常結果画面は軽く保ち、詳しい日程別提案はAIプラン生成の役割にしています。
 - 結果画面の品質チェックでは、抽象表現だけの説明、疑似スポット名、抽象グルメ名、foodImage と料理名の不一致を開発者ページで確認します。
 - 画像が不足している旅行先は、外部取得せず `IMAGE_TODO.md` で正式素材の追加候補として管理します。
 - 一般結果画面では交通手段比較を表示せず、出発地と目的地を渡した Google Maps 確認へ一本化しています。
@@ -300,12 +301,12 @@ v0.1.0-beta の主な機能は次のとおりです。
 ## Concrete Tourist Spot Display Policy
 
 - Tourist spot cards prioritize real spot names or specific area names. Generic names such as sightseeing spot or nature spot are filtered from general screens.
-- Simple stay plans now use filtered touristSpots and concrete local food names to describe a realistic day-by-day flow.
+- The general result screen no longer shows model-course content; detailed itinerary ideas are handled by AI plan generation.
 - When touristSpots are not concrete enough, DROPTRIP avoids showing forced abstract cards or empty-state text.
 - Local food candidates are kept concrete, with roughly five dish or specialty names per destination where possible.
 - Priority 30 destinations maintain at least five concrete tourist spots; remaining spot-data gaps are tracked in `DATA_TODO.md`.
 - Local food candidates now target seven to ten concrete items, and localFoodDetails target five travel-useful items with timing, area hints, and trip-fit context.
-- `restaurantHints` stores restaurant names and area search hints as `needs_review` candidates. General screens treat them as Google Maps search hints, not confirmed recommendations.
+- General food pages no longer show generated restaurant hints. Each concrete dish card links to a Google Maps search for the destination and dish name.
 - Priority 30 destinations now target at least seven concrete tourist spots; remaining 7-item spot gaps are tracked in `DATA_TODO.md`.
 
 ## Pseudo Spot Name Policy

@@ -40,14 +40,8 @@ export const createAiPlanPrompt = ({
   const touristSpotLines = compactList(destination.touristSpots, (spot) => (
     '- ' + spot.name + '（' + (spot.type ?? 'スポット') + ' / 目安:' + (spot.stayTime ?? '短時間') + '）: ' + (spot.description ?? '')
   ), 7)
-  const localFoodDetailLines = compactList(destination.localFoodDetails, (food) => {
-    const timing = Array.isArray(food.bestTiming) && food.bestTiming.length > 0 ? ' / \u5165\u308c\u3084\u3059\u3044\u30bf\u30a4\u30df\u30f3\u30b0: ' + food.bestTiming.join('\u30fb') : ''
-    const areas = Array.isArray(food.bestAreaHints) && food.bestAreaHints.length > 0 ? ' / \u5408\u308f\u305b\u3084\u3059\u3044\u30a8\u30ea\u30a2: ' + food.bestAreaHints.join('\u30fb') : ''
-    const goodFor = Array.isArray(food.goodFor) && food.goodFor.length > 0 ? ' / \u76f8\u6027: ' + food.goodFor.join('\u30fb') : ''
-    return '- ' + food.name + '\uff08' + (food.type ?? '\u3054\u5f53\u5730\u30b0\u30eb\u30e1') + '\uff09: ' + (food.description ?? '') + timing + areas + goodFor
-  }, 5)
-  const restaurantHintLines = compactList(destination.restaurantHints, (hint) => (
-    '- ' + hint.name + '（' + (hint.area ?? 'エリア未設定') + ' / ' + (hint.type ?? '候補') + '）: ' + (hint.food ?? '食事候補') + '。' + (hint.note ?? '営業時間・定休日・提供内容は訪問前に公式情報やGoogle Mapsで確認してください。')
+  const localFoodDetailLines = compactList(destination.localFoodDetails, (food) => (
+    '- ' + food.name + '\uff08' + (food.type ?? '\u3054\u5f53\u5730\u30b0\u30eb\u30e1') + '\uff09: ' + (food.description ?? '')
   ), 5)
   const localFoodSummary = Array.isArray(destination.localFoodCandidates) && destination.localFoodCandidates.length > 0
     ? destination.localFoodCandidates.slice(0, 10).join('、')
@@ -77,6 +71,8 @@ export const createAiPlanPrompt = ({
     '観光スポットは「自然スポット」「街歩き」「温泉街」のような抽象語ではなく、入力データ内の具体的な施設名・地名・通り名・温泉街名を優先してください。',
     '施設名を使う場合も、営業時間・料金・営業状況は訪問前確認が必要なものとして扱い、写真がある前提では書かないでください。',
     '「郷土料理」「地元ラーメン」「カフェ」「市場グルメ」のような抽象語ではなく、入力データ内の具体的な料理名・食材名・地域名物名を優先してください。',
+    '食事提案は、いつ食べるかよりも、どんな料理か、味や食材の特徴、土地とのつながりが伝わる短い説明を優先してください。',
+    '店名を出す場合は候補扱いにし、営業時間・定休日・営業状況・予約可否は断定しないでください。',
     '料理写真がある前提の表現は避け、写真・店の営業状況・提供内容は確認が必要なものとして扱ってください。',
     '',
     '## 入力条件',
@@ -100,7 +96,6 @@ export const createAiPlanPrompt = ({
     '',
     touristSpotLines.length > 0 ? '## 使ってほしい観光スポット\n' + touristSpotLines.join('\n') : '',
     localFoodDetailLines.length > 0 ? '## 食事提案に含めたいご当地グルメ\n' + localFoodDetailLines.join('\n') : (localFoodSummary ? 'ご当地グルメ候補: ' + localFoodSummary : ''),
-    restaurantHintLines.length > 0 ? '## Google Mapsで探す時の店名・エリア候補（未確認候補として扱う）\n' + restaurantHintLines.join('\n') : '',
     nearbyHintSummary ? '周辺候補ヒント: ' + nearbyHintSummary : '',
     nearbySuggestionLines.length > 0 ? '## 長めの日程で余裕があれば寄りたい周辺候補\n' + nearbySuggestionLines.join('\n') : '',
     '',
