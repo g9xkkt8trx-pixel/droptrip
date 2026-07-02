@@ -15,7 +15,7 @@ DROPTRIP のβ版リリース履歴を管理するためのメモです。
 - 比較機能
 - 抽選履歴
 - 移動範囲条件
-- 交通手段比較
+- Google Mapsアクセス確認
 - AIプラン生成準備
 - Vercel公開対応
 - APIサーバー経由化
@@ -68,7 +68,13 @@ DROPTRIP のβ版リリース履歴を管理するためのメモです。
 
 ## Unreleased
 
-- Reorganized the result screen into a short overview plus deep-dive views for gourmet, spots, model course, and access.
+- Replaced the small deep-dive tab UI with three larger result-screen buttons for gourmet, spots, and model course.
+- Moved access confirmation out of the deep-dive buttons into its own result-screen section with Google Maps confirmation.
+- Stopped automatic route-time fetching on general result flows and removed transport comparison from the general result screen.
+- Unified public access guidance around a direct Google Maps route link built from origin and destination query text.
+- Removed the general result-screen enjoyment-chip and trip-inspiration image sections to keep the first result view lighter.
+- Improved route destination query construction so route-time receives routeSearchName / routeDestinationName / nearestStation based search text instead of display-only station labels.
+- Reorganized the result screen into a short overview, three content deep-dive views, and a separate access confirmation section.
 - Removed the general result-screen feasibility, budget estimate, and thin recommendation-point cards from the main display.
 - Kept transport comparison in the access view and model-course / AI planning in the course view so weak route data does not dominate the first result impression.
 - Suppressed abstract local-food labels and now show detail cards only for concrete dish or specialty names.

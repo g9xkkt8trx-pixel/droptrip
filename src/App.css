@@ -1356,70 +1356,210 @@ h1 {
   backdrop-filter: blur(5px);
 }
 
-.result-detail-card {
+.result-primary-action-section {
+  margin-top: 16px;
+}
+
+.result-primary-action-heading {
+  margin-bottom: 10px;
+}
+
+.result-primary-action-heading p {
+  margin: 0 0 4px;
+  color: #ef8c70;
+  font-size: 0.64rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.result-primary-action-heading h2 {
+  margin: 0;
+  color: #315850;
+  font-size: 1.04rem;
+  line-height: 1.35;
+}
+
+.result-primary-actions {
   display: grid;
-  gap: 14px;
+  gap: 12px;
+}
+
+.result-primary-actions button {
+  position: relative;
+  min-height: 78px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  align-content: center;
+  overflow: hidden;
+  padding: 17px 18px;
+  text-align: left;
+  color: #294e47;
+  background: linear-gradient(135deg, #fff8e8 0%, #ffe4cf 100%);
+  border: 1px solid rgba(236, 154, 97, 0.34);
+  border-radius: 22px;
+  box-shadow: 0 14px 28px rgba(137, 91, 58, 0.14);
+  font-size: 0.76rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease, filter 160ms ease;
+}
+
+.result-primary-actions button::after {
+  position: absolute;
+  top: -22px;
+  right: -16px;
+  width: 82px;
+  height: 82px;
+  content: "";
+  background: rgba(255, 255, 255, 0.44);
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+.result-primary-actions button:nth-child(2) {
+  background: linear-gradient(135deg, #edfff6 0%, #ccefe2 100%);
+  border-color: rgba(93, 172, 139, 0.34);
+  box-shadow: 0 14px 28px rgba(60, 119, 96, 0.13);
+}
+
+.result-primary-actions button:nth-child(3) {
+  background: linear-gradient(135deg, #f2f5ff 0%, #e3dcff 100%);
+  border-color: rgba(135, 130, 208, 0.32);
+  box-shadow: 0 14px 28px rgba(83, 87, 154, 0.13);
+}
+
+.result-primary-actions button strong {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  color: #243f39;
+  font-size: 1.08rem;
+  line-height: 1.2;
+}
+
+.result-primary-actions button strong span {
+  font-size: 1.38rem;
+  line-height: 1;
+}
+
+.result-primary-actions button span {
+  position: relative;
+  z-index: 1;
+  color: #5f746e;
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+.result-primary-actions button:hover {
+  transform: translateY(-2px);
+  filter: saturate(1.04);
+  box-shadow: 0 18px 34px rgba(63, 89, 80, 0.16);
+}
+
+.result-primary-actions button:active {
+  transform: translateY(1px);
+  box-shadow: 0 9px 18px rgba(63, 89, 80, 0.12);
+}
+
+.result-primary-actions button:focus-visible {
+  outline: 3px solid rgba(47, 111, 97, 0.32);
+  outline-offset: 3px;
+}
+
+.result-primary-actions button.active {
+  color: #243f39;
+  border-color: rgba(47, 111, 97, 0.52);
+  box-shadow: 0 16px 34px rgba(47, 111, 97, 0.18);
+}
+
+.result-primary-actions button.active span {
+  color: #425d56;
+}
+
+.result-primary-actions button:disabled {
+  color: #9bacA6;
+  background: #f3f5f4;
+  border-color: #dce5e1;
+  box-shadow: none;
+  cursor: not-allowed;
+  filter: grayscale(0.2);
+  transform: none;
+}
+
+.result-primary-actions button:disabled::after {
+  opacity: 0.36;
+}
+
+.access-confirm-card {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  align-items: center;
   margin-top: 12px;
-  padding: 17px;
+  padding: 16px;
   background: #fff;
   border: 1px solid #e1e9e6;
   border-radius: 16px;
 }
 
-.result-detail-card p,
-.result-detail-card h2,
-.result-detail-card span {
+.access-confirm-card p,
+.access-confirm-card h2,
+.access-confirm-card span {
   margin: 0;
 }
 
-.result-detail-card p {
+.access-confirm-card p {
   color: #e76f51;
   font-size: 0.52rem;
   font-weight: 800;
   letter-spacing: 0.14em;
 }
 
-.result-detail-card h2 {
+.access-confirm-card h2 {
   color: #294f46;
-  font-size: 0.95rem;
+  font-size: 0.92rem;
 }
 
-.result-detail-card span {
+.access-confirm-card span {
   display: block;
   margin-top: 4px;
   color: #647873;
   font-size: 0.72rem;
-  line-height: 1.6;
 }
 
-.result-detail-tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+.access-confirm-card .access-confirm-note {
+  color: #536962;
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1.7;
 }
 
-.result-detail-tabs button {
-  min-height: 38px;
-  padding: 0 13px;
-  color: #315850;
-  background: #f5f8f7;
-  border: 1px solid #d8e5e0;
+.access-confirm-card button,
+.access-confirm-card a {
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  color: #fff;
+  background: #315f55;
+  border: 0;
   border-radius: 999px;
   font-size: 0.76rem;
   font-weight: 800;
+  text-decoration: none;
   cursor: pointer;
 }
 
-.result-detail-tabs button.active {
+.access-confirm-card a {
+  width: 100%;
   color: #fff;
-  background: #2f6f61;
-  border-color: #2f6f61;
-}
-
-.result-detail-tabs button:disabled {
-  color: #9bacA6;
-  background: #f3f5f4;
-  cursor: not-allowed;
+  background: #315f55;
 }
 
 .transport-empty-state {
@@ -6092,13 +6232,17 @@ h1 {
   .destiny-score strong { font-size: 1.55rem; }
   .recommendation-card,
   .season-compatibility-card { padding: 15px; }
-  .enjoyment-card { padding: 15px; }
-  .enjoyment-chips span { font-size: 0.6rem; }
   .reason-summary { padding: 12px 13px; font-size: 0.72rem; line-height: 1.7; }
 
-  .journey-gallery-card { padding: 14px; }
-  .journey-gallery { grid-template-columns: 1fr; gap: 9px; margin-right: 0; padding-right: 0; }
-  .journey-image { height: 180px; }
+  .access-confirm-card { padding: 14px; }
+  .result-primary-actions,
+  .access-confirm-card { grid-template-columns: 1fr; }
+  .result-primary-action-section { margin-top: 14px; }
+  .result-primary-action-heading h2 { font-size: 0.98rem; }
+  .result-primary-actions { gap: 10px; }
+  .result-primary-actions button { min-height: 72px; padding: 15px 16px; text-align: left; }
+  .access-confirm-card button,
+  .access-confirm-card a { width: 100%; }
   .local-food-card { padding: 14px; border-radius: 16px; }
   .local-food-content,
   .compact-food-image .local-food-content { grid-template-columns: 1fr; }
