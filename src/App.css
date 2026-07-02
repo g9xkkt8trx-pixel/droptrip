@@ -6603,7 +6603,8 @@ h1 {
 }
 
 
-.tourist-spots-card {
+.tourist-spots-card,
+.spot-area-card {
   margin: 1rem 0;
   padding: 1rem;
   border: 1px solid rgba(15, 23, 42, 0.1);
@@ -6765,6 +6766,31 @@ h1 {
   color: #64748b;
   font-size: 0.8rem;
   line-height: 1.5;
+}
+
+.spot-area-card {
+  border-color: rgba(20, 184, 166, 0.16);
+  background: linear-gradient(135deg, rgba(240, 253, 250, 0.95), rgba(255, 255, 255, 0.94));
+}
+
+.spot-area-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.85rem;
+}
+
+.spot-area-list span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0.38rem 0.68rem;
+  border: 1px solid rgba(13, 148, 136, 0.16);
+  border-radius: 999px;
+  background: #ffffff;
+  color: #115e59;
+  font-size: 0.86rem;
+  font-weight: 800;
 }
 
 .restaurant-hints-list p {

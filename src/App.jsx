@@ -1445,6 +1445,7 @@ const abstractSpotNames = new Set([
   '\u89b3\u5149\u30b9\u30dd\u30c3\u30c8', '\u81ea\u7136\u30b9\u30dd\u30c3\u30c8', '\u6b74\u53f2\u30b9\u30dd\u30c3\u30c8', '\u30b0\u30eb\u30e1\u30b9\u30dd\u30c3\u30c8', '\u4f53\u9a13\u30b9\u30dd\u30c3\u30c8',
   '\u8857\u6b69\u304d\u30b9\u30dd\u30c3\u30c8', '\u5b9a\u756a\u30b9\u30dd\u30c3\u30c8', '\u4eba\u6c17\u30b9\u30dd\u30c3\u30c8', '\u8857\u6b69\u304d', '\u30b0\u30eb\u30e1', '\u6e29\u6cc9', '\u4f53\u9a13', '\u7d76\u666f', '\u540d\u6240', '\u5b9a\u756a',
   '\u3054\u5f53\u5730\u30e9\u30f3\u30c1', '\u6d77\u8fba\u30a8\u30ea\u30a2', '\u4e2d\u5fc3\u8857\u30b0\u30eb\u30e1\u6563\u7b56', '\u30b0\u30eb\u30e1\u6563\u7b56', '\u30ab\u30d5\u30a7\u4f11\u61a9', '\u30e9\u30f3\u30c1', '\u30ab\u30d5\u30a7', '\u5468\u8fba\u6563\u7b56',
+  '\u6e29\u6cc9\u8857', '\u4e2d\u5fc3\u8857', '\u5546\u5e97\u8857', '\u5c55\u671b\u30b9\u30dd\u30c3\u30c8', '\u516c\u5712', '\u795e\u793e', '\u5bfa', '\u7f8e\u8853\u9928', '\u5e02\u5834',
 ])
 
 const pseudoSpotNamePatterns = [
@@ -1462,6 +1463,8 @@ const pseudoSpotNamePatterns = [
   /\u30b0\u30eb\u30e1\u6563\u7b56$/,
   /\u30ab\u30d5\u30a7\u4f11\u61a9$/,
   /\u4e2d\u5fc3\u8857$/,
+  /\u6d77\u8fba\u30a8\u30ea\u30a2$/,
+  /\u30b0\u30eb\u30e1\u30a8\u30ea\u30a2$/,
 ]
 
 const isPseudoSpotName = (name = '') => {
@@ -1502,6 +1505,12 @@ const isTemplateSpotDescription = (description = '') => {
 
 const getConcreteTouristSpots = (destination = {}) => (Array.isArray(destination.touristSpots) ? destination.touristSpots : [])
   .filter((spot) => isConcreteSpotName(spot?.name) && !isTemplateSpotDescription(spot?.description))
+
+const spotAreaKeywordPattern = /\u901a\u308a|\u5546\u5e97\u8857|\u5e02\u5834|\u6a2a\u4e01|\u6e29\u6cc9\u8857|\u6e6f\u7551|\u5468\u8fba|\u8857\u9053|\u753a\u4e26\u307f|\u7f8e\u89b3\u5730\u533a|\u4e2d\u83ef\u8857|\u516c\u5712|\u904b\u6cb3|\u685f\u6a4b|\u8336\u5c4b\u8857|\u5742|\u5c0f\u8def/
+
+const getSpotAreaCandidates = (destination = {}) => getConcreteTouristSpots(destination)
+  .filter((spot) => spotAreaKeywordPattern.test([spot.name, spot.type, spot.description].filter(Boolean).join(' ')))
+  .slice(0, 6)
 
 const getLocalFoodDisplayItems = (destination = {}) => {
   const fromCandidates = getConcreteFoodCandidates(destination.localFoodCandidates)
@@ -1859,6 +1868,30 @@ const getAbstractTouristSpotNameCities = (destinationList = []) => destinationLi
 
 const getTemplateTouristSpotDescriptionCities = (destinationList = []) => destinationList
   .filter((place) => (place.touristSpots ?? []).some((spot) => isConcreteSpotName(spot?.name) && isTemplateSpotDescription(spot?.description)))
+  .map((place) => place.city)
+
+const getTouristSpotMissingStayTimeCities = (destinationList = []) => destinationList
+  .filter((place) => getConcreteTouristSpots(place).some((spot) => !spot.stayTime))
+  .map((place) => place.city)
+
+const getTouristSpotMissingBestForCities = (destinationList = []) => destinationList
+  .filter((place) => getConcreteTouristSpots(place).some((spot) => !Array.isArray(spot.bestFor) || spot.bestFor.length === 0))
+  .map((place) => place.city)
+
+const getTouristSpotMissingSourceStatusCities = (destinationList = []) => destinationList
+  .filter((place) => getConcreteTouristSpots(place).some((spot) => !spot.sourceStatus))
+  .map((place) => place.city)
+
+const getNeedsReviewSpotMissingNoteCities = (destinationList = []) => destinationList
+  .filter((place) => getConcreteTouristSpots(place).some((spot) => spot.sourceStatus === 'needs_review' && !spot.note))
+  .map((place) => place.city)
+
+const getSpotImageFallbackCities = (destinationList = []) => destinationList
+  .filter((place) => ['heroImage', 'sceneryImage'].some((key) => ['fallback', 'missing'].includes(getImageMetaValue(place[key], 'status'))))
+  .map((place) => place.city)
+
+const getDestinationSpecificImageShortageCities = (destinationList = []) => destinationList
+  .filter((place) => !getImageMetaValue(place.heroImage, 'isDestinationSpecific') && !getImageMetaValue(place.sceneryImage, 'isDestinationSpecific'))
   .map((place) => place.city)
 
 const getPurposeSpotShortageCities = (destinationList = []) => destinationList
@@ -2588,6 +2621,7 @@ function App() {
   const localFoodDetails = destination ? getLocalFoodDetailItems(destination, localFoodItems) : []
   const restaurantHints = destination ? getRestaurantHintItems(destination) : []
   const featuredTouristSpots = destination && planContext ? getPurposeMatchedTouristSpots(destination, planContext.selectedTravelPurposes) : []
+  const spotAreaCandidates = destination ? getSpotAreaCandidates(destination) : []
   const foodThemeText = destination ? getFoodThemeText(destination, localFoodItems) : ''
   const foodImageIsFeatured = destination ? shouldFeatureFoodImage(destination, localFoodItems) : false
   const tripProposalText = destination && planContext
@@ -3823,7 +3857,7 @@ function App() {
                     <span aria-hidden="true">📍</span>
                     <div>
                       <p>SPOTS</p>
-                      <h3 id="tourist-spots-title">スポットリスト</h3>
+                      <h3 id="tourist-spots-title">代表スポット</h3>
                     </div>
                   </div>
                   <div className="tourist-spots-grid">
@@ -3838,11 +3872,28 @@ function App() {
                           <div><dt>目安</dt><dd>{spot.stayTime}</dd></div>
                           <div><dt>相性</dt><dd>{getSpotPurposeLabel(spot, planContext.selectedTravelPurposes)}</dd></div>
                         </dl>
-                        {spot.note && <small className="tourist-spot-note">{spot.note}</small>}
+                        {spot.sourceStatus === 'needs_review' && spot.note && <small className="tourist-spot-note">{spot.note}</small>}
                       </article>
                     ))}
                   </div>
                 </section>
+
+                {spotAreaCandidates.length > 0 && (
+                  <section className="spot-area-card" aria-labelledby="spot-area-title">
+                    <div className="tourist-spots-heading">
+                      <span aria-hidden="true">🚶</span>
+                      <div>
+                        <p>AREA</p>
+                        <h3 id="spot-area-title">エリア・通り・温泉街候補</h3>
+                      </div>
+                    </div>
+                    <div className="spot-area-list">
+                      {spotAreaCandidates.map((spot) => (
+                        <span key={`area-${spot.name}`}>{spot.name}</span>
+                      ))}
+                    </div>
+                  </section>
+                )}
               </section>
             )}
 
@@ -4985,6 +5036,12 @@ function App() {
               <div><dt>touristSpots.nameが疑似スポット名</dt><dd>{formatShortageList(getPseudoTouristSpotNameCities(destinations))}</dd></div>
               <div><dt>fallback疑似カード生成リスク</dt><dd>{formatShortageList(getFallbackPseudoSpotGeneratedCities(destinations))}</dd></div>
               <div><dt>touristSpotsのdescriptionがテンプレート化</dt><dd>{formatShortageList(getTemplateTouristSpotDescriptionCities(destinations))}</dd></div>
+              <div><dt>touristSpots stayTimeなし</dt><dd>{formatShortageList(getTouristSpotMissingStayTimeCities(destinations))}</dd></div>
+              <div><dt>touristSpots bestForなし</dt><dd>{formatShortageList(getTouristSpotMissingBestForCities(destinations))}</dd></div>
+              <div><dt>sourceStatusなしの施設候補</dt><dd>{formatShortageList(getTouristSpotMissingSourceStatusCities(destinations))}</dd></div>
+              <div><dt>needs_reviewなのにnoteなし</dt><dd>{formatShortageList(getNeedsReviewSpotMissingNoteCities(destinations))}</dd></div>
+              <div><dt>スポット画像 fallback / missing</dt><dd>{formatShortageList(getSpotImageFallbackCities(destinations))}</dd></div>
+              <div><dt>旅先専用画像不足</dt><dd>{formatShortageList(getDestinationSpecificImageShortageCities(destinations))}</dd></div>
               <div><dt>旅の目的に合うtouristSpots不足</dt><dd>{formatShortageList(getPurposeSpotShortageCities(destinations))}</dd></div>
               <div><dt>簡易プランにスポット名が入りにくい</dt><dd>{formatShortageList(getStayPlanSpotNameMissingCities(destinations))}</dd></div>
               <div><dt>簡易プランにご当地グルメ名が入りにくい</dt><dd>{formatShortageList(getStayPlanFoodNameMissingCities(destinations))}</dd></div>
