@@ -162,6 +162,12 @@
 - Confirm that generic names such as sightseeing spot, nature spot, or popular spot do not appear as spot card titles.
 - Confirm that simple plans include spot names and local food names when data exists.
 - Confirm that destinations with weak touristSpots do not show forced abstract cards or empty-state text.
+- Confirm that priority 30 destinations show about five concrete tourist spots.
+- Confirm that local food pages show about five concrete food chips and at least three concrete detail cards.
+- Confirm that remaining tourist spot shortages are tracked in DATA_TODO.md rather than filled with pseudo names.
+- Confirm that local food pages can show seven to ten concrete food chips, about five detail cards, and restaurant/area search hints when available.
+- Confirm that restaurantHints are displayed as unconfirmed search candidates with a visit-before-check note.
+- Confirm that priority 30 destinations have about seven concrete tourist spot cards, while remaining 7-item gaps are tracked in DATA_TODO.md.
 
 ## Pseudo Spot Name Checks
 
@@ -175,19 +181,16 @@
 - Confirm that detail cards include concrete timing or area hints when available.
 - Confirm that AI plan prompts include local food description, timing, area hints, and trip-fit context without changing /api files.
 - Confirm that generic or mismatched food images are not promoted as confirmed local specialty photos.
-## 簡易モデルコース確認
+## グルメ / スポット詳細ページ確認
 
-- 結果画面の初期表示では、グルメ / スポット / モデルコースの3つだけが大きなボタンとして表示されることを確認します。
-- 移動は3ボタンとは別のアクセス確認枠に分かれ、移動時間・料金を出さずにGoogle Maps確認だけへ誘導することを確認します。
-- グルメ、スポット、モデルコースを押したとき、それぞれの詳細だけが表示され、行けそう度・予算目安・薄いおすすめポイント・ここで楽しみたいことが一般結果に出ないことを確認します。
-- 日帰りでは、午前 / 昼 / 午後 / 夕方の流れに具体スポット名または具体グルメ名が入ることを確認します。
-- 1泊2日では、1日目と2日目に分かれ、スポット名と料理名が最低1つずつ入ることを確認します。
-- 2泊3日では、中心エリア、観光、食事、帰路の流れが短くまとまっていることを確認します。
-- 3泊以上では、nearbyDestinationHints がある場合に周辺候補名が自然に表示されることを確認します。
+- 結果画面の初期表示では、グルメ / スポットの2つだけが大きなボタンとして表示されることを確認します。
+- 移動は2ボタンとは別のアクセス確認枠に分かれ、移動時間・料金を出さずにGoogle Maps確認だけへ誘導することを確認します。
+- グルメ、スポットを押したとき、それぞれ別ページ風に切り替わり、結果画面の下部に追加表示されないことを確認します。
+- グルメページでは、7〜10件程度の具体料理名、5件程度の説明カード、店名・エリア候補が表示されることを確認します。
+- 店名・エリア候補は未確認候補として表示され、営業時間・定休日・提供内容は訪問前確認の注意文が出ることを確認します。
+- スポットページでは、実在スポット名、温泉街、商店街、市場、通り名、施設名が7件程度表示されることを確認します。
 - touristSpots や localFoodDetails が不足している旅行先で、都市名 + ランチ、都市名 + 観光スポットのような疑似名称が出ないことを確認します。
-- 折りたたみの詳細プランでも「ご当地ランチ」のような抽象表示ではなく、具体的な料理名に置き換わることを確認します。
-- 開発者ページで、疑似スポット名、抽象グルメ名、モデルコース不足、food image / dish mismatch risk を確認します。
+- 開発者ページで、疑似スポット名、抽象グルメ名、restaurantHints、food image / dish mismatch risk を確認します。
 - 一般結果画面に交通手段比較、未取得の車ルート、近距離の飛行機カード、取得失敗メッセージが表示されないことを確認します。
 - ルート確認リンクの目的地が、広すぎる市区町村だけではなく最寄り駅や具体クエリに寄っていることを確認します。
-- モデルコースは具体スポット名と具体グルメ名がある場合だけ表示され、データ不足時に汎用文だけで出ないことを確認します。
 - 旅のイメージ画像や横スクロール画像カードが一般結果画面に残っていないことを確認します。

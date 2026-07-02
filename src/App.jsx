@@ -1501,7 +1501,7 @@ const getLocalFoodDisplayItems = (destination = {}) => {
   const fromFoodTheme = getConcreteFoodCandidates(splitFoodTheme(getImageMetaValue(destination.foodImage, 'foodTheme')))
   return [...new Set([...fromCandidates, ...fromFoodTheme])]
     .filter(Boolean)
-    .slice(0, 5)
+    .slice(0, 10)
 }
 
 
@@ -1523,8 +1523,12 @@ const getLocalFoodDetailItems = (destination = {}, fallbackItems = []) => {
     .filter((item) => item?.name && isConcreteFoodName(item.name))
     .filter((item) => !isTemplateFoodDescription(item.description))
     .filter((item) => fallbackSet.size === 0 || fallbackSet.has(item.name) || isConcreteFoodName(item.name))
-    .slice(0, 2)
+    .slice(0, 5)
 }
+
+const getRestaurantHintItems = (destination = {}) => (Array.isArray(destination.restaurantHints) ? destination.restaurantHints : [])
+  .filter((hint) => hint?.name && hint?.area && hint?.food)
+  .slice(0, 5)
 
 const getPurposeMatchedTouristSpots = (destination = {}, selectedPurposes = []) => {
   const spots = getConcreteTouristSpots(destination)
@@ -1542,7 +1546,7 @@ const getPurposeMatchedTouristSpots = (destination = {}, selectedPurposes = []) 
       return { ...spot, score, order: index }
     })
     .sort((left, right) => right.score - left.score || left.order - right.order)
-    .slice(0, 3)
+    .slice(0, 7)
 }
 
 const getSpotPurposeLabel = (spot = {}, selectedPurposes = []) => {
@@ -1630,10 +1634,11 @@ const createAiDestinationPayload = (destination = {}, context = {}, featuredSpot
   recommendText: destination.recommendText ?? destination.recommendation ?? '',
   bestSeasons: destination.bestSeasons ?? [],
   seasonHighlights: destination.seasonHighlights ?? {},
-  localFoodCandidates: getConcreteFoodCandidates(destination.localFoodCandidates).slice(0, 5),
-  localFoodDetails: foodDetails.slice(0, 3),
-  touristSpots: (featuredSpots.length > 0 ? featuredSpots : getConcreteTouristSpots(destination)).slice(0, 5).map(({ name, type, description, bestFor, stayTime }) => ({ name, type, description, bestFor, stayTime })),
-  nearbyDestinationHints: (destination.nearbyDestinationHints ?? []).slice(0, 3),
+  localFoodCandidates: getConcreteFoodCandidates(destination.localFoodCandidates).slice(0, 10),
+  localFoodDetails: foodDetails.slice(0, 5),
+  restaurantHints: getRestaurantHintItems(destination).slice(0, 5).map(({ name, area, food, type, sourceStatus, checkedAt, note }) => ({ name, area, food, type, sourceStatus, checkedAt, note })),
+  touristSpots: (featuredSpots.length > 0 ? featuredSpots : getConcreteTouristSpots(destination)).slice(0, 7).map(({ name, type, description, bestFor, stayTime, sourceStatus, note }) => ({ name, type, description, bestFor, stayTime, sourceStatus, note })),
+  nearbyDestinationHints: (destination.nearbyDestinationHints ?? []).slice(0, 5),
   companionFit: destination.companionFit ?? {},
   purposeFit: destination.purposeFit ?? {},
   stayFit: destination.stayFit ?? {},
@@ -1646,7 +1651,7 @@ const createAiDestinationPayload = (destination = {}, context = {}, featuredSpot
   movementRange: context.movementRange,
   movementRangeLabel: movementRangeOptions.find((option) => option.value === context.movementRange)?.label ?? 'おまかせ',
   travelSeason: context.travelSeason,
-  nearbySuggestions: nearbySuggestions.slice(0, 3).map((item) => ({
+  nearbySuggestions: nearbySuggestions.slice(0, 5).map((item) => ({
     city: item.destination?.city ?? item.city,
     prefecture: item.destination?.prefecture ?? item.prefecture,
     reason: item.reason,
@@ -1938,7 +1943,7 @@ const getLocalFoodMissingAreaHintCities = (destinationList = []) => destinationL
   .map((place) => place.city)
 
 const getUnreviewedRestaurantHintCities = (destinationList = []) => destinationList
-  .filter((place) => (place.restaurantHints ?? []).some((hint) => hint?.name && (hint.status === 'confirmed' ? !hint.checkedAt : true)))
+  .filter((place) => (place.restaurantHints ?? []).some((hint) => hint?.name && (!hint.sourceStatus || (hint.sourceStatus === 'confirmed' ? !hint.checkedAt : false))))
   .map((place) => place.city)
 
 const getAbstractFoodDetailCities = (destinationList = []) => destinationList
@@ -1956,6 +1961,96 @@ const getTemplateFoodDescriptionCities = (destinationList = []) => destinationLi
 const getConcreteFoodShortageCities = (destinationList = []) => destinationList
   .filter((place) => getConcreteFoodCandidates(place.localFoodCandidates).length < 3)
   .map((place) => place.city)
+
+const getLocalFoodCandidateUnderFiveCities = (destinationList = []) => destinationList
+  .filter((place) => getConcreteFoodCandidates(place.localFoodCandidates).length < 5)
+  .map((place) => place.city)
+
+const getLocalFoodCandidateUnderSevenCities = (destinationList = []) => destinationList
+  .filter((place) => getConcreteFoodCandidates(place.localFoodCandidates).length < 7)
+  .map((place) => place.city)
+
+const getLocalFoodDetailsUnderThreeCities = (destinationList = []) => destinationList
+  .filter((place) => (place.localFoodDetails ?? []).filter((food) => isConcreteFoodName(food?.name)).length < 3)
+  .map((place) => place.city)
+
+const getLocalFoodDetailsUnderFiveCities = (destinationList = []) => destinationList
+  .filter((place) => (place.localFoodDetails ?? []).filter((food) => isConcreteFoodName(food?.name)).length < 5)
+  .map((place) => place.city)
+
+const getTouristSpotsUnderFiveCities = (destinationList = []) => destinationList
+  .filter((place) => getConcreteTouristSpots(place).length < 5)
+  .map((place) => place.city)
+
+const getTouristSpotsUnderSevenCities = (destinationList = []) => destinationList
+  .filter((place) => getConcreteTouristSpots(place).length < 7)
+  .map((place) => place.city)
+
+const getRestaurantHintsMissingCities = (destinationList = []) => destinationList
+  .filter((place) => getRestaurantHintItems(place).length === 0)
+  .map((place) => place.city)
+
+const getRestaurantHintNeedsReviewCities = (destinationList = []) => destinationList
+  .filter((place) => getRestaurantHintItems(place).some((hint) => hint.sourceStatus === 'needs_review'))
+  .map((place) => place.city)
+
+const getRestaurantHintNoteMissingCities = (destinationList = []) => destinationList
+  .filter((place) => getRestaurantHintItems(place).some((hint) => !hint.note))
+  .map((place) => place.city)
+
+const getOnsenAreaShortageCities = (destinationList = []) => destinationList
+  .filter((place) => (place.tags ?? []).includes('温泉'))
+  .filter((place) => {
+    const text = [...getConcreteTouristSpots(place).map((spot) => `${spot.name} ${spot.type} ${spot.description}`), ...getRestaurantHintItems(place).map((hint) => `${hint.name} ${hint.area} ${hint.food}`)].join(' ')
+    return !/足湯|温泉街|湯畑|外湯|湯の坪|道後|城崎|鉄輪|湯本|湯布院|下呂/.test(text)
+  })
+  .map((place) => place.city)
+
+const getWalkingAreaShortageCities = (destinationList = []) => destinationList
+  .filter((place) => (place.tags ?? []).some((tag) => ['グルメ', 'カップル向け'].includes(tag)) || (place.purposeFit?.walking ?? 0) >= 65)
+  .filter((place) => {
+    const text = [...getConcreteTouristSpots(place).map((spot) => `${spot.name} ${spot.type} ${spot.description}`), ...getRestaurantHintItems(place).map((hint) => `${hint.name} ${hint.area}`)].join(' ')
+    return !/通り|商店街|市場|温泉街|町並み|中華街|朝市|屋台|横丁|街道/.test(text)
+  })
+  .map((place) => place.city)
+
+const getPriorityThirtyReadiness = (destinationList = []) => {
+  const targets = qualityPriorityCities
+  const ready = targets.filter((city) => {
+    const place = destinationList.find((item) => item.city === city || (city === '宮島' && item.city === '廿日市市'))
+    return place
+      && getConcreteFoodCandidates(place.localFoodCandidates).length >= 5
+      && (place.localFoodDetails ?? []).filter((food) => isConcreteFoodName(food?.name)).length >= 3
+      && getConcreteTouristSpots(place).length >= 5
+  })
+  return `${ready.length} / ${targets.length}`
+}
+
+const getPriorityRichReadiness = (destinationList = []) => {
+  const targets = qualityPriorityCities
+  const ready = targets.filter((city) => {
+    const place = destinationList.find((item) => item.city === city || (city === '宮島' && item.city === '廿日市市'))
+    return place
+      && getConcreteFoodCandidates(place.localFoodCandidates).length >= 7
+      && (place.localFoodDetails ?? []).filter((food) => isConcreteFoodName(food?.name)).length >= 5
+      && getConcreteTouristSpots(place).length >= 7
+      && getRestaurantHintItems(place).length >= 3
+  })
+  return `${ready.length} / ${targets.length}`
+}
+
+const getRegionReadinessSummary = (destinationList = []) => Object.entries(destinationList.reduce((acc, place) => {
+  const region = place.region ?? '未設定'
+  const ready = getConcreteFoodCandidates(place.localFoodCandidates).length >= 5
+    && (place.localFoodDetails ?? []).filter((food) => isConcreteFoodName(food?.name)).length >= 3
+    && getConcreteTouristSpots(place).length >= 5
+  acc[region] = acc[region] ?? { ready: 0, total: 0 }
+  acc[region].total += 1
+  if (ready) acc[region].ready += 1
+  return acc
+}, {}))
+  .map(([region, value]) => `${region}:${value.ready}/${value.total}`)
+  .join('、')
 
 const getGenericFoodImageRiskCities = (destinationList = []) => destinationList
   .filter((place) => getConcreteFoodCandidates(place.localFoodCandidates).length > 0 && Boolean(getImageMetaValue(place.foodImage, 'isGeneric')))
@@ -2470,6 +2565,7 @@ function App() {
   const feasibility = bestTransportEvaluation?.feasibility ?? null
   const localFoodItems = destination ? getLocalFoodDisplayItems(destination) : []
   const localFoodDetails = destination ? getLocalFoodDetailItems(destination, localFoodItems) : []
+  const restaurantHints = destination ? getRestaurantHintItems(destination) : []
   const featuredTouristSpots = destination && planContext ? getPurposeMatchedTouristSpots(destination, planContext.selectedTravelPurposes) : []
   const foodThemeText = destination ? getFoodThemeText(destination, localFoodItems) : ''
   const foodImageIsFeatured = destination ? shouldFeatureFoodImage(destination, localFoodItems) : false
@@ -3663,6 +3759,28 @@ function App() {
                   </div>
                 </section>
 
+                {restaurantHints.length > 0 && (
+                  <section className="restaurant-hints-card" aria-labelledby="restaurant-hints-title">
+                    <div className="restaurant-hints-heading">
+                      <span aria-hidden="true">⌕</span>
+                      <div>
+                        <p>SEARCH HINTS</p>
+                        <h3 id="restaurant-hints-title">店名・エリア候補</h3>
+                      </div>
+                    </div>
+                    <ul className="restaurant-hints-list">
+                      {restaurantHints.map((hint) => (
+                        <li key={`${hint.name}-${hint.area}`}>
+                          <strong>{hint.name}</strong>
+                          <span>{hint.area} / {hint.type}</span>
+                          <p>{hint.food}を探す時の候補です。{hint.note || '訪問前に公式情報やGoogle Mapsで確認してください。'}</p>
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="restaurant-hints-note">店舗の営業時間・定休日・提供内容は変わるため、訪問前に公式情報やGoogle Mapsで確認してください。</p>
+                  </section>
+                )}
+
                 <div className="result-detail-fit-card">
                   <strong>今回の条件との相性</strong>
                   <p>{planContext.selectedFilters.length > 0 ? `${planContext.selectedFilters.join('・')}の旅で、` : ''}{planContext.selectedTravelPurposes.length > 0 ? `${planContext.selectedTravelPurposes.join('・')}を楽しみたい時に、食事の候補を選びやすくしています。` : '旅先で食べるものを先に決めたい時に見やすいよう整理しています。'}</p>
@@ -3699,6 +3817,7 @@ function App() {
                           <div><dt>目安</dt><dd>{spot.stayTime}</dd></div>
                           <div><dt>相性</dt><dd>{getSpotPurposeLabel(spot, planContext.selectedTravelPurposes)}</dd></div>
                         </dl>
+                        {spot.note && <small className="tourist-spot-note">{spot.note}</small>}
                       </article>
                     ))}
                   </div>
@@ -4766,14 +4885,23 @@ function App() {
             <div><span>旅行先件数</span><strong>{destinationQualityReport.metadataStatus.destinationTotal}件</strong></div>
             <div><span>region未設定</span><strong>{destinationQualityReport.metadataStatus.missingRegion.length}件</strong></div>
             <div><span>localFood未設定</span><strong>{destinationQualityReport.metadataStatus.missingLocalFood.length}件</strong></div>
+            <div><span>グルメ候補5件未満</span><strong>{getLocalFoodCandidateUnderFiveCities(destinations).length}件</strong></div>
+            <div><span>グルメ候補7件未満</span><strong>{getLocalFoodCandidateUnderSevenCities(destinations).length}件</strong></div>
             <div><span>localFoodDetails未設定</span><strong>{destinationQualityReport.metadataStatus.missingLocalFoodDetails.length}件</strong></div>
+            <div><span>グルメ詳細3件未満</span><strong>{getLocalFoodDetailsUnderThreeCities(destinations).length}件</strong></div>
+            <div><span>グルメ詳細5件未満</span><strong>{getLocalFoodDetailsUnderFiveCities(destinations).length}件</strong></div>
             <div><span>観光スポット未設定</span><strong>{destinationQualityReport.metadataStatus.missingTouristSpots.length}件</strong></div>
             <div><span>観光スポット3件未満</span><strong>{destinationQualityReport.metadataStatus.touristSpotShortage.length}件</strong></div>
+            <div><span>観光スポット5件未満</span><strong>{getTouristSpotsUnderFiveCities(destinations).length}件</strong></div>
+            <div><span>観光スポット7件未満</span><strong>{getTouristSpotsUnderSevenCities(destinations).length}件</strong></div>
+            <div><span>restaurantHints未整備</span><strong>{getRestaurantHintsMissingCities(destinations).length}件</strong></div>
             <div><span>companionFit未設定</span><strong>{destinationQualityReport.metadataStatus.missingCompanionFit.length}件</strong></div>
             <div><span>purposeFit未設定</span><strong>{destinationQualityReport.metadataStatus.missingPurposeFit.length}件</strong></div>
             <div><span>stayFit未設定</span><strong>{destinationQualityReport.metadataStatus.missingStayFit.length}件</strong></div>
             <div><span>周遊ヒント未設定</span><strong>{destinationQualityReport.metadataStatus.missingNearbyHints.length}件</strong></div>
             <div><span>優先30件整備率</span><strong>{destinationQualityReport.metadataStatus.priorityCompleted}/{destinationQualityReport.metadataStatus.priorityTotal}</strong></div>
+            <div><span>優先30件 5/3/5整備率</span><strong>{getPriorityThirtyReadiness(destinations)}</strong></div>
+            <div><span>優先30件 7/5/7+店候補</span><strong>{getPriorityRichReadiness(destinations)}</strong></div>
             <div><span>長期候補不足</span><strong>{destinationQualityReport.metadataStatus.longStayHintShortage.length}件</strong></div>
           </div>
 
@@ -4788,13 +4916,20 @@ function App() {
             <dl className="debug-details">
               <div><dt>touristSpots未設定</dt><dd>{formatShortageList(destinationQualityReport.metadataStatus.missingTouristSpots)}</dd></div>
               <div><dt>touristSpots 3件未満</dt><dd>{formatShortageList(destinationQualityReport.metadataStatus.touristSpotShortage)}</dd></div>
+              <div><dt>touristSpots 5件未満</dt><dd>{formatShortageList(getTouristSpotsUnderFiveCities(destinations))}</dd></div>
+              <div><dt>touristSpots 7件未満</dt><dd>{formatShortageList(getTouristSpotsUnderSevenCities(destinations))}</dd></div>
               <div><dt>localFoodDetails未設定</dt><dd>{formatShortageList(destinationQualityReport.metadataStatus.missingLocalFoodDetails)}</dd></div>
+              <div><dt>localFoodDetails 3件未満</dt><dd>{formatShortageList(getLocalFoodDetailsUnderThreeCities(destinations))}</dd></div>
+              <div><dt>localFoodDetails 5件未満</dt><dd>{formatShortageList(getLocalFoodDetailsUnderFiveCities(destinations))}</dd></div>
               <div><dt>companionFit未設定</dt><dd>{formatShortageList(destinationQualityReport.metadataStatus.missingCompanionFit)}</dd></div>
               <div><dt>purposeFit未設定</dt><dd>{formatShortageList(destinationQualityReport.metadataStatus.missingPurposeFit)}</dd></div>
               <div><dt>stayFit未設定</dt><dd>{formatShortageList(destinationQualityReport.metadataStatus.missingStayFit)}</dd></div>
               <div><dt>nearbyDestinationHints未設定</dt><dd>{formatShortageList(destinationQualityReport.metadataStatus.missingNearbyHints)}</dd></div>
               <div><dt>localFoodCandidates未設定</dt><dd>{formatShortageList(destinationQualityReport.metadataStatus.missingLocalFood)}</dd></div>
+              <div><dt>localFoodCandidates 5件未満</dt><dd>{formatShortageList(getLocalFoodCandidateUnderFiveCities(destinations))}</dd></div>
+              <div><dt>localFoodCandidates 7件未満</dt><dd>{formatShortageList(getLocalFoodCandidateUnderSevenCities(destinations))}</dd></div>
               <div><dt>region未設定</dt><dd>{formatShortageList(destinationQualityReport.metadataStatus.missingRegion)}</dd></div>
+              <div><dt>region別 5/3/5整備率</dt><dd>{getRegionReadinessSummary(destinations)}</dd></div>
               <div><dt>長期旅行向きなのに周遊ヒントなし</dt><dd>{formatShortageList(destinationQualityReport.metadataStatus.longStayHintShortage)}</dd></div>
               <div><dt>グルメ向きなのに料理候補が少ない</dt><dd>{formatShortageList(getGourmetFoodShortageCities(destinations))}</dd></div>
               <div><dt>抽象表現だけになりやすい旅行先</dt><dd>{formatShortageList(getAbstractDescriptionRiskCities(destinations))}</dd></div>
@@ -4807,6 +4942,11 @@ function App() {
               <div><dt>localFoodDetails missing bestTiming</dt><dd>{formatShortageList(getLocalFoodMissingTimingCities(destinations))}</dd></div>
               <div><dt>localFoodDetails missing bestAreaHints</dt><dd>{formatShortageList(getLocalFoodMissingAreaHintCities(destinations))}</dd></div>
               <div><dt>restaurantHints review metadata missing</dt><dd>{formatShortageList(getUnreviewedRestaurantHintCities(destinations))}</dd></div>
+              <div><dt>restaurantHints未整備</dt><dd>{formatShortageList(getRestaurantHintsMissingCities(destinations))}</dd></div>
+              <div><dt>needs_reviewの店名候補</dt><dd>{formatShortageList(getRestaurantHintNeedsReviewCities(destinations))}</dd></div>
+              <div><dt>店舗名候補 noteなし</dt><dd>{formatShortageList(getRestaurantHintNoteMissingCities(destinations))}</dd></div>
+              <div><dt>温泉地なのに足湯・温泉街情報不足</dt><dd>{formatShortageList(getOnsenAreaShortageCities(destinations))}</dd></div>
+              <div><dt>街歩き向きなのに通り名・市場情報不足</dt><dd>{formatShortageList(getWalkingAreaShortageCities(destinations))}</dd></div>
               <div><dt>model course missing concrete spot</dt><dd>{formatShortageList(getModelCourseMissingSpotCities(destinations))}</dd></div>
               <div><dt>model course missing concrete food</dt><dd>{formatShortageList(getModelCourseMissingFoodCities(destinations))}</dd></div>
               <div><dt>long model course missing nearby hint</dt><dd>{formatShortageList(getLongModelCourseMissingNearbyCities(destinations))}</dd></div>
@@ -5261,9 +5401,11 @@ function App() {
               <div><dt>AIプランモデル</dt><dd>{OPENAI_PLAN_MODEL}</dd></div>
               <div><dt>OpenAI通信方式</dt><dd>{getOpenAiCommunicationModeLabel(openAiCommunicationMode)}</dd></div>
               <div><dt>AIプラン生成状態</dt><dd>{aiPlanStatus}</dd></div>
-              <div><dt>AI送信 touristSpots</dt><dd>{Math.min((featuredTouristSpots.length > 0 ? featuredTouristSpots.length : destination?.touristSpots?.length ?? 0), 5)} / 最大5件</dd></div>
-              <div><dt>AI送信 localFoodDetails</dt><dd>{Math.min(localFoodDetails.length, 3)} / 最大3件</dd></div>
-              <div><dt>AI送信 周辺候補</dt><dd>{planContext?.tripSuggestions?.slice(0, 3).length ?? 0} / 最大3件</dd></div>
+              <div><dt>AI送信 localFoodCandidates</dt><dd>{Math.min(localFoodItems.length, 10)} / 最大10件</dd></div>
+              <div><dt>AI送信 touristSpots</dt><dd>{Math.min((featuredTouristSpots.length > 0 ? featuredTouristSpots.length : destination?.touristSpots?.length ?? 0), 7)} / 最大7件</dd></div>
+              <div><dt>AI送信 localFoodDetails</dt><dd>{Math.min(localFoodDetails.length, 5)} / 最大5件</dd></div>
+              <div><dt>AI送信 restaurantHints</dt><dd>{Math.min(restaurantHints.length, 5)} / 最大5件</dd></div>
+              <div><dt>AI送信 周辺候補</dt><dd>{planContext?.tripSuggestions?.slice(0, 5).length ?? 0} / 最大5件</dd></div>
               <div><dt>スポット表示診断</dt><dd>{destination?.touristSpots?.length > 0 && featuredTouristSpots.length === 0 ? 'touristSpotsあり / 結果表示なし' : '表示対象あり'}</dd></div>
               <div><dt>グルメ説明診断</dt><dd>{destination?.localFoodDetails?.length > 0 && localFoodDetails.length === 0 ? 'localFoodDetailsあり / 表示なし' : '表示対象あり'}</dd></div>
               <div><dt>長期候補診断</dt><dd>{destination?.nearbyDestinationHints?.length > 0 && currentTripSchedule.days >= 3 && !(planContext?.tripSuggestions?.length > 0) ? 'nearbyDestinationHintsあり / 長期表示なし' : '表示条件に問題なし'}</dd></div>

@@ -2,7 +2,7 @@
 
 「運命の旅行先を決めよう」をテーマにした、スマートフォン向けの旅行先決定アプリです。
 
-出発地・同行者/旅のスタイル・旅の目的・旅行日程を入力すると、条件に合う旅先ほど選ばれやすい重み付き抽選を行います。選ばれた理由や旅行プラン、予算、移動情報もまとめて確認できます。
+出発地・同行者/旅のスタイル・旅の目的・旅行日程を入力すると、条件に合う旅先ほど選ばれやすい重み付き抽選を行います。選ばれた理由、グルメ、スポット、Google Mapsでのアクセス確認をまとめて確認できます。
 
 ## 主な機能
 
@@ -12,9 +12,9 @@
 - 条件との相性を考慮した重み付きランダム抽選
 - 条件やタグから算出する「運命度」
 - 選択条件との一致理由とおすすめ理由
-- 旅行日程別の詳細プラン
+- AI旅行プラン生成
 - Google Maps直リンクによるアクセス確認
-- 結果画面の概要 + グルメ / スポット / モデルコースの大きな3ボタンとアクセス確認
+- 結果画面の概要 + グルメ / スポットの大きな2ボタンとアクセス確認
 - お気に入り登録
 - お気に入り旅先の比較
 - 最大20件の抽選履歴
@@ -266,23 +266,23 @@ v0.1.0-beta の主な機能は次のとおりです。
 ### AIプラン生成で使う具体情報
 
 - AIプラン生成には、旅行先名・都道府県・region・tags・季節情報に加えて、観光スポット、説明付きご当地グルメ、周辺候補ヒント、同行者/目的/日程との相性を圧縮して渡します。
-- touristSpots は最大5件、localFoodDetails は最大3件、nearbyDestinationHints と周辺候補は最大3件を目安にし、送信データが大きくなりすぎないようにしています。
+- localFoodCandidates は最大10件、localFoodDetails は最大5件、restaurantHints は最大5件、touristSpots は最大7件、nearbyDestinationHints と周辺候補は最大5件を目安にし、送信データが大きくなりすぎないようにしています。
 - データが不足している旅行先では、tags / recommendText / localFoodCandidates から表示を補い、一般画面に「情報がありません」とは出さない方針です。
 
 結果画面では、旅行先の説明が抽象表現だけにならないよう、観光スポット名・ご当地グルメ名・日程別の過ごし方を優先して組み立てます。長期旅行では、周辺候補名と旅の目的とのつながりも表示します。
 
-### 簡易モデルコース
+### グルメ/スポット詳細ページ
 
-- 通常結果画面の「ざっくりモデルコース」は、日帰り / 1泊2日 / 2泊3日 / 3泊以上で表示の流れを切り替えます。
-- touristSpots と localFoodDetails / localFoodCandidates に具体名がある場合だけ、スポット名・料理名として本文に入れます。
-- nearbyDestinationHints がある長めの日程では、周辺候補を中盤の過ごし方として短く表示します。
+- 通常結果画面からは、大きな「グルメ」「スポット」ボタンで別ページ風の詳細表示へ切り替えます。
+- グルメページでは、料理名チップ、説明付きご当地グルメ、店名・エリア候補を表示します。
+- スポットページでは、実在スポット名、通り名、温泉街、市場、雨の日施設などを具体名中心で表示します。
 - データが不足している場合は、都市名 + ランチ、都市名 + 観光スポットのような疑似名称を作らず、短い補足に留めます。
 - 通常画面は短く具体的な流れを見せ、AIプラン生成はより詳しい日程別提案を出す役割にしています。
 - 結果画面の品質チェックでは、抽象表現だけの説明、疑似スポット名、抽象グルメ名、foodImage と料理名の不一致を開発者ページで確認します。
 - 画像が不足している旅行先は、外部取得せず `IMAGE_TODO.md` で正式素材の追加候補として管理します。
 - 一般結果画面では交通手段比較を表示せず、出発地と目的地を渡した Google Maps 確認へ一本化しています。
 - ルート検索へ渡す目的地は、フロント側で最寄り駅・具体クエリ・スポット名を優先し、都道府県 + 市区町村だけの広すぎる指定を避けます。
-- 結果画面は短い概要を先に見せ、グルメ / スポット / モデルコースの大きな3ボタンで詳細へ進む構成にしています。
+- 結果画面は短い概要を先に見せ、グルメ / スポットの大きな2ボタンで詳細へ進む構成にしています。
 - 移動は深掘りボタンから分け、別枠のアクセス確認として Google Maps 確認だけを表示します。
 - 旅のイメージ画像や「ここで楽しみたいこと」の薄いタグ表示、行けそう度、予算目安のような根拠が弱いカードは一般結果画面から外しています。
 
@@ -297,6 +297,11 @@ v0.1.0-beta の主な機能は次のとおりです。
 - Tourist spot cards prioritize real spot names or specific area names. Generic names such as sightseeing spot or nature spot are filtered from general screens.
 - Simple stay plans now use filtered touristSpots and concrete local food names to describe a realistic day-by-day flow.
 - When touristSpots are not concrete enough, DROPTRIP avoids showing forced abstract cards or empty-state text.
+- Local food candidates are kept concrete, with roughly five dish or specialty names per destination where possible.
+- Priority 30 destinations maintain at least five concrete tourist spots; remaining spot-data gaps are tracked in `DATA_TODO.md`.
+- Local food candidates now target seven to ten concrete items, and localFoodDetails target five travel-useful items with timing, area hints, and trip-fit context.
+- `restaurantHints` stores restaurant names and area search hints as `needs_review` candidates. General screens treat them as Google Maps search hints, not confirmed recommendations.
+- Priority 30 destinations now target at least seven concrete tourist spots; remaining 7-item spot gaps are tracked in `DATA_TODO.md`.
 
 ## Pseudo Spot Name Policy
 

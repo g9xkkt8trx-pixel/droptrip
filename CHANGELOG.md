@@ -24,6 +24,12 @@ DROPTRIP のβ版リリース履歴を管理するためのメモです。
 
 ## Unreleased
 
+- グルメ/スポット詳細ページ向けに旅行先データの粒度を大幅に強化しました。
+- localFoodCandidates を7〜10件、localFoodDetails を5件程度まで扱えるようにし、全120件で新しい最低ラインを満たすよう補完しました。
+- restaurantHints を追加し、店名・商店街・温泉街・市場などを `needs_review` の検索候補として表示できるようにしました。
+- 優先30件は、7件以上のグルメ候補、5件以上のグルメ詳細、7件以上の具体スポット、3件以上の店名・エリア候補を満たすように補強しました。
+- AIプラン生成へ、localFoodCandidates最大10件、localFoodDetails最大5件、restaurantHints最大5件、touristSpots最大7件、周辺候補最大5件を渡すようにしました。`/api` は変更していません。
+- DATA_TODO.md / IMAGE_TODO.md / 開発者ページ診断を、7件ラインと店名候補確認の運用に合わせて更新しました。
 - 条件入力UIを「同行者・旅のスタイル」「旅の目的」「旅行日程」に整理。
 - 旅行日程に「自分で入力」を追加し、最大7泊8日までの泊数入力に対応。
 - 長めの日程では、メイン旅先と近隣候補を組み合わせる簡易提案を追加。
@@ -72,6 +78,9 @@ DROPTRIP のβ版リリース履歴を管理するためのメモです。
 - Moved access confirmation out of the deep-dive buttons into its own result-screen section with Google Maps confirmation.
 - Stopped automatic route-time fetching on general result flows and removed transport comparison from the general result screen.
 - Unified public access guidance around a direct Google Maps route link built from origin and destination query text.
+- Expanded concrete local food candidates to at least five items across destination data and raised generated localFoodDetails to up to five items.
+- Added tourist spot enhancements so the priority 30 destinations have at least five concrete spots, while remaining spot gaps are tracked in DATA_TODO.md.
+- Added developer diagnostics for 5-food / 3-detail / 5-spot readiness, priority-30 readiness, and region-level readiness.
 - Removed the general result-screen enjoyment-chip and trip-inspiration image sections to keep the first result view lighter.
 - Improved route destination query construction so route-time receives routeSearchName / routeDestinationName / nearestStation based search text instead of display-only station labels.
 - Reorganized the result screen into a short overview, three content deep-dive views, and a separate access confirmation section.
