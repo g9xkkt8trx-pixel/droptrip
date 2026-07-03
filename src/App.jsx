@@ -1355,7 +1355,7 @@ const getImageMetaValue = (image, key, fallback = '') => (
 const getImageDisplayType = (image) => {
   const url = getImageUrl(image)
   const source = getImageMetaValue(image, 'source')
-  if (source === 'curated' || url.startsWith('/images/destinations/')) return '個別画像'
+  if (source === 'destination_fixed' || source === 'curated' || url.startsWith('/images/destinations/')) return '旅先固定画像'
   if (source === 'fallback' || url.startsWith('/images/categories/')) return 'カテゴリ画像'
   return '共通画像'
 }
@@ -1369,9 +1369,12 @@ const isStrongResultImage = (image) => {
   const status = getImageMetaValue(image, 'status')
   const source = getImageMetaValue(image, 'source')
   return Boolean(getImageMetaValue(image, 'isDestinationSpecific'))
-    && source !== 'fallback'
-    && !['fallback', 'missing', 'placeholder'].includes(status)
+    && source === 'destination_fixed'
+    && ['confirmed', 'needs_review'].includes(status)
+    && !getImageMetaValue(image, 'isGeneric')
 }
+
+const isFixedHeroImage = (image) => isStrongResultImage(image) && getImageMetaValue(image, 'type') === 'hero'
 
 const getResultJourneyImages = (destination = {}) => [
   { key: 'hero', label: '旅先の雰囲気', alt: `${destination.city}の旅先イメージ`, image: destination.heroImage },
@@ -1565,14 +1568,6 @@ const getPurposeMatchedTouristSpots = (destination = {}, selectedPurposes = []) 
     .slice(0, 7)
 }
 
-const getSpotPurposeLabel = (spot = {}, selectedPurposes = []) => {
-  const matched = (selectedPurposes ?? []).filter((purpose) => {
-    const keywords = purposeSpotKeywords[purpose] ?? [purpose]
-    return (spot.bestFor ?? []).includes(purpose) || keywords.some((keyword) => (spot.type + ' ' + spot.description).includes(keyword))
-  })
-  return matched.length > 0 ? matched.slice(0, 2).join('・') + '向き' : (spot.bestFor ?? []).slice(0, 2).join('・') || '立ち寄りやすい'
-}
-
 const getModelCourseTone = (selectedPurposes = [], selectedStyles = []) => {
   const purposeText = (selectedPurposes ?? []).slice(0, 2).join('・')
   if ((selectedPurposes ?? []).includes('ゆっくり') || (selectedStyles ?? []).includes('ファミリー')) return '移動を詰め込みすぎず、' + (purposeText || '散策') + 'の時間を少し長めに取ると過ごしやすいです。'
@@ -1758,6 +1753,14 @@ const getFoodMapsSearchUrl = (destination = {}, food = {}) => {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`
 }
 
+const getSpotMapsSearchUrl = (destination = {}, spot = {}) => {
+  const place = destination.prefecture && destination.city
+    ? `${destination.prefecture}${destination.city}`
+    : destination.name ?? destination.city ?? ''
+  const query = [place, spot.name].filter(Boolean).join(' ')
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`
+}
+
 const shouldFeatureFoodImage = () => false
 
 const getTripProposalText = (destination = {}, context = {}, seasonInfo = {}) => {
@@ -1818,6 +1821,51 @@ const getTripProposalText = (destination = {}, context = {}, seasonInfo = {}) =>
     : ''
   return [lead + spotPhrase, stayPhrase, foodPhrase, season, longStayNote].filter(Boolean).join('')
 }
+
+const getResultReasonItems = (destination = {}, context = {}, schedule = resolveTripSchedule(), seasonInfo = {}) => {
+  const items = []
+  const purposes = context?.selectedTravelPurposes ?? []
+  const spots = getPurposeMatchedTouristSpots(destination, purposes)
+  const foods = getConcreteFoodCandidates(destination.localFoodCandidates).slice(0, 2)
+  const season = seasonInfo?.season
+
+  if (purposes.length > 0) {
+    items.push(`${purposes.slice(0, 2).join('・')}を入れたい旅に合いやすい`)
+  } else if ((destination.tags ?? []).length > 0) {
+    items.push(`${destination.tags.slice(0, 2).join('・')}を気軽に組み込める`)
+  }
+
+  if (spots.length > 0) {
+    items.push(`${schedule.label}なら${spots.slice(0, 2).map((spot) => spot.name).join('と')}を分けて見やすい`)
+  } else if (destination.recommendText) {
+    items.push(destination.recommendText)
+  }
+
+  if (foods.length > 0) {
+    items.push(`${foods.join('・')}など、${destination.prefecture}らしい食事も合わせやすい`)
+  } else if (season) {
+    items.push(`${season}の旅行でも無理なく候補に入れやすい`)
+  }
+
+  return [...new Set(items.filter(Boolean))].slice(0, 3)
+}
+
+const getDestinationSearchText = (destination = {}) => normalizeSearchText([
+  destination.name,
+  destination.city,
+  destination.prefecture,
+  destination.region,
+  destination.recommendation,
+  destination.recommendText,
+  destination.nearestStation,
+  destination.nearestStationLabel,
+  ...(destination.tags ?? []),
+  ...(destination.localFoodCandidates ?? []),
+  ...(destination.localFoodDetails ?? []).flatMap((food) => [food?.name, food?.type, food?.description]),
+  ...(destination.touristSpots ?? []).flatMap((spot) => [spot?.name, spot?.type, spot?.description]),
+  ...(destination.nearbyDestinationHints ?? []),
+].filter(Boolean).join(' '))
+
 const getTripEnjoymentItems = (destination = {}, foodItems = []) => {
   const tagItems = (destination.tags ?? []).slice(0, 4)
   const foodItem = foodItems[0] ? `${foodItems[0]}を味わう` : ''
@@ -1880,6 +1928,40 @@ const getSpotImageFallbackCities = (destinationList = []) => destinationList
 const getDestinationSpecificImageShortageCities = (destinationList = []) => destinationList
   .filter((place) => !getImageMetaValue(place.heroImage, 'isDestinationSpecific') && !getImageMetaValue(place.sceneryImage, 'isDestinationSpecific'))
   .map((place) => place.city)
+
+const getFixedHeroImageCities = (destinationList = []) => destinationList
+  .filter((place) => isFixedHeroImage(place.heroImage))
+  .map((place) => place.city)
+
+const getMissingFixedHeroImageCities = (destinationList = []) => destinationList
+  .filter((place) => !isFixedHeroImage(place.heroImage))
+  .map((place) => place.city)
+
+const getCategoryFallbackHeroCities = (destinationList = []) => destinationList
+  .filter((place) => getImageMetaValue(place.heroImage, 'source') === 'fallback' || getImageUrl(place.heroImage).startsWith('/images/categories/'))
+  .map((place) => place.city)
+
+const getGenericHeroImageCities = (destinationList = []) => destinationList
+  .filter((place) => Boolean(getImageMetaValue(place.heroImage, 'isGeneric')) || getImageMetaValue(place.heroImage, 'source') === 'placeholder')
+  .map((place) => place.city)
+
+const getIllustrationHeroCities = (destinationList = []) => destinationList
+  .filter((place) => Boolean(getImageMetaValue(place.heroImage, 'isIllustration')))
+  .map((place) => place.city)
+
+const getHeroAltMissingCities = (destinationList = []) => destinationList
+  .filter((place) => isFixedHeroImage(place.heroImage) && !getImageMetaValue(place.heroImage, 'alt'))
+  .map((place) => place.city)
+
+const getHeroNeedsReviewCities = (destinationList = []) => destinationList
+  .filter((place) => getImageMetaValue(place.heroImage, 'status') === 'needs_review')
+  .map((place) => place.city)
+
+const getPriorityFixedHeroReadiness = (destinationList = []) => {
+  const fixedCities = new Set(getFixedHeroImageCities(destinationList))
+  const completed = imageImprovementPriorityCities.filter((city) => fixedCities.has(city)).length
+  return `${completed}/${imageImprovementPriorityCities.length}`
+}
 
 const getPurposeSpotShortageCities = (destinationList = []) => destinationList
   .filter((place) => {
@@ -2295,7 +2377,7 @@ function HistoryItems({ entries, favoriteCities, onShow, onFavorite, onDelete })
             <div><dt>移動範囲</dt><dd>{entry.movementRangeLabel ?? movementRangeOptions.find((option) => option.value === entry.movementRange)?.label ?? 'おまかせ'}</dd></div>
             <div><dt>同行者・旅のスタイル</dt><dd>{entry.selectedFilters?.length > 0 ? entry.selectedFilters.join('、') : '指定なし'}</dd></div>
             <div><dt>旅の目的</dt><dd>{entry.selectedTravelPurposes?.length > 0 ? entry.selectedTravelPurposes.join('、') : '指定なし'}</dd></div>
-            <div><dt>運命度</dt><dd>{entry.destinyScore}%</dd></div>
+            <div><dt>適合度</dt><dd>{entry.destinyScore}%</dd></div>
             <div><dt>予算目安</dt><dd>{entry.budget}</dd></div>
           </dl>
           <div className="history-actions">
@@ -2346,7 +2428,7 @@ function SafeImage({
   const credit = getImageCredit(resolvedImage)
 
   if (!isValidImageUrl(resolvedSrc)) {
-    return <div className={`${className} image-placeholder`} role="img" aria-label={`${alt}（写真準備中）`}>写真準備中</div>
+    return null
   }
 
   return (
@@ -2364,7 +2446,7 @@ function SafeImage({
           setImageIndex((current) => current + 1)
         }}
       />
-      {showCredit && credit && credit !== 'DROPTRIP' && <small className="image-credit">写真：{credit}</small>}
+      {showCredit && credit && credit !== 'DROPTRIP' && <small className="image-credit">画像：{credit}</small>}
     </>
   )
 }
@@ -2409,6 +2491,30 @@ function DeveloperImagePreviewImage({ item, image }) {
       </dl>
       {image.categoryMismatch && <p className="image-preview-warning">タグと画像カテゴリが合っているか要確認</p>}
     </div>
+  )
+}
+
+function ScrollToTopButton() {
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    const updateVisibility = () => setVisible(window.scrollY > 520)
+    updateVisibility()
+    window.addEventListener('scroll', updateVisibility, { passive: true })
+    return () => window.removeEventListener('scroll', updateVisibility)
+  }, [])
+
+  if (!visible) return null
+
+  return (
+    <button
+      type="button"
+      className="scroll-to-top-button"
+      aria-label="ページ上部へ戻る"
+      onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+    >
+      ↑
+    </button>
   )
 }
 
@@ -2533,15 +2639,8 @@ function App() {
     customRangeKm,
   })
   const filteredDestinations = destinations.filter((place) => {
-    const keyword = destinationSearch.trim().toLowerCase()
-    const matchesKeyword = !keyword || [
-      place.city,
-      place.prefecture,
-      place.recommendation,
-      place.recommendText,
-      place.nearestStationLabel,
-      place.tags.join(' '),
-    ].some((value) => String(value ?? '').toLowerCase().includes(keyword))
+    const keyword = normalizeSearchText(destinationSearch)
+    const matchesKeyword = !keyword || getDestinationSearchText(place).includes(keyword)
     const matchesPrefecture = destinationPrefectureFilter === 'all' || place.prefecture === destinationPrefectureFilter
     const matchesTag = destinationTagFilter === 'all' || place.tags.includes(destinationTagFilter)
     const matchesPurpose = destinationPurposeFilter === 'all'
@@ -2617,10 +2716,10 @@ function App() {
   const tripProposalText = destination && planContext
     ? getTripProposalText(destination, planContext, seasonCompatibility)
     : ''
-  const currentStyleMatch = destination && planContext
-    ? getTravelStyleMatch(destination, planContext.selectedFilters)
-    : { matchedStyles: [], summary: '' }
   const currentTripSchedule = planContext?.tripSchedule ?? (planContext ? resolveTripSchedule(planContext.tripType) : tripSchedule)
+  const resultReasonItems = destination && planContext
+    ? getResultReasonItems(destination, planContext, currentTripSchedule, seasonCompatibility)
+    : []
   const currentBudget = destination ? getBudgetForSchedule(destination, currentTripSchedule) : '時期により変動'
   const longTripPacingItems = getLongTripPacingItems(currentTripSchedule, Boolean(planContext?.tripSuggestions?.some((item) => !item.isStayFocus)))
 
@@ -2935,13 +3034,6 @@ function App() {
   const backToResultOverview = () => {
     setResultDetailView('overview')
     window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
-
-  const backToDestinationList = () => {
-    setCurrentPage('destinations')
-    window.setTimeout(() => {
-      window.scrollTo({ top: destinationListScrollY.current, behavior: 'auto' })
-    }, 0)
   }
 
   const handleDeveloperTitleClick = (event) => {
@@ -3729,17 +3821,9 @@ function App() {
           <header className="developer-page-header result-page-header">
             <button type="button" onClick={() => switchPage('main')}><span aria-hidden="true">←</span>条件を変えてもう一度探す</button>
             <div className="developer-page-icon result-page-icon" aria-hidden="true">✦</div>
-            <p>{selectionMeta?.source === 'destination-list' ? 'DESTINATION DETAIL' : 'DRAW RESULT'}</p>
-            <h1 id="result-page-title">{selectionMeta?.source === 'destination-list' ? '旅行先一覧から表示中' : '抽選結果'}</h1>
+            <p>DRAW RESULT</p>
+            <h1 id="result-page-title">抽選結果</h1>
             <span>選ばれた旅先の理由・グルメ・スポット・アクセスを確認できます。</span>
-            <div className="result-page-actions">
-              {selectionMeta?.source !== 'destination-list' && (
-                <button type="button" className="result-redraw-button" onClick={chooseDestination}>
-                  もう一度旅先を決める
-                </button>
-              )}
-              <button type="button" className="result-list-button" onClick={() => switchPage('destinations')}>旅行先一覧を見る</button>
-            </div>
           </header>
         )}
 
@@ -3820,9 +3904,9 @@ function App() {
                         <p>{spot.description}</p>
                         <dl>
                           <div><dt>目安</dt><dd>{spot.stayTime}</dd></div>
-                          <div><dt>相性</dt><dd>{getSpotPurposeLabel(spot, planContext.selectedTravelPurposes)}</dd></div>
                         </dl>
                         {spot.sourceStatus === 'needs_review' && spot.note && <small className="tourist-spot-note">{spot.note}</small>}
+                        <a className="spot-map-link" href={getSpotMapsSearchUrl(destination, spot)} target="_blank" rel="noopener noreferrer">Google Mapsで探す</a>
                       </article>
                     ))}
                   </div>
@@ -3850,30 +3934,28 @@ function App() {
             {resultDetailView === 'overview' && (
             <>
             <section className="result-card result-proposal-hero" aria-label="旅先の提案">
-              <SafeImage
-                key={`${destination.id}-hero`}
-                destination={destination}
-                imageType="hero"
-                className="result-hero-image"
-                alt={`${destination.city}の観光イメージ`}
-                loading="eager"
-                showCredit
-                onLoadFailure={(fallbackType) => reportImageFailure(destination.id, 'hero', fallbackType)}
-              />
-              {selectionMeta?.source === 'destination-list' && (
-                <div className="result-source-row">
-                  <p className="result-source-label">旅行先一覧から表示中</p>
-                  <button type="button" onClick={backToDestinationList}>旅行先一覧に戻る</button>
-                </div>
+              {isFixedHeroImage(destination.heroImage) && (
+                <SafeImage
+                  key={`${destination.id}-hero`}
+                  src={destination.heroImage}
+                  fallbackSrc=""
+                  genericFallbackSrc=""
+                  imageType="hero"
+                  className="result-hero-image"
+                  alt={getImageMetaValue(destination.heroImage, 'alt', `${destination.city}をイメージしたビジュアル`)}
+                  loading="eager"
+                  showCredit
+                  onLoadFailure={(fallbackType) => reportImageFailure(destination.id, 'hero', fallbackType)}
+                />
               )}
               <div className="result-hero-copy">
-                <p className="result-label">{selectionMeta?.source === 'destination-list' ? '旅行先一覧から表示中' : '今回の旅先は'}</p>
+                <p className="result-label">今回の旅先は</p>
                 <h2 className="result-city">
                   <span>{destination.prefecture}</span>
                   {destination.city}
                 </h2>
                 <div className="result-hero-meta">
-                  <span>運命度 {destiny.score}%</span>
+                  <span>適合度 {destiny.score}%</span>
                   <span>最寄り目安：{destination.nearestStationLabel}</span>
                 </div>
                 <p className="result-recommendation">{tripProposalText}</p>
@@ -3882,48 +3964,6 @@ function App() {
                     指定した移動範囲の候補が少なかったため、少し範囲を広げて提案しています。
                   </p>
                 )}
-              </div>
-              <button
-                type="button"
-                className={`favorite-button ${favoriteCities.includes(destination.city) ? 'registered' : ''}`}
-                aria-pressed={favoriteCities.includes(destination.city)}
-                onClick={() => toggleFavorite(destination.city)}
-              >
-                <span aria-hidden="true">♡</span>
-                {favoriteCities.includes(destination.city) ? 'お気に入り登録済み' : 'お気に入り登録'}
-              </button>
-              <button
-                type="button"
-                className={`favorite-button compare-detail-button ${compareCities.includes(destination.city) ? 'registered' : ''}`}
-                aria-pressed={compareCities.includes(destination.city)}
-                onClick={() => toggleComparison(destination.city)}
-              >
-                <span aria-hidden="true">⇄</span>
-                {compareCities.includes(destination.city) ? '比較中 / 外す' : '比較に追加'}
-              </button>
-            </section>
-
-            <section className="destiny-card" aria-labelledby="destiny-title">
-              <div
-                className="destiny-score"
-                style={{ '--destiny-score': `${destiny.score * 3.6}deg` }}
-                aria-label={`運命度${destiny.score}パーセント`}
-              >
-                <div>
-                  <strong>{destiny.score}</strong>
-                  <span>%</span>
-                </div>
-              </div>
-              <div className="destiny-content">
-                <p>DESTINY MATCH</p>
-                <h2 id="destiny-title">運命度</h2>
-                <blockquote>「{destiny.comment}」</blockquote>
-                <p className="destiny-explanation">同行者・旅の目的・旅行日程・季節との相性から算出しています。</p>
-                <div className="destiny-factors" aria-label="運命度の算出要素">
-                  <span>スタイル一致 <b>{destiny.matchingCount}件</b></span>
-                  <span>旅行日程 <b>{currentTripSchedule.label}</b></span>
-                  <span>タグ <b>{destination.tags.length}個</b></span>
-                </div>
               </div>
             </section>
 
@@ -3937,42 +3977,13 @@ function App() {
               </div>
 
               <div className="reason-list">
-                <div className="reason-item">
-                  <p className="reason-label">同行者・旅のスタイルとの相性</p>
-                  <div className="reason-tags">
-                    {(planContext.selectedFilters.length > 0
-                      ? planContext.selectedFilters
-                      : destination.tags.slice(0, 3)
-                    ).map((tag) => (
-                      <span key={tag}><b aria-hidden="true">✓</b>{tag}</span>
-                    ))}
+                {resultReasonItems.map((reason) => (
+                  <div className="reason-item compact" key={reason}>
+                    <span aria-hidden="true">✓</span>
+                    <p>{reason}</p>
                   </div>
-                  {planContext.selectedFilters.length === 0 && (
-                    <p className="no-filter-note">同行者の指定がないため、この旅先の代表的な魅力を表示しています。</p>
-                  )}
-                  {currentStyleMatch.summary && <p className="no-filter-note">{currentStyleMatch.summary}</p>}
-                </div>
-
-                <div className="reason-item">
-                  <p className="reason-label">旅行日程との相性</p>
-                  <p><strong>{currentTripSchedule.label}</strong> — {tripCompatibility[currentTripSchedule.compatibilityKey]}</p>
-                </div>
-
-                <div className="reason-item">
-                  <p className="reason-label">季節との相性</p>
-                  <p><strong>{seasonCompatibility.season}</strong> — {seasonCompatibility.description}</p>
-                </div>
-
-                <div className="reason-item">
-                  <p className="reason-label">旅先の特徴</p>
-                  <p>{destination.recommendation}</p>
-                </div>
+                ))}
               </div>
-
-              <p className="reason-summary">
-                {destination.reason}
-                {tripCompatibility[currentTripSchedule.compatibilityKey]}
-              </p>
             </section>
 
             <section className="result-primary-action-section" aria-labelledby="result-primary-action-title">
@@ -4000,6 +4011,26 @@ function App() {
               </div>
               <p className="access-confirm-note">移動時間・乗換・料金はGoogle Mapsで確認してください。</p>
               <a href={drivingMapsUrl} target="_blank" rel="noopener noreferrer">Google Mapsで経路を見る</a>
+            </section>
+            <section className="result-save-actions" aria-label="旅先の保存と比較">
+              <button
+                type="button"
+                className={`favorite-button ${favoriteCities.includes(destination.city) ? 'registered' : ''}`}
+                aria-pressed={favoriteCities.includes(destination.city)}
+                onClick={() => toggleFavorite(destination.city)}
+              >
+                <span aria-hidden="true">♡</span>
+                {favoriteCities.includes(destination.city) ? 'お気に入り登録済み' : 'お気に入り登録'}
+              </button>
+              <button
+                type="button"
+                className={`favorite-button compare-detail-button ${compareCities.includes(destination.city) ? 'registered' : ''}`}
+                aria-pressed={compareCities.includes(destination.city)}
+                onClick={() => toggleComparison(destination.city)}
+              >
+                <span aria-hidden="true">⇄</span>
+                {compareCities.includes(destination.city) ? '比較中 / 外す' : '比較に追加'}
+              </button>
             </section>
             {planContext.hasMultiDestinationSuggestion && planContext.tripSuggestions?.length > 0 && (
               <section className="multi-destination-card" aria-labelledby="multi-destination-title">
@@ -4029,15 +4060,6 @@ function App() {
                 <p>追加候補の移動時間はアプリ内で断定せず、詳しい移動はGoogle Maps等で確認してください。</p>
               </section>
             )}
-            <section className="season-compatibility-card" aria-labelledby="season-compatibility-title">
-              <div>
-                <p>SEASON HIGHLIGHT</p>
-                <h2 id="season-compatibility-title">この季節に行くなら</h2>
-              </div>
-              <strong aria-label={`${seasonCompatibility.stars}つ星`}>{seasonCompatibility.starsLabel}</strong>
-              <p>{seasonCompatibility.description}</p>
-              <span>ベストシーズン：{destination.bestSeasons.join('・')}</span>
-            </section>
             <section className={`premium-guide-card ${isPremiumUser ? 'active' : ''}`} aria-labelledby="premium-guide-title">
               <div className="premium-guide-heading">
                 <span aria-hidden="true">✦</span>
@@ -4083,7 +4105,6 @@ function App() {
                   もう一度旅先を決める
                 </button>
               )}
-              <button type="button" onClick={() => switchPage('destinations')}>旅行先一覧を見る</button>
             </nav>
             </>
             )}
@@ -4159,8 +4180,18 @@ function App() {
                 <span>{destinations.length}件中 {filteredDestinations.length}件を表示中</span>
               </div>
               <p className="destination-browser-description">
-                気になる旅先を探して、お気に入りや比較に追加できます。
+                旅先名・都道府県・グルメ・スポット名で探せます。
               </p>
+
+              <label className="destination-search-primary">
+                <span>検索</span>
+                <input
+                  type="search"
+                  value={destinationSearch}
+                  onChange={(event) => setDestinationSearch(event.target.value)}
+                  placeholder="旅先名・都道府県・グルメ・スポットで検索"
+                />
+              </label>
 
               <button
                 type="button"
@@ -4174,15 +4205,6 @@ function App() {
 
               {destinationFiltersOpen && (
               <div className="destination-browser-filters" id="destination-browser-filters">
-                <label>
-                  <span>キーワード</span>
-                  <input
-                    type="search"
-                    value={destinationSearch}
-                    onChange={(event) => setDestinationSearch(event.target.value)}
-                    placeholder="例：温泉、京都、海"
-                  />
-                </label>
                 <label>
                   <span>都道府県</span>
                   <select value={destinationPrefectureFilter} onChange={(event) => setDestinationPrefectureFilter(event.target.value)}>
@@ -4257,7 +4279,10 @@ function App() {
 
             <section className="destination-list-section" aria-label="旅行先一覧">
               {filteredDestinations.length === 0 ? (
-                <p className="favorites-empty">条件に合う旅行先が見つかりませんでした。</p>
+                <div className="destination-empty-state">
+                  <p>条件に合う旅先が見つかりませんでした。</p>
+                  <span>検索ワードを変えてもう一度お試しください。</span>
+                </div>
               ) : (
                 <div className="destination-card-grid">
                   {filteredDestinations.map((place) => {
@@ -4352,7 +4377,7 @@ function App() {
                         <div className="favorite-tags">{place.tags.map((tag) => <span key={tag}>{tag}</span>)}</div>
                         <dl>
                           <div><dt>予算目安</dt><dd>1人あたり {place.budgets[tripType]}</dd></div>
-                          <div><dt>運命度</dt><dd>{latestHistory ? `${latestHistory.destinyScore}%` : '未評価'}</dd></div>
+                          <div><dt>適合度</dt><dd>{latestHistory ? `${latestHistory.destinyScore}%` : '未評価'}</dd></div>
                         </dl>
                         <div className="favorite-page-actions">
                           <button
@@ -4444,7 +4469,7 @@ function App() {
                         <div><dt>タグ</dt><dd className="comparison-tags">{place.tags.map((tag) => <span key={tag}>{tag}</span>)}</dd></div>
                         <div><dt>予算目安</dt><dd>1人あたり {place.budgets[tripType]}</dd></div>
                         <div><dt>スタイル一致数</dt><dd>{matchingConditions.length}件{matchingConditions.length > 0 ? `（${matchingConditions.join('、')}）` : ''}</dd></div>
-                        <div><dt>運命度</dt><dd>{placeDestiny.score}%</dd></div>
+                        <div><dt>適合度</dt><dd>{placeDestiny.score}%</dd></div>
                         <div><dt>おすすめ度</dt><dd>{recommendationScore}pt</dd></div>
                         <div><dt>季節との相性</dt><dd>{placeSeason.starsLabel} {placeSeason.description}</dd></div>
                         <div><dt>比較コメント</dt><dd>{comment}</dd></div>
@@ -4901,6 +4926,11 @@ function App() {
             <div><span>ライセンス未確認</span><strong>{destinationQualityReport.imageStatus.licenseUnconfirmed}件</strong></div>
             <div><span>読み込み失敗</span><strong>{imageFailures.length}件</strong></div>
             <div><span>要確認</span><strong>{destinationQualityReport.imageStatus.needsReview}件</strong></div>
+            <div><span>固定hero画像あり</span><strong>{getFixedHeroImageCities(destinations).length}/{destinations.length}件</strong></div>
+            <div><span>固定hero画像なし</span><strong>{getMissingFixedHeroImageCities(destinations).length}件</strong></div>
+            <div><span>優先旅先 固定hero</span><strong>{getPriorityFixedHeroReadiness(destinations)}</strong></div>
+            <div><span>hero isIllustration</span><strong>{getIllustrationHeroCities(destinations).length}件</strong></div>
+            <div><span>hero needs_review</span><strong>{getHeroNeedsReviewCities(destinations).length}件</strong></div>
           </div>
 
           <div className="quality-image-status" aria-label="旅行先メタデータの整備状態">
@@ -4982,6 +5012,12 @@ function App() {
               <div><dt>generic food画像の大表示リスク</dt><dd>{formatShortageList(getGenericFoodImageRiskCities(destinations))}</dd></div>
               <div><dt>food image / dish mismatch risk</dt><dd>{formatShortageList(getFoodImageMismatchRiskCities(destinations))}</dd></div>
               <div><dt>result journey image shortage</dt><dd>{formatShortageList(getResultJourneyImageShortageCities(destinations))}</dd></div>
+              <div><dt>固定hero画像なし</dt><dd>{formatShortageList(getMissingFixedHeroImageCities(destinations))}</dd></div>
+              <div><dt>甲府市 固定hero</dt><dd>{getFixedHeroImageCities(destinations).includes('甲府市') ? '設定済み' : '未設定'}</dd></div>
+              <div><dt>hero category fallback残存</dt><dd>{formatShortageList(getCategoryFallbackHeroCities(destinations))}</dd></div>
+              <div><dt>hero generic残存</dt><dd>{formatShortageList(getGenericHeroImageCities(destinations))}</dd></div>
+              <div><dt>hero alt不足</dt><dd>{formatShortageList(getHeroAltMissingCities(destinations))}</dd></div>
+              <div><dt>hero needs_review</dt><dd>{formatShortageList(getHeroNeedsReviewCities(destinations))}</dd></div>
               <div><dt>broad route destination risk</dt><dd>{formatShortageList(getBroadRouteDestinationRiskCities(destinations))}</dd></div>
               <div><dt>touristSpotsのnameが抽象語</dt><dd>{formatShortageList(getAbstractTouristSpotNameCities(destinations))}</dd></div>
               <div><dt>touristSpots.nameが疑似スポット名</dt><dd>{formatShortageList(getPseudoTouristSpotNameCities(destinations))}</dd></div>
@@ -5267,7 +5303,7 @@ function App() {
               <div className="simulation-summary">
                 <div><span>候補数</span><strong>{drawSimulation.candidateCount}件</strong></div>
                 <div><span>範囲除外</span><strong>{drawSimulation.rangeExcludedCount ?? 0}件</strong></div>
-                <div><span>平均運命度</span><strong>{drawSimulation.averageDestiny}%</strong></div>
+                <div><span>平均適合度</span><strong>{drawSimulation.averageDestiny}%</strong></div>
                 <div><span>スタイル一致率</span><strong>{drawSimulation.conditionMatchRate}%</strong></div>
                 <div className={drawSimulation.repetitionWarning ? 'quality-warning' : 'quality-passed'}>
                   <span>最多出現</span><strong>{drawSimulation.mostFrequentCount}回</strong>
@@ -5400,7 +5436,7 @@ function App() {
               <div><dt>移動範囲で加点</dt><dd>{movementRangeBoostedCount}件</dd></div>
               <div><dt>移動範囲で減点</dt><dd>{movementRangePenalizedCount}件</dd></div>
               <div><dt>現在の旅先</dt><dd>{destination ? `${destination.prefecture} ${destination.city}` : '未抽選'}</dd></div>
-              <div><dt>運命度スコア</dt><dd>{destiny ? `${destiny.score}%` : '未算出'}</dd></div>
+              <div><dt>適合度スコア</dt><dd>{destiny ? `${destiny.score}%` : '未算出'}</dd></div>
               <div><dt>行けそう度スコア</dt><dd>{feasibility ? `${feasibility.stars}/5（${feasibility.starsLabel}）` : '未算出'}</dd></div>
               <div><dt>抽選スコア</dt><dd>{selectionMeta ? `${selectionMeta.score}pt` : '未算出'}</dd></div>
               <div><dt>スタイル一致数</dt><dd>{selectionMeta ? `${selectionMeta.matchingCount}件` : '未算出'}</dd></div>
@@ -5479,6 +5515,7 @@ function App() {
           </>
         )}
       </section>
+      <ScrollToTopButton />
     </main>
   )
 }

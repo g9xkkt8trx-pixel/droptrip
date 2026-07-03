@@ -2,6 +2,39 @@
 
 現地写真・ご当地グルメ画像を安全に増やすための管理メモです。画像を追加するときは、権利確認済みのローカル画像として `public/images/destinations/` に配置し、`source`・`credit`・`license`・`status` を更新します。
 
+## 2026-07-03 旅先固定hero画像への移行方針
+
+- 結果画面のhero画像は、旅先ごとの `destination_fixed` 画像がある場合だけ表示します。
+- カテゴリ画像、汎用画像、ランダム画像は一般結果画面のheroとして使いません。
+- 画像がない旅先では画像枠ごと非表示にし、「写真準備中」は一般画面に出しません。
+- 旅先イメージ画像を使う場合は `isIllustration: true`、`type: "destination_fixed"`、`status: "needs_review"` を付け、altは「〇〇をイメージしたビジュアル」とします。
+- 画像ファイルは `public/images/destinations/` 配下に英数字・ハイフンで置きます。今後は `public/images/destinations/{slug}/hero.webp` 形式を推奨します。
+- サイズ目安は横幅1200px前後、16:9または4:3、WebP優先、1枚100KB〜400KB程度です。大きくても1MB未満を目安にします。
+- グルメ画像は料理名と一致するものだけ使い、料理専用画像がない場合は画像なしにします。
+
+| id / slug | 旅先名 | 必要画像テーマ | 状態 | 想定ファイル |
+|---|---|---|---|---|
+| gifu-gero / gero-onsen | 下呂温泉・下呂市 | 温泉街・川沿い・足湯 | 未作成または要確認 | /images/destinations/gero-onsen/hero.webp |
+| kyoto | 京都市 | 寺社・街歩き・和の雰囲気 | 既存jpgあり / 要確認 | /images/destinations/kyoto/hero.webp |
+| otaru | 小樽市 | 小樽運河・港町・夜景 | 既存jpgあり / 要確認 | /images/destinations/otaru/hero.webp |
+| hakone | 箱根町 | 芦ノ湖・温泉・箱根神社周辺 | 既存jpgあり / 要確認 | /images/destinations/hakone/hero.webp |
+| kusatsu | 草津町 | 湯畑・湯けむり・温泉街 | 既存jpgあり / 要確認 | /images/destinations/kusatsu/hero.webp |
+| atami | 熱海市 | 海と温泉街・サンビーチ | 既存jpgあり / 要確認 | /images/destinations/atami/hero.webp |
+| kanazawa | 金沢市 | 兼六園・茶屋街・城下町 | 既存jpgあり / 要確認 | /images/destinations/kanazawa/hero.webp |
+| kamakura | 鎌倉市 | 寺社・海・江ノ電 | 既存jpgあり / 要確認 | /images/destinations/kamakura/hero.webp |
+| sendai | 仙台市 | 並木道・城跡・街歩き | 既存jpgあり / 要確認 | /images/destinations/sendai/hero.webp |
+| fukuoka | 福岡市 | 博多・天神・屋台 | 既存jpgあり / 要確認 | /images/destinations/fukuoka/hero.webp |
+| naruto | 鳴門市 | 渦潮・鳴門公園・海峡 | 未作成 | /images/destinations/naruto/hero.webp |
+| beppu | 別府市 | 湯けむり・地獄めぐり・温泉街 | 既存jpgあり / 要確認 | /images/destinations/beppu/hero.webp |
+| kawagoe | 川越 | 蔵造りの町並み・菓子屋横丁 | 未作成 | /images/destinations/kawagoe/hero.webp |
+| sano | 佐野市 | 佐野ラーメン・厄除け大師・街歩き | 未作成 | /images/destinations/sano/hero.webp |
+| ueda | 上田市 | 上田城跡・城下町 | 未作成 | /images/destinations/ueda/hero.webp |
+| kofu | 甲府市 | 甲府城跡・昇仙峡・ぶどう畑/ワイン・山梨の山並み・ほうとう | 未作成 | /images/destinations/kofu/hero.webp |
+
+次点で固定heroを整備したい旅先：石垣市、宮古島、札幌市、函館市、長崎市、広島市、宮島、高山市、尾道市、倉敷市、松江市、湯布院、道後温泉、有馬温泉、城崎温泉。
+
+甲府市メモ：専用hero画像ができるまでは結果画面に画像を出しません。カテゴリfallbackや汎用画像で代替せず、固定画像作成後に `destinationImages` の対応表へ登録します。
+
 ## 2026-07-02 グルメ・スポット大幅強化に伴う画像課題
 
 - localFoodCandidates を7〜10件、localFoodDetails を5件へ広げたため、料理専用画像の不足が増えています。

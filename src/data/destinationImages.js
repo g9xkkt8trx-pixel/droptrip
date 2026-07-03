@@ -10,6 +10,9 @@ export const createImageAsset = ({
   isDestinationSpecific,
   isFoodSpecific = false,
   isLocalFood = false,
+  isIllustration = false,
+  alt = '',
+  assetType = '',
   foodTheme = '',
   note = '',
 }) => ({
@@ -32,6 +35,9 @@ export const createImageAsset = ({
   isDestinationSpecific: typeof isDestinationSpecific === 'boolean'
     ? isDestinationSpecific
     : source === 'curated' || url.startsWith('/images/destinations/'),
+  isIllustration,
+  alt,
+  assetType,
   isFoodSpecific,
   isLocalFood,
   foodTheme,
@@ -87,7 +93,8 @@ Object.entries(CATEGORY_ALIASES).forEach(([aliasKey, targetKey]) => {
   CATEGORY_PATHS[aliasKey] = CATEGORY_PATHS[targetKey] ?? CATEGORY_PATHS.nature
 })
 
-// 権利確認済みの個別画像を追加したときは、この対応表へ登録する。
+// 旅先ごとの固定イメージ画像を追加したときは、この対応表へ登録する。
+// まず destination.id を優先し、既存データとの互換性のため city キーも残す。
 const DESTINATION_LOCAL_IMAGES = {
   京都市: {
     hero: '/images/destinations/kyoto-hero.jpg',
@@ -153,6 +160,14 @@ const DESTINATION_LOCAL_IMAGES = {
   尾道市: { hero: '/images/destinations/onomichi-hero.jpg' }, 倉敷市: { hero: '/images/destinations/kurashiki-hero.jpg' },
   松江市: { hero: '/images/destinations/matsue-hero.jpg' }, 別府市: { hero: '/images/destinations/beppu-hero.jpg' },
 }
+
+const getDestinationImageMapKey = (destination = {}) => (
+  destination.id ?? (destination.prefecture && destination.city ? `${destination.prefecture}-${destination.city}` : destination.city)
+)
+
+const getFixedImageMap = (destination = {}) => DESTINATION_LOCAL_IMAGES[getDestinationImageMapKey(destination)]
+  ?? DESTINATION_LOCAL_IMAGES[destination.city]
+  ?? null
 
 const DESTINATION_IMAGE_THEMES = {
   京都市: {
@@ -277,9 +292,11 @@ const createLocalAsset = (url, type, source, credit, status = 'confirmed', overr
   status,
   isLocal: true,
   isGeneric: source === 'placeholder',
-  isDestinationSpecific: source === 'curated',
-  isFoodSpecific: type === 'food' && source === 'curated',
-  isLocalFood: type === 'food' && source === 'curated',
+  isDestinationSpecific: ['curated', 'destination_fixed'].includes(source),
+  isFoodSpecific: type === 'food' && source === 'destination_fixed',
+  isLocalFood: type === 'food' && source === 'destination_fixed',
+  isIllustration: source === 'destination_fixed',
+  assetType: source === 'destination_fixed' ? 'destination_fixed' : source,
   foodTheme: type === 'food' ? inferFoodThemeFromUrl(url, source) : '',
   note: source === 'curated'
     ? '旅行先個別画像の差し替え候補です。公開前に権利確認をしてください。'
@@ -392,38 +409,59 @@ const normalizeImageAsset = (image, imageType) => {
 
 /**
  * 表示画像の唯一の解決窓口。
- * 個別ローカル画像 → カテゴリ画像 → 共通画像の順で返し、外部URLは主要表示に使わない。
+ * 結果画面heroでは旅先固定画像だけを返し、カテゴリ・共通画像への代替は行わない。
  */
 export const getDestinationImage = (destination = {}, imageType = 'hero') => {
   const field = `${imageType}Image`
   const configured = normalizeImageAsset(destination[field], imageType)
   const configuredUrl = getImageUrl(configured)
-  const mappedUrl = getMappedDestinationImageUrl(DESTINATION_LOCAL_IMAGES[destination.city], imageType)
-  const seed = destination.id ?? destination.city ?? destination.prefecture ?? ''
+  const fixedImageMap = getFixedImageMap(destination)
+  const mappedUrl = getMappedDestinationImageUrl(fixedImageMap, imageType)
 
   if (mappedUrl) {
     const theme = DESTINATION_IMAGE_THEMES[destination.city]?.[imageType] ?? ''
-    return createLocalAsset(mappedUrl, imageType, 'curated', 'イメージ画像', 'temporary', {
+    return createLocalAsset(mappedUrl, imageType, 'destination_fixed', '旅先イメージ', 'needs_review', {
       isFoodSpecific: imageType === 'food',
       isLocalFood: imageType === 'food',
+      alt: imageType === 'hero'
+        ? `${destination.city}をイメージしたビジュアル`
+        : `${destination.city}の${imageType === 'scenery' ? '景色' : 'ご当地グルメ'}をイメージしたビジュアル`,
       foodTheme: imageType === 'food' ? theme || inferFoodThemeFromUrl(mappedUrl, 'curated') : '',
       note: theme
-        ? `${theme}に沿った仮の個別画像です。公開前に権利確認済み素材へ差し替えてください。`
-        : '旅行先個別画像の差し替え候補です。公開前に権利確認をしてください。',
+        ? `${theme}に沿った旅先固定画像です。現地写真ではなくイメージとして扱います。`
+        : '旅先固定画像です。現地写真ではなくイメージとして扱います。',
     })
   }
-  if (configuredUrl.startsWith('/images/destinations/') && isValidImageUrl(configured)) return configured
+  if (configuredUrl.startsWith('/images/destinations/') && isValidImageUrl(configured)) {
+    return createImageAsset({
+      ...configured,
+      source: 'destination_fixed',
+      status: configured.status ?? 'needs_review',
+      isDestinationSpecific: true,
+      isGeneric: false,
+      isIllustration: configured.isIllustration ?? true,
+      assetType: 'destination_fixed',
+      alt: configured.alt || `${destination.city}をイメージしたビジュアル`,
+    })
+  }
 
-  const categoryAsset = getThemeImageFallback(destination, imageType, seed)
-  if (isValidImageUrl(categoryAsset)) return categoryAsset
-  return getCommonAsset(imageType)
+  return createImageAsset({
+    url: '',
+    type: imageType,
+    source: 'missing',
+    status: 'missing',
+    isLocal: true,
+    isGeneric: false,
+    isDestinationSpecific: false,
+    assetType: 'missing',
+    alt: '',
+    note: '旅先固定画像が未設定です。',
+  })
 }
 
 export const getDestinationImageCandidates = (destination = {}, imageType = 'hero') => {
   const primary = getDestinationImage(destination, imageType)
-  const category = getThemeImageFallback(destination, imageType, destination.id ?? destination.city ?? '')
-  const common = getCommonAsset(imageType)
-  return [primary, category, common]
+  return [primary]
     .filter(isValidImageUrl)
     .filter((image, index, images) => images.findIndex((candidate) => getImageUrl(candidate) === getImageUrl(image)) === index)
 }
@@ -433,17 +471,17 @@ export const getDestinationImages = (prefecture, city, tags = [], details = {}) 
   const heroImage = getDestinationImage(destination, 'hero')
   const foodImage = getDestinationImage(destination, 'food')
   const sceneryImage = getDestinationImage(destination, 'scenery')
-  const hasIndividualImage = [heroImage, foodImage, sceneryImage].some((image) => image.source === 'curated')
+  const hasFixedImage = [heroImage, foodImage, sceneryImage].some((image) => image.source === 'destination_fixed')
 
   return {
     heroImage,
     foodImage,
     sceneryImage,
-    imageCredit: hasIndividualImage ? 'イメージ画像' : 'カテゴリ画像',
-    imageSource: hasIndividualImage ? 'curated' : 'fallback',
+    imageCredit: hasFixedImage ? '旅先イメージ' : '',
+    imageSource: hasFixedImage ? 'destination_fixed' : 'missing',
     imageLicense: PHOTO_LICENSE,
-    imageStatus: 'confirmed',
-    imageSourceType: hasIndividualImage ? 'individual' : 'tag',
-    imageLocationLabel: city ? `${prefecture} ${city}の旅行イメージ` : '汎用旅行イメージ',
+    imageStatus: hasFixedImage ? 'needs_review' : 'missing',
+    imageSourceType: hasFixedImage ? 'destination_fixed' : 'missing',
+    imageLocationLabel: city ? `${prefecture} ${city}の旅先イメージ` : '',
   }
 }

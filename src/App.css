@@ -947,6 +947,19 @@ h1 {
   margin-left: 8px;
 }
 
+.result-save-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.result-save-actions .favorite-button {
+  width: 100%;
+  min-height: 46px;
+  margin-top: 0;
+}
+
 .compare-detail-button {
   color: #2d6f64;
   border-color: #cfe3dd;
@@ -1831,6 +1844,26 @@ h1 {
 .reason-item {
   padding-bottom: 14px;
   border-bottom: 1px dashed #cbded7;
+}
+
+.reason-item.compact {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 9px;
+  align-items: start;
+  padding: 0 0 10px;
+}
+
+.reason-item.compact > span {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: #2a9d8f;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 900;
 }
 
 .reason-item:last-child {
@@ -3838,6 +3871,35 @@ h1 {
   line-height: 1.7;
 }
 
+.destination-search-primary {
+  display: grid;
+  gap: 6px;
+  margin-top: 14px;
+}
+
+.destination-search-primary span {
+  color: #526c65;
+  font-size: 0.66rem;
+  font-weight: 900;
+}
+
+.destination-search-primary input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 13px;
+  color: #315f55;
+  background: #f8fbfa;
+  border: 1px solid #d5e5df;
+  border-radius: 14px;
+  font: inherit;
+  font-size: 0.78rem;
+}
+
+.destination-search-primary input:focus-visible {
+  outline: 3px solid rgba(47, 111, 97, 0.22);
+  outline-offset: 2px;
+}
+
 .destination-filter-toggle {
   width: 100%;
   min-height: 46px;
@@ -3943,6 +4005,30 @@ h1 {
   color: #a3b0ac;
   background: #f7f9f8;
   cursor: not-allowed;
+}
+
+.destination-empty-state {
+  display: grid;
+  gap: 5px;
+  padding: 18px;
+  color: #536962;
+  background: #f7faf8;
+  border: 1px solid #dfe9e5;
+  border-radius: 14px;
+  text-align: center;
+}
+
+.destination-empty-state p {
+  margin: 0;
+  color: #294f46;
+  font-size: 0.86rem;
+  font-weight: 900;
+}
+
+.destination-empty-state span {
+  color: #6f817b;
+  font-size: 0.72rem;
+  font-weight: 700;
 }
 
 .destination-card-grid {
@@ -5673,6 +5759,40 @@ h1 {
   left: 0;
 }
 
+.scroll-to-top-button {
+  position: fixed;
+  right: max(16px, env(safe-area-inset-right));
+  bottom: max(18px, env(safe-area-inset-bottom));
+  z-index: 50;
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: #315f55;
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  border-radius: 999px;
+  box-shadow: 0 12px 28px rgba(22, 63, 54, 0.24);
+  cursor: pointer;
+  font: inherit;
+  font-size: 1.08rem;
+  font-weight: 900;
+}
+
+.scroll-to-top-button:hover {
+  background: #244b42;
+  transform: translateY(-1px);
+}
+
+.scroll-to-top-button:active {
+  transform: translateY(1px);
+}
+
+.scroll-to-top-button:focus-visible {
+  outline: 3px solid rgba(231, 111, 81, 0.32);
+  outline-offset: 3px;
+}
+
 .developer-page-icon {
   width: 52px;
   height: 52px;
@@ -6388,6 +6508,13 @@ h1 {
   .destination-browser-image { height: 190px; }
   .destination-browser-actions { grid-template-columns: 1fr; }
   .destination-browser-actions button.primary { grid-column: auto; }
+  .result-save-actions { grid-template-columns: 1fr; }
+  .scroll-to-top-button {
+    right: 14px;
+    bottom: 14px;
+    width: 44px;
+    height: 44px;
+  }
   .favorites-page .favorites-page-list,
   .history-page .history-page-list { margin-top: 18px; padding: 15px; border-radius: 17px; }
   .favorite-page-card,
@@ -6710,7 +6837,8 @@ h1 {
   background: rgba(248, 250, 252, 0.95);
 }
 
-.food-map-link {
+.food-map-link,
+.spot-map-link {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -6727,9 +6855,29 @@ h1 {
 }
 
 .food-map-link:hover,
-.food-map-link:focus-visible {
+.food-map-link:focus-visible,
+.spot-map-link:hover,
+.spot-map-link:focus-visible {
   background: #ffedd5;
   color: #7c2d12;
+}
+
+.spot-map-link {
+  margin-top: 0.1rem;
+  background: #ecfeff;
+  color: #0f766e;
+  box-shadow: inset 0 0 0 1px rgba(20, 184, 166, 0.18);
+}
+
+.tourist-spot-item .spot-map-link {
+  width: 100%;
+  min-height: 44px;
+}
+
+.spot-map-link:hover,
+.spot-map-link:focus-visible {
+  background: #ccfbf1;
+  color: #115e59;
 }
 
 .food-search-guide {
