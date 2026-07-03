@@ -1401,13 +1401,13 @@ h1 {
 .result-primary-actions button {
   position: relative;
   min-height: 78px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 6px;
-  align-content: center;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 34px;
+  grid-template-rows: auto auto;
+  gap: 5px 12px;
+  align-items: center;
   overflow: hidden;
-  padding: 17px 18px;
+  padding: 16px 17px;
   text-align: left;
   color: #294e47;
   background: linear-gradient(135deg, #fff8e8 0%, #ffe4cf 100%);
@@ -1421,14 +1421,18 @@ h1 {
 }
 
 .result-primary-actions button::after {
-  position: absolute;
-  top: -22px;
-  right: -16px;
-  width: 82px;
-  height: 82px;
-  content: "";
-  background: rgba(255, 255, 255, 0.44);
+  width: 34px;
+  height: 34px;
+  display: grid;
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  place-items: center;
+  content: "→";
+  color: rgba(49, 79, 70, 0.76);
+  background: rgba(255, 255, 255, 0.58);
   border-radius: 999px;
+  font-size: 1.04rem;
+  font-weight: 900;
   pointer-events: none;
 }
 
@@ -1450,17 +1454,20 @@ h1 {
   display: flex;
   gap: 8px;
   align-items: center;
+  min-width: 0;
   color: #243f39;
   font-size: 1.08rem;
   line-height: 1.2;
+  white-space: nowrap;
 }
 
 .result-primary-actions button strong span {
+  flex: 0 0 auto;
   font-size: 1.38rem;
   line-height: 1;
 }
 
-.result-primary-actions button span {
+.result-primary-actions button > span {
   position: relative;
   z-index: 1;
   color: #5f746e;
@@ -1506,6 +1513,12 @@ h1 {
 
 .result-primary-actions button:disabled::after {
   opacity: 0.36;
+}
+
+@media (max-width: 760px) {
+  .result-primary-actions {
+    grid-template-columns: 1fr;
+  }
 }
 
 .result-detail-page {

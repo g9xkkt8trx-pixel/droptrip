@@ -4099,20 +4099,19 @@ function App() {
 
             <section className="result-primary-action-section" aria-labelledby="result-primary-action-title">
               <div className="result-primary-action-heading">
-                <p>MORE FUN</p>
-                <h2 id="result-primary-action-title">この旅をもっと楽しむ</h2>
+                <h2 id="result-primary-action-title">旅の中身を見る</h2>
               </div>
             <div className="result-primary-actions" aria-label="旅行内容の詳細ページ">
               <button type="button" onClick={() => showResultDetailPage('food')} disabled={localFoodItems.length === 0}>
                 <strong><span aria-hidden="true">🍽</span> グルメ</strong>
-                <span>この旅で食べたいもの</span>
+                <span>食べたい名物を見る</span>
               </button>
               <button type="button" onClick={() => showResultDetailPage('spots')} disabled={featuredTouristSpots.length === 0}>
                 <strong><span aria-hidden="true">📍</span> スポット</strong>
-                <span>ここで行きたい場所</span>
+                <span>行きたい場所を見る</span>
               </button>
               <button type="button" onClick={() => showResultDetailPage('trends')}>
-                <strong><span aria-hidden="true">✨</span> 映え・トレンド</strong>
+                <strong><span aria-hidden="true">✨</span> 映え</strong>
                 <span>写真に残したい場所</span>
               </button>
             </div>
