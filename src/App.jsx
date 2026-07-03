@@ -3817,7 +3817,7 @@ function App() {
           </>
         )}
 
-        {currentPage === 'result' && (
+        {currentPage === 'result' && resultDetailView === 'overview' && (
           <header className="developer-page-header result-page-header">
             <button type="button" onClick={() => switchPage('main')}><span aria-hidden="true">←</span>条件を変えてもう一度探す</button>
             <div className="developer-page-icon result-page-icon" aria-hidden="true">✦</div>
@@ -3834,8 +3834,8 @@ function App() {
                 <button type="button" className="result-detail-back-button" onClick={backToResultOverview}>← 結果に戻る</button>
                 <div className="result-detail-page-heading">
                   <p>{destination.prefecture} {destination.city}</p>
-                  <h2 id="result-food-page-title">この旅で食べたいもの</h2>
-                  <span>{planContext.selectedTravelPurposes.length > 0 ? `${planContext.selectedTravelPurposes.join('・')}の旅に合わせて、具体的な名物を中心に表示しています。` : '具体的な料理名があるものだけを表示しています。'}</span>
+                  <h2 id="result-food-page-title">{destination.city}で食べたいもの</h2>
+                  <span>{localFoodItems.length > 0 ? `${localFoodItems.slice(0, 3).join('・')}など、${destination.city}らしい名物を集めました。` : '具体的な料理名があるものだけを表示しています。'}</span>
                 </div>
 
                 <section className={`local-food-card ${foodImageIsFeatured ? 'compact-food-image' : 'no-food-image'}`} aria-labelledby="local-food-title">
@@ -3882,8 +3882,8 @@ function App() {
                 <button type="button" className="result-detail-back-button" onClick={backToResultOverview}>← 結果に戻る</button>
                 <div className="result-detail-page-heading">
                   <p>{destination.prefecture} {destination.city}</p>
-                  <h2 id="result-spots-page-title">ここで行きたい場所</h2>
-                  <span>{planContext.selectedTravelPurposes.length > 0 ? `${planContext.selectedTravelPurposes.join('・')}に合うスポットを上位にしています。` : '具体的なスポット名がある場所だけを表示しています。'}</span>
+                  <h2 id="result-spots-page-title">{destination.city}で行きたい場所</h2>
+                  <span>{featuredTouristSpots.length > 0 ? `${featuredTouristSpots.slice(0, 2).map((spot) => spot.name).join('・')}など、旅程に入れやすいスポットを確認できます。` : '具体的なスポット名がある場所だけを表示しています。'}</span>
                 </div>
 
                 <section className="tourist-spots-card" aria-labelledby="tourist-spots-title">
@@ -5455,6 +5455,10 @@ function App() {
               <div><dt>destination list search fields</dt><dd>旅先名・都道府県・region・tags・グルメ・スポット・周辺候補</dd></div>
               <div><dt>scroll to top button</dt><dd>enabled（scrollY 520px超で表示）</dd></div>
               <div><dt>food / spot Maps links</dt><dd>destination + item name query</dd></div>
+              <div><dt>food detail header</dt><dd>専用ヘッダー表示（DRAW RESULT / 抽選結果は非表示）</dd></div>
+              <div><dt>spot detail header</dt><dd>専用ヘッダー表示（DRAW RESULT / 抽選結果は非表示）</dd></div>
+              <div><dt>detail return CTA</dt><dd>結果に戻る</dd></div>
+              <div><dt>detail hidden result info</dt><dd>適合度 / アクセス確認 / 保存・比較 / 再抽選 / 条件変更は非表示</dd></div>
               <div><dt>route destination query</dt><dd>{routeDestinationQuery || '未設定'}</dd></div>
               <div><dt>route destination source</dt><dd>{routeDestinationSource || '未設定'}</dd></div>
               <div><dt>nearestStation / label</dt><dd>{destination?.nearestStation ?? '未設定'} / {destination?.nearestStationLabel ?? '未設定'}</dd></div>
