@@ -1761,6 +1761,14 @@ const getSpotMapsSearchUrl = (destination = {}, spot = {}) => {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`
 }
 
+const getTrendMapsSearchUrl = (destination = {}, item = {}) => {
+  const place = destination.prefecture && destination.city
+    ? `${destination.prefecture}${destination.city}`
+    : destination.name ?? destination.city ?? ''
+  const query = item.mapQuery || [place, item.name].filter(Boolean).join(' ')
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`
+}
+
 const shouldFeatureFoodImage = () => false
 
 const getTripProposalText = (destination = {}, context = {}, seasonInfo = {}) => {
@@ -1956,6 +1964,54 @@ const getHeroAltMissingCities = (destinationList = []) => destinationList
 const getHeroNeedsReviewCities = (destinationList = []) => destinationList
   .filter((place) => getImageMetaValue(place.heroImage, 'status') === 'needs_review')
   .map((place) => place.city)
+
+const trendPriorityCities = [
+  '下呂市', '京都市', '小樽市', '箱根町', '草津町', '熱海市', '金沢市', '鎌倉市', '川越市',
+  '仙台市', '福岡市', '鳴門市', '別府市', '甲府市', '石垣市', '宮古島市', '札幌市', '函館市',
+  '長崎市', '広島市', '廿日市市', '高山市', '尾道市', '倉敷市', '松江市', '由布市', '松山市',
+  '神戸市', '豊岡市',
+]
+
+const trendAssertivePatterns = [/最新/, /今一番/, /話題沸騰/, /Instagram/, /インスタ/, /バズ/, /流行中/, /大人気/, /人気度/, /混雑/]
+
+const getTrendHighlightsMissingCities = (destinationList = []) => destinationList
+  .filter((place) => !Array.isArray(place.trendHighlights) || place.trendHighlights.length === 0)
+  .map((place) => place.city)
+
+const getTrendHighlightsUnderThreeCities = (destinationList = []) => destinationList
+  .filter((place) => Array.isArray(place.trendHighlights) && place.trendHighlights.length > 0 && place.trendHighlights.length < 3)
+  .map((place) => place.city)
+
+const getTrendMissingSourceStatusCities = (destinationList = []) => destinationList
+  .filter((place) => (place.trendHighlights ?? []).some((item) => !item.sourceStatus || item.sourceStatus === 'missing'))
+  .map((place) => place.city)
+
+const getTrendNeedsReviewCities = (destinationList = []) => destinationList
+  .filter((place) => (place.trendHighlights ?? []).some((item) => item.sourceStatus === 'needs_review'))
+  .map((place) => place.city)
+
+const getTrendMissingMapQueryCities = (destinationList = []) => destinationList
+  .filter((place) => (place.trendHighlights ?? []).some((item) => !item.mapQuery))
+  .map((place) => place.city)
+
+const getTrendMissingNoteCities = (destinationList = []) => destinationList
+  .filter((place) => (place.trendHighlights ?? []).some((item) => item.sourceStatus === 'needs_review' && !item.note))
+  .map((place) => place.city)
+
+const getTrendAssertiveExpressionCities = (destinationList = []) => destinationList
+  .filter((place) => (place.trendHighlights ?? []).some((item) => {
+    const text = [item.name, item.category, item.description, item.note].filter(Boolean).join(' ')
+    return trendAssertivePatterns.some((pattern) => pattern.test(text))
+  }))
+  .map((place) => place.city)
+
+const getTrendReadiness = (destinationList = []) => {
+  const readyCities = new Set(destinationList
+    .filter((place) => Array.isArray(place.trendHighlights) && place.trendHighlights.length >= 3)
+    .map((place) => place.city))
+  const completed = trendPriorityCities.filter((city) => readyCities.has(city)).length
+  return `${completed}/${trendPriorityCities.length}`
+}
 
 const getPriorityFixedHeroReadiness = (destinationList = []) => {
   const fixedCities = new Set(getFixedHeroImageCities(destinationList))
@@ -2711,6 +2767,7 @@ function App() {
   const localFoodDetails = destination ? getLocalFoodDetailItems(destination, localFoodItems) : []
   const featuredTouristSpots = destination && planContext ? getPurposeMatchedTouristSpots(destination, planContext.selectedTravelPurposes) : []
   const spotAreaCandidates = destination ? getSpotAreaCandidates(destination) : []
+  const trendHighlights = Array.isArray(destination?.trendHighlights) ? destination.trendHighlights : []
   const foodThemeText = destination ? getFoodThemeText(destination, localFoodItems) : ''
   const foodImageIsFeatured = destination ? shouldFeatureFoodImage(destination, localFoodItems) : false
   const tripProposalText = destination && planContext
@@ -3598,7 +3655,7 @@ function App() {
     <main className="app-shell">
       <section
         className={`trip-card ${currentPage === 'developer' ? 'developer-page' : currentPage === 'history' ? 'history-page' : currentPage === 'favorites' ? 'favorites-page' : currentPage === 'comparison' ? 'comparison-page' : currentPage === 'calculation' ? 'calculation-page' : currentPage === 'destinations' ? 'destinations-page' : currentPage === 'result' ? 'result-page' : 'main-page'}`}
-        aria-labelledby={currentPage === 'developer' ? 'developer-page-title' : currentPage === 'history' ? 'history-page-title' : currentPage === 'favorites' ? 'favorites-page-title' : currentPage === 'comparison' ? 'comparison-page-title' : currentPage === 'calculation' ? 'calculation-page-title' : currentPage === 'destinations' ? 'destinations-page-title' : currentPage === 'result' ? 'result-page-title' : 'app-title'}
+        aria-labelledby={currentPage === 'developer' ? 'developer-page-title' : currentPage === 'history' ? 'history-page-title' : currentPage === 'favorites' ? 'favorites-page-title' : currentPage === 'comparison' ? 'comparison-page-title' : currentPage === 'calculation' ? 'calculation-page-title' : currentPage === 'destinations' ? 'destinations-page-title' : currentPage === 'result' ? resultDetailView === 'food' ? 'result-food-page-title' : resultDetailView === 'spots' ? 'result-spots-page-title' : resultDetailView === 'trends' ? 'result-trends-page-title' : 'result-page-title' : 'app-title'}
       >
         {currentPage === 'main' || currentPage === 'result' ? (
           <>
@@ -3931,8 +3988,62 @@ function App() {
               </section>
             )}
 
+            {resultDetailView === 'trends' && (
+              <section className="result-detail-page result-trends-page" aria-labelledby="result-trends-page-title">
+                <button type="button" className="result-detail-back-button" onClick={backToResultOverview}>← 結果に戻る</button>
+                <div className="result-detail-page-heading trend-detail-heading">
+                  <p>{destination.prefecture} {destination.city}</p>
+                  <h2 id="result-trends-page-title">{destination.city}の映え・トレンド</h2>
+                  <span>写真に残したい場所や、雰囲気のある立ち寄り候補を手動データでまとめています。</span>
+                </div>
+
+                {trendHighlights.length > 0 ? (
+                  <section className="trend-highlights-card" aria-labelledby="trend-highlights-title">
+                    <div className="tourist-spots-heading trend-highlights-heading">
+                      <span aria-hidden="true">✨</span>
+                      <div>
+                        <p>TREND</p>
+                        <h3 id="trend-highlights-title">写真に残したい候補</h3>
+                      </div>
+                    </div>
+                    <div className="trend-highlights-grid">
+                      {trendHighlights.map((item) => (
+                        <article key={`${item.category}-${item.name}`} className="trend-highlight-item">
+                          <div>
+                            <strong>{item.name}</strong>
+                            <span>{item.category}</span>
+                          </div>
+                          <p>{item.description}</p>
+                          {Array.isArray(item.bestFor) && item.bestFor.length > 0 && (
+                            <div className="trend-highlight-tags" aria-label={`${item.name}の雰囲気`}>
+                              {item.bestFor.slice(0, 3).map((label) => <span key={label}>{label}</span>)}
+                            </div>
+                          )}
+                          {item.sourceStatus === 'needs_review' && item.note && <small className="tourist-spot-note">{item.note}</small>}
+                          <a className="trend-map-link" href={getTrendMapsSearchUrl(destination, item)} target="_blank" rel="noopener noreferrer">Google Mapsで探す</a>
+                        </article>
+                      ))}
+                    </div>
+                  </section>
+                ) : (
+                  <section className="trend-empty-card" aria-labelledby="trend-empty-title">
+                    <span aria-hidden="true">✨</span>
+                    <div>
+                      <h3 id="trend-empty-title">映え・トレンド情報は追加予定です</h3>
+                      <p>この旅先は、写真に残したい立ち寄り候補を手動で確認してから追加します。今はグルメやスポットから旅の中身を見てください。</p>
+                    </div>
+                  </section>
+                )}
+
+                <div className="food-search-guide trend-search-guide">
+                  <strong>地図で探すとき</strong>
+                  <p>掲載候補は自動取得ではなく手動データです。営業状況、提供内容、料金、混雑状況は訪問前にGoogle Mapsや公式情報で確認してください。</p>
+                </div>
+              </section>
+            )}
+
             {resultDetailView === 'overview' && (
-            <>
+              <>
             <section className="result-card result-proposal-hero" aria-label="旅先の提案">
               {isFixedHeroImage(destination.heroImage) && (
                 <SafeImage
@@ -3999,6 +4110,10 @@ function App() {
               <button type="button" onClick={() => showResultDetailPage('spots')} disabled={featuredTouristSpots.length === 0}>
                 <strong><span aria-hidden="true">📍</span> スポット</strong>
                 <span>ここで行きたい場所</span>
+              </button>
+              <button type="button" onClick={() => showResultDetailPage('trends')}>
+                <strong><span aria-hidden="true">✨</span> 映え・トレンド</strong>
+                <span>写真に残したい場所</span>
               </button>
             </div>
             </section>
@@ -4931,6 +5046,8 @@ function App() {
             <div><span>優先旅先 固定hero</span><strong>{getPriorityFixedHeroReadiness(destinations)}</strong></div>
             <div><span>hero isIllustration</span><strong>{getIllustrationHeroCities(destinations).length}件</strong></div>
             <div><span>hero needs_review</span><strong>{getHeroNeedsReviewCities(destinations).length}件</strong></div>
+            <div><span>映え・トレンド整備率</span><strong>{getTrendReadiness(destinations)}</strong></div>
+            <div><span>trendHighlights未整備</span><strong>{getTrendHighlightsMissingCities(destinations).length}件</strong></div>
           </div>
 
           <div className="quality-image-status" aria-label="旅行先メタデータの整備状態">
@@ -5018,6 +5135,13 @@ function App() {
               <div><dt>hero generic残存</dt><dd>{formatShortageList(getGenericHeroImageCities(destinations))}</dd></div>
               <div><dt>hero alt不足</dt><dd>{formatShortageList(getHeroAltMissingCities(destinations))}</dd></div>
               <div><dt>hero needs_review</dt><dd>{formatShortageList(getHeroNeedsReviewCities(destinations))}</dd></div>
+              <div><dt>trendHighlights未整備</dt><dd>{formatShortageList(getTrendHighlightsMissingCities(destinations))}</dd></div>
+              <div><dt>trendHighlights 3件未満</dt><dd>{formatShortageList(getTrendHighlightsUnderThreeCities(destinations))}</dd></div>
+              <div><dt>trend sourceStatus missing</dt><dd>{formatShortageList(getTrendMissingSourceStatusCities(destinations))}</dd></div>
+              <div><dt>trend needs_review</dt><dd>{formatShortageList(getTrendNeedsReviewCities(destinations))}</dd></div>
+              <div><dt>trend mapQueryなし</dt><dd>{formatShortageList(getTrendMissingMapQueryCities(destinations))}</dd></div>
+              <div><dt>trend noteなし</dt><dd>{formatShortageList(getTrendMissingNoteCities(destinations))}</dd></div>
+              <div><dt>trend断定表現リスク</dt><dd>{formatShortageList(getTrendAssertiveExpressionCities(destinations))}</dd></div>
               <div><dt>broad route destination risk</dt><dd>{formatShortageList(getBroadRouteDestinationRiskCities(destinations))}</dd></div>
               <div><dt>touristSpotsのnameが抽象語</dt><dd>{formatShortageList(getAbstractTouristSpotNameCities(destinations))}</dd></div>
               <div><dt>touristSpots.nameが疑似スポット名</dt><dd>{formatShortageList(getPseudoTouristSpotNameCities(destinations))}</dd></div>
@@ -5457,6 +5581,8 @@ function App() {
               <div><dt>food / spot Maps links</dt><dd>destination + item name query</dd></div>
               <div><dt>food detail header</dt><dd>専用ヘッダー表示（DRAW RESULT / 抽選結果は非表示）</dd></div>
               <div><dt>spot detail header</dt><dd>専用ヘッダー表示（DRAW RESULT / 抽選結果は非表示）</dd></div>
+              <div><dt>trend detail header</dt><dd>専用ヘッダー表示（最新情報とは断定しない）</dd></div>
+              <div><dt>trendHighlights current</dt><dd>{trendHighlights.length}件</dd></div>
               <div><dt>detail return CTA</dt><dd>結果に戻る</dd></div>
               <div><dt>detail hidden result info</dt><dd>適合度 / アクセス確認 / 保存・比較 / 再抽選 / 条件変更は非表示</dd></div>
               <div><dt>route destination query</dt><dd>{routeDestinationQuery || '未設定'}</dd></div>
