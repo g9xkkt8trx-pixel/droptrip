@@ -5449,7 +5449,12 @@ function App() {
               <div><dt>通信方式</dt><dd>{getGoogleMapsCommunicationModeLabel(travelInfo.routeDiagnostics?.communicationMode ?? travelInfo.communicationMode)}</dd></div>
               <div><dt>general route-time auto call</dt><dd>disabled</dd></div>
               <div><dt>general transport comparison</dt><dd>hidden</dd></div>
+              <div><dt>general match display</dt><dd>適合度チップ1か所のみ</dd></div>
+              <div><dt>general hidden cards</dt><dd>DESTINY MATCH / モデルコース / 交通手段比較 / 行けそう度 / 予算目安は非表示</dd></div>
               <div><dt>general access CTA</dt><dd>Google Maps direct link</dd></div>
+              <div><dt>destination list search fields</dt><dd>旅先名・都道府県・region・tags・グルメ・スポット・周辺候補</dd></div>
+              <div><dt>scroll to top button</dt><dd>enabled（scrollY 520px超で表示）</dd></div>
+              <div><dt>food / spot Maps links</dt><dd>destination + item name query</dd></div>
               <div><dt>route destination query</dt><dd>{routeDestinationQuery || '未設定'}</dd></div>
               <div><dt>route destination source</dt><dd>{routeDestinationSource || '未設定'}</dd></div>
               <div><dt>nearestStation / label</dt><dd>{destination?.nearestStation ?? '未設定'} / {destination?.nearestStationLabel ?? '未設定'}</dd></div>
