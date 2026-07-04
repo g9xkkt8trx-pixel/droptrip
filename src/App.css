@@ -1721,42 +1721,6 @@ h1 {
   box-shadow: 0 12px 24px rgba(43, 80, 71, 0.06);
 }
 
-.local-food-heading {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.local-food-heading > span {
-  width: 36px;
-  height: 36px;
-  display: grid;
-  flex: 0 0 auto;
-  place-items: center;
-  background: #fff5ea;
-  border-radius: 13px;
-  font-size: 1rem;
-}
-
-.local-food-heading p,
-.local-food-heading h2 {
-  margin: 0;
-}
-
-.local-food-heading p {
-  color: #d87455;
-  font-size: 0.58rem;
-  font-weight: 900;
-  letter-spacing: 0.08em;
-}
-
-.local-food-heading h2,
-.local-food-heading h3 {
-  margin-top: 2px;
-  color: #315f55;
-  font-size: 0.98rem;
-}
-
 .local-food-content {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 150px;
@@ -6766,30 +6730,12 @@ h1 {
 }
 
 
-.tourist-spots-card,
-.spot-area-card {
+.tourist-spots-card {
   margin: 1rem 0;
   padding: 1rem;
   border: 1px solid rgba(15, 23, 42, 0.1);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.92);
-}
-
-.tourist-spots-heading,
-.local-food-heading {
-  display: flex;
-  gap: 0.75rem;
-  align-items: center;
-}
-
-.tourist-spots-heading p {
-  margin: 0;
-}
-
-.tourist-spots-heading h3 {
-  margin: 2px 0 0;
-  color: #315f55;
-  font-size: 0.98rem;
 }
 
 .tourist-spots-grid {
@@ -6992,24 +6938,6 @@ h1 {
   line-height: 1.65;
 }
 
-.trend-highlight-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.42rem;
-}
-
-.trend-highlight-tags span {
-  display: inline-flex;
-  min-height: 28px;
-  align-items: center;
-  padding: 0.22rem 0.52rem;
-  color: #315f55;
-  background: #eefbf5;
-  border-radius: 999px;
-  font-size: 0.74rem;
-  font-weight: 800;
-}
-
 .trend-map-link {
   min-height: 46px;
   display: inline-flex;
@@ -7152,38 +7080,12 @@ h1 {
   color: #431407;
 }
 
-.restaurant-hints-list span,
-.tourist-spot-note {
+.restaurant-hints-list span {
   display: block;
   margin-top: 0.2rem;
   color: #64748b;
   font-size: 0.8rem;
   line-height: 1.5;
-}
-
-.spot-area-card {
-  border-color: rgba(20, 184, 166, 0.16);
-  background: linear-gradient(135deg, rgba(240, 253, 250, 0.95), rgba(255, 255, 255, 0.94));
-}
-
-.spot-area-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 0.85rem;
-}
-
-.spot-area-list span {
-  display: inline-flex;
-  align-items: center;
-  min-height: 34px;
-  padding: 0.38rem 0.68rem;
-  border: 1px solid rgba(13, 148, 136, 0.16);
-  border-radius: 999px;
-  background: #ffffff;
-  color: #115e59;
-  font-size: 0.86rem;
-  font-weight: 800;
 }
 
 .restaurant-hints-list p {

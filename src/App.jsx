@@ -1509,12 +1509,6 @@ const isTemplateSpotDescription = (description = '') => {
 const getConcreteTouristSpots = (destination = {}) => (Array.isArray(destination.touristSpots) ? destination.touristSpots : [])
   .filter((spot) => isConcreteSpotName(spot?.name) && !isTemplateSpotDescription(spot?.description))
 
-const spotAreaKeywordPattern = /\u901a\u308a|\u5546\u5e97\u8857|\u5e02\u5834|\u6a2a\u4e01|\u6e29\u6cc9\u8857|\u6e6f\u7551|\u5468\u8fba|\u8857\u9053|\u753a\u4e26\u307f|\u7f8e\u89b3\u5730\u533a|\u4e2d\u83ef\u8857|\u516c\u5712|\u904b\u6cb3|\u685f\u6a4b|\u8336\u5c4b\u8857|\u5742|\u5c0f\u8def/
-
-const getSpotAreaCandidates = (destination = {}) => getConcreteTouristSpots(destination)
-  .filter((spot) => spotAreaKeywordPattern.test([spot.name, spot.type, spot.description].filter(Boolean).join(' ')))
-  .slice(0, 6)
-
 const getLocalFoodDisplayItems = (destination = {}) => {
   const fromCandidates = getConcreteFoodCandidates(destination.localFoodCandidates)
   const fromFoodTheme = getConcreteFoodCandidates(splitFoodTheme(getImageMetaValue(destination.foodImage, 'foodTheme')))
@@ -2766,7 +2760,6 @@ function App() {
   const localFoodItems = destination ? getLocalFoodDisplayItems(destination) : []
   const localFoodDetails = destination ? getLocalFoodDetailItems(destination, localFoodItems) : []
   const featuredTouristSpots = destination && planContext ? getPurposeMatchedTouristSpots(destination, planContext.selectedTravelPurposes) : []
-  const spotAreaCandidates = destination ? getSpotAreaCandidates(destination) : []
   const trendHighlights = Array.isArray(destination?.trendHighlights) ? destination.trendHighlights : []
   const foodThemeText = destination ? getFoodThemeText(destination, localFoodItems) : ''
   const foodImageIsFeatured = destination ? shouldFeatureFoodImage(destination, localFoodItems) : false
@@ -3880,7 +3873,7 @@ function App() {
             <div className="developer-page-icon result-page-icon" aria-hidden="true">✦</div>
             <p>DRAW RESULT</p>
             <h1 id="result-page-title">抽選結果</h1>
-            <span>選ばれた旅先の理由・グルメ・スポット・アクセスを確認できます。</span>
+            <span>選ばれた旅先の理由・グルメ・スポット・映え・アクセスを確認できます。</span>
           </header>
         )}
 
@@ -3895,14 +3888,7 @@ function App() {
                   <span>{localFoodItems.length > 0 ? `${localFoodItems.slice(0, 3).join('・')}など、${destination.city}らしい名物を集めました。` : '具体的な料理名があるものだけを表示しています。'}</span>
                 </div>
 
-                <section className={`local-food-card ${foodImageIsFeatured ? 'compact-food-image' : 'no-food-image'}`} aria-labelledby="local-food-title">
-                  <div className="local-food-heading">
-                    <span aria-hidden="true">🍴</span>
-                    <div>
-                      <p>LOCAL FOOD</p>
-                      <h3 id="local-food-title">食べたいものリスト</h3>
-                    </div>
-                  </div>
+                <section className={`local-food-card ${foodImageIsFeatured ? 'compact-food-image' : 'no-food-image'}`} aria-label={`${destination.city}で食べたいもの`}>
                   <div className="local-food-content">
                     <div className="local-food-text">
                       {foodThemeText && (
@@ -3944,13 +3930,7 @@ function App() {
                 </div>
 
                 <section className="tourist-spots-card" aria-labelledby="tourist-spots-title">
-                  <div className="tourist-spots-heading">
-                    <span aria-hidden="true">📍</span>
-                    <div>
-                      <p>SPOTS</p>
-                      <h3 id="tourist-spots-title">代表スポット</h3>
-                    </div>
-                  </div>
+                  <h3 id="tourist-spots-title" className="visually-hidden">{destination.city}で行きたい場所</h3>
                   <div className="tourist-spots-grid">
                     {featuredTouristSpots.map((spot) => (
                       <article key={spot.name} className="tourist-spot-item">
@@ -3962,29 +3942,16 @@ function App() {
                         <dl>
                           <div><dt>目安</dt><dd>{spot.stayTime}</dd></div>
                         </dl>
-                        {spot.sourceStatus === 'needs_review' && spot.note && <small className="tourist-spot-note">{spot.note}</small>}
                         <a className="spot-map-link" href={getSpotMapsSearchUrl(destination, spot)} target="_blank" rel="noopener noreferrer">Google Mapsで探す</a>
                       </article>
                     ))}
                   </div>
                 </section>
 
-                {spotAreaCandidates.length > 0 && (
-                  <section className="spot-area-card" aria-labelledby="spot-area-title">
-                    <div className="tourist-spots-heading">
-                      <span aria-hidden="true">🚶</span>
-                      <div>
-                        <p>AREA</p>
-                        <h3 id="spot-area-title">エリア・通り・温泉街候補</h3>
-                      </div>
-                    </div>
-                    <div className="spot-area-list">
-                      {spotAreaCandidates.map((spot) => (
-                        <span key={`area-${spot.name}`}>{spot.name}</span>
-                      ))}
-                    </div>
-                  </section>
-                )}
+                <div className="food-search-guide">
+                  <strong>訪問前に確認</strong>
+                  <p>営業時間・定休日・料金は変わるため、訪問前にGoogle Mapsや公式情報で確認してください。</p>
+                </div>
               </section>
             )}
 
@@ -3998,14 +3965,7 @@ function App() {
                 </div>
 
                 {trendHighlights.length > 0 ? (
-                  <section className="trend-highlights-card" aria-labelledby="trend-highlights-title">
-                    <div className="tourist-spots-heading trend-highlights-heading">
-                      <span aria-hidden="true">✨</span>
-                      <div>
-                        <p>TREND</p>
-                        <h3 id="trend-highlights-title">写真に残したい候補</h3>
-                      </div>
-                    </div>
+                  <section className="trend-highlights-card" aria-label={`${destination.city}の映え・トレンド`}>
                     <div className="trend-highlights-grid">
                       {trendHighlights.map((item) => (
                         <article key={`${item.category}-${item.name}`} className="trend-highlight-item">
@@ -4014,12 +3974,6 @@ function App() {
                             <span>{item.category}</span>
                           </div>
                           <p>{item.description}</p>
-                          {Array.isArray(item.bestFor) && item.bestFor.length > 0 && (
-                            <div className="trend-highlight-tags" aria-label={`${item.name}の雰囲気`}>
-                              {item.bestFor.slice(0, 3).map((label) => <span key={label}>{label}</span>)}
-                            </div>
-                          )}
-                          {item.sourceStatus === 'needs_review' && item.note && <small className="tourist-spot-note">{item.note}</small>}
                           <a className="trend-map-link" href={getTrendMapsSearchUrl(destination, item)} target="_blank" rel="noopener noreferrer">Google Mapsで探す</a>
                         </article>
                       ))}
@@ -4036,8 +3990,8 @@ function App() {
                 )}
 
                 <div className="food-search-guide trend-search-guide">
-                  <strong>地図で探すとき</strong>
-                  <p>掲載候補は自動取得ではなく手動データです。営業状況、提供内容、料金、混雑状況は訪問前にGoogle Mapsや公式情報で確認してください。</p>
+                  <strong>訪問前に確認</strong>
+                  <p>掲載候補は手動データです。営業時間・定休日・料金・提供内容は変わるため、訪問前にGoogle Mapsや公式情報で確認してください。</p>
                 </div>
               </section>
             )}
@@ -4088,7 +4042,7 @@ function App() {
               </div>
 
               <div className="reason-list">
-                {resultReasonItems.map((reason) => (
+                {resultReasonItems.slice(0, 2).map((reason) => (
                   <div className="reason-item compact" key={reason}>
                     <span aria-hidden="true">✓</span>
                     <p>{reason}</p>
@@ -5584,6 +5538,9 @@ function App() {
               <div><dt>trendHighlights current</dt><dd>{trendHighlights.length}件</dd></div>
               <div><dt>detail return CTA</dt><dd>結果に戻る</dd></div>
               <div><dt>detail hidden result info</dt><dd>適合度 / アクセス確認 / 保存・比較 / 再抽選 / 条件変更は非表示</dd></div>
+              <div><dt>detail duplicate headings</dt><dd>LOCAL FOOD / SPOTS / TREND の重複見出しは非表示</dd></div>
+              <div><dt>detail shared notice</dt><dd>長い注意文はページ下部に集約</dd></div>
+              <div><dt>detail tag density</dt><dd>映えカードはcategoryのみ表示</dd></div>
               <div><dt>route destination query</dt><dd>{routeDestinationQuery || '未設定'}</dd></div>
               <div><dt>route destination source</dt><dd>{routeDestinationSource || '未設定'}</dd></div>
               <div><dt>nearestStation / label</dt><dd>{destination?.nearestStation ?? '未設定'} / {destination?.nearestStationLabel ?? '未設定'}</dd></div>
