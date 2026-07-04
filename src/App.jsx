@@ -4326,7 +4326,7 @@ function App() {
               )}
 
               <p className="movement-range-note">
-                移動範囲は概算で判定しています。正確な移動時間は詳細表示後に取得します。
+                移動範囲は概算で判定しています。正確な移動時間・乗換・料金はGoogle Mapsで確認してください。
               </p>
               <div className="destination-filter-summary" aria-live="polite">
                 <div className="destination-active-filters">
