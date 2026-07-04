@@ -740,13 +740,14 @@ h1 {
 }
 
 .result-hero-image {
-  width: calc(100% + 44px);
+  width: 100%;
   max-height: 250px;
   aspect-ratio: 16 / 9;
   height: auto;
   display: block;
-  margin: -25px -22px 18px;
+  margin: 0 0 16px;
   object-fit: cover;
+  border-radius: 20px;
 }
 
 .result-card > .image-credit {
@@ -6611,8 +6612,7 @@ h1 {
   .movement-strict-toggle { min-height: 44px; }
 
   .result-card { margin-top: 22px; padding: 20px 16px 18px; }
-  .result-hero-image { margin: -20px -16px 18px; width: calc(100% + 32px); }
-  .result-hero-image { max-height: 220px; }
+  .result-hero-image { margin-bottom: 14px; max-height: 210px; border-radius: 16px; }
   .result-city { font-size: 1.65rem; }
   .result-recommendation { font-size: 0.78rem; line-height: 1.75; }
   .result-hero-meta span { font-size: 0.58rem; }

@@ -9,7 +9,6 @@
     </linearGradient>
     <style>
       :root { --bg:#8a6a50; --light:#f4e0bd; --accent:#475f66; --dark:#c58b4b; }
-      text { font-family: "Yu Gothic", "Hiragino Sans", "Noto Sans JP", sans-serif; }
     </style>
   </defs>
   <rect width="640" height="360" rx="0" fill="url(#sky)"/>
@@ -19,7 +18,4 @@
 <g opacity=".9"><rect x="430" y="142" width="58" height="146" rx="5" fill="#6d5342"/><path d="M408 142 L459 103 L510 142 Z" fill="#3f4f59"/><rect x="444" y="168" width="30" height="42" rx="4" fill="#f4dfb9"/></g>
 <path d="M205 360 C236 302 292 260 392 216" fill="none" stroke="#f2d0a7" stroke-width="34" opacity=".52"/>
 <g opacity=".9"><circle cx="170" cy="251" r="22" fill="#d68a79"/><circle cx="212" cy="251" r="22" fill="#e0b45f"/><path d="M145 286 L238 286" stroke="#684d3c" stroke-width="8" stroke-linecap="round"/></g>
-  <rect x="34" y="34" width="230" height="82" rx="24" fill="#fffaf1" opacity=".82"/>
-  <text x="58" y="72" font-size="25" font-weight="700" fill="#c58b4b">川越市</text>
-  <text x="58" y="98" font-size="15" font-weight="600" fill="#c58b4b" opacity=".72">蔵造りと時の鐘</text>
 </svg>

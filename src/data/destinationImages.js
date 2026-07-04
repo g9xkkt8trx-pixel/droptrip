@@ -531,8 +531,8 @@ export const getDestinationImage = (destination = {}, imageType = 'hero') => {
         : `${destination.city}の${imageType === 'scenery' ? '景色' : 'ご当地グルメ'}をイメージしたビジュアル`),
       foodTheme: imageType === 'food' ? theme || inferFoodThemeFromUrl(mappedUrl, 'curated') : '',
       note: theme
-        ? `${theme}に沿った旅先固定画像です。現地写真ではなくイメージとして扱います。`
-        : '旅先固定画像です。現地写真ではなくイメージとして扱います。',
+        ? `${theme}に沿った旅先固定のイメージビジュアルです。`
+        : '旅先固定のイメージビジュアルです。',
     })
   }
   if (configuredUrl.startsWith('/images/destinations/') && isValidImageUrl(configured)) {

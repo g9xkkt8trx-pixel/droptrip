@@ -9,7 +9,6 @@
     </linearGradient>
     <style>
       :root { --bg:#243c5a; --light:#f6d188; --accent:#d85d4f; --dark:#62a3a3; }
-      text { font-family: "Yu Gothic", "Hiragino Sans", "Noto Sans JP", sans-serif; }
     </style>
   </defs>
   <rect width="640" height="360" rx="0" fill="url(#sky)"/>
@@ -19,7 +18,4 @@
 <g opacity=".9"><ellipse cx="470" cy="278" rx="74" ry="27" fill="#f4e4cd"/><path d="M415 272 C452 292 490 292 526 272" fill="#d69052" opacity=".7"/><path d="M442 250 L520 230" stroke="#5d4639" stroke-width="7" stroke-linecap="round"/></g>
 <circle cx="538" cy="86" r="34" fill="#f3d88b" opacity=".85"/>
 <path d="M0 318 C110 292 212 337 320 312 C420 290 512 304 640 272 L640 360 L0 360 Z" fill="#5fa6bd" opacity=".45"/>
-  <rect x="34" y="34" width="230" height="82" rx="24" fill="#fffaf1" opacity=".82"/>
-  <text x="58" y="72" font-size="25" font-weight="700" fill="#62a3a3">福岡市</text>
-  <text x="58" y="98" font-size="15" font-weight="600" fill="#62a3a3" opacity=".72">屋台と夜の港町</text>
 </svg>

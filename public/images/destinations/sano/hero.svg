@@ -9,7 +9,6 @@
     </linearGradient>
     <style>
       :root { --bg:#e5b36a; --light:#f7ead3; --accent:#9d4d42; --dark:#58796c; }
-      text { font-family: "Yu Gothic", "Hiragino Sans", "Noto Sans JP", sans-serif; }
     </style>
   </defs>
   <rect width="640" height="360" rx="0" fill="url(#sky)"/>
@@ -19,7 +18,4 @@
 <g opacity=".9"><rect x="398" y="213" width="104" height="72" rx="4" fill="#d9aa76"/><path d="M374 213 L450 166 L526 213 Z" fill="#794e49"/><path d="M392 190 L450 150 L508 190" fill="none" stroke="#f5e6cf" stroke-width="8"/></g>
 <path d="M205 360 C236 302 292 260 392 216" fill="none" stroke="#f2d0a7" stroke-width="34" opacity=".52"/>
 <g fill="none" stroke="#fff8f2" stroke-width="10" stroke-linecap="round" opacity=".78"><path d="M138 210 C110 176 158 160 136 125"/><path d="M203 211 C174 178 226 157 198 120"/><path d="M468 216 C442 184 490 162 466 129"/></g>
-  <rect x="34" y="34" width="230" height="82" rx="24" fill="#fffaf1" opacity=".82"/>
-  <text x="58" y="72" font-size="25" font-weight="700" fill="#58796c">佐野市</text>
-  <text x="58" y="98" font-size="15" font-weight="600" fill="#58796c" opacity=".72">ラーメンと厄除け大師</text>
 </svg>

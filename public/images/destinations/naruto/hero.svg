@@ -9,7 +9,6 @@
     </linearGradient>
     <style>
       :root { --bg:#2d7fa3; --light:#e7f5f7; --accent:#e9c57a; --dark:#5d6f83; }
-      text { font-family: "Yu Gothic", "Hiragino Sans", "Noto Sans JP", sans-serif; }
     </style>
   </defs>
   <rect width="640" height="360" rx="0" fill="url(#sky)"/>
@@ -19,7 +18,4 @@
 <path d="M108 206 C230 156 410 156 532 206" fill="none" stroke="#edf1ef" stroke-width="14" opacity=".9"/><path d="M122 213 L520 213" stroke="#5b6f80" stroke-width="8" opacity=".7"/>
 <path d="M0 284 C88 270 126 300 205 284 C285 267 340 298 420 281 C510 262 560 293 640 275 L640 360 L0 360 Z" fill="#5fa6bd" opacity=".64"/>
 <path d="M65 282 C120 245 165 317 220 282 C275 245 318 317 374 282 C430 245 475 317 530 282" fill="none" stroke="#f7fbff" stroke-width="8" stroke-linecap="round" opacity=".8"/>
-  <rect x="34" y="34" width="230" height="82" rx="24" fill="#fffaf1" opacity=".82"/>
-  <text x="58" y="72" font-size="25" font-weight="700" fill="#5d6f83">鳴門市</text>
-  <text x="58" y="98" font-size="15" font-weight="600" fill="#5d6f83" opacity=".72">渦潮と海峡</text>
 </svg>

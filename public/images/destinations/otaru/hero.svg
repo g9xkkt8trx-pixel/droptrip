@@ -9,7 +9,6 @@
     </linearGradient>
     <style>
       :root { --bg:#1f4f6b; --light:#d8c2a3; --accent:#f4e5c7; --dark:#b76f55; }
-      text { font-family: "Yu Gothic", "Hiragino Sans", "Noto Sans JP", sans-serif; }
     </style>
   </defs>
   <rect width="640" height="360" rx="0" fill="url(#sky)"/>
@@ -19,7 +18,4 @@
 <g opacity=".9"><rect x="125" y="198" width="102" height="86" rx="3" fill="#b36a4e"/><rect x="252" y="186" width="118" height="98" rx="3" fill="#d3a071"/><rect x="398" y="205" width="86" height="79" rx="3" fill="#9a654f"/><path d="M112 198 L176 160 L240 198 Z" fill="#5c5f68"/><path d="M238 186 L311 145 L384 186 Z" fill="#5c5f68"/><path d="M386 205 L441 172 L496 205 Z" fill="#5c5f68"/></g>
 <g opacity=".8"><path d="M500 162 L500 286" stroke="#3b4550" stroke-width="8"/><circle cx="500" cy="150" r="18" fill="#f6d68a"/><path d="M482 150 C486 124 514 124 518 150" fill="none" stroke="#3b4550" stroke-width="6"/></g>
 <circle cx="538" cy="86" r="34" fill="#f3d88b" opacity=".85"/>
-  <rect x="34" y="34" width="230" height="82" rx="24" fill="#fffaf1" opacity=".82"/>
-  <text x="58" y="72" font-size="25" font-weight="700" fill="#b76f55">小樽市</text>
-  <text x="58" y="98" font-size="15" font-weight="600" fill="#b76f55" opacity=".72">運河と倉庫群</text>
 </svg>

@@ -9,7 +9,6 @@
     </linearGradient>
     <style>
       :root { --bg:#5f9375; --light:#eaf1df; --accent:#4d6d8a; --dark:#c88a4a; }
-      text { font-family: "Yu Gothic", "Hiragino Sans", "Noto Sans JP", sans-serif; }
     </style>
   </defs>
   <rect width="640" height="360" rx="0" fill="url(#sky)"/>
@@ -19,7 +18,4 @@
 <g opacity=".9"><rect x="388" y="196" width="116" height="90" rx="4" fill="#f1e5cd"/><path d="M370 196 L446 142 L522 196 Z" fill="#5c6070"/><rect x="422" y="225" width="34" height="61" fill="#7c5e52"/><path d="M402 178 L446 142 L490 178" fill="none" stroke="#f6efe4" stroke-width="9"/></g>
 <g opacity=".84"><rect x="360" y="190" width="54" height="94" rx="5" fill="#d9c59f"/><rect x="430" y="160" width="64" height="124" rx="5" fill="#9eb5bd"/><rect x="512" y="206" width="48" height="78" rx="5" fill="#dcb17c"/></g>
 <ellipse cx="174" cy="276" rx="70" ry="24" fill="#f8ead6" opacity=".9"/><rect x="140" y="260" width="72" height="18" rx="9" fill="#b8754a" opacity=".8"/>
-  <rect x="34" y="34" width="230" height="82" rx="24" fill="#fffaf1" opacity=".82"/>
-  <text x="58" y="72" font-size="25" font-weight="700" fill="#c88a4a">仙台市</text>
-  <text x="58" y="98" font-size="15" font-weight="600" fill="#c88a4a" opacity=".72">杜の都と城跡</text>
 </svg>
