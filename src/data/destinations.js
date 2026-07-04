@@ -2726,6 +2726,7 @@ const baseDestinations = rawDestinations.map((destination) => {
   const seasonProfile = getSeasonProfile(destination)
   const localFoodCandidates = getLocalFoodCandidates(destination.city, destination.tags)
   const images = getDestinationImages(destination.prefecture, destination.city, destination.tags, {
+    id: `${destination.prefecture}-${destination.city}`,
     localFoodCandidates,
     region: normalizeRegion(destination.prefecture, destination.region),
   })
@@ -2759,6 +2760,7 @@ const baseDestinations = rawDestinations.map((destination) => {
 const expandedDestinations = supplementalDestinations.map((destination) => {
   const localFoodCandidates = getLocalFoodCandidates(destination.city, destination.tags)
   const images = getDestinationImages(destination.prefecture, destination.city, destination.tags, {
+    id: `${destination.prefecture}-${destination.city}`,
     localFoodCandidates,
     region: normalizeRegion(destination.prefecture, destination.region),
   })

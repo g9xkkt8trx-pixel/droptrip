@@ -214,6 +214,15 @@ const TRAVEL_CACHE_STORAGE_KEY = 'droptrip-travel-time-cache'
 const DRAW_HISTORY_STORAGE_KEY = 'droptrip-draw-history'
 const INPUT_STATE_STORAGE_KEY = 'droptrip-input-state'
 const BETA_FEEDBACK_STORAGE_KEY = 'droptrip-beta-feedback'
+const resultFeedbackThinAreaOptions = ['グルメ', 'スポット', '映え', 'アクセス', '画面デザイン', 'その他']
+const createEmptyResultFeedbackForm = () => ({
+  wantToVisit: '少し思った',
+  good: '',
+  unclear: '',
+  thinAreas: [],
+  request: '',
+  mobileIssue: '',
+})
 const MAX_HISTORY_ITEMS = 20
 const DAILY_AI_PLAN_LIMIT = 3
 const betaTestCheckpoints = [
@@ -1129,6 +1138,14 @@ const loadBetaFeedbackNotes = () => {
           suggestion: typeof item.suggestion === 'string' ? item.suggestion : '',
           priority: ['低', '中', '高'].includes(item.priority) ? item.priority : '中',
           createdAt: typeof item.createdAt === 'string' ? item.createdAt : new Date().toISOString(),
+          category: typeof item.category === 'string' ? item.category : 'developer-note',
+          wantToVisit: typeof item.wantToVisit === 'string' ? item.wantToVisit : '',
+          good: typeof item.good === 'string' ? item.good : '',
+          thinAreas: Array.isArray(item.thinAreas) ? item.thinAreas.filter((area) => typeof area === 'string') : [],
+          mobileIssue: typeof item.mobileIssue === 'string' ? item.mobileIssue : '',
+          destinationName: typeof item.destinationName === 'string' ? item.destinationName : '',
+          conditions: typeof item.conditions === 'string' ? item.conditions : '',
+          copiedText: typeof item.copiedText === 'string' ? item.copiedText : '',
         }))
       : []
   } catch {
@@ -2626,6 +2643,8 @@ function App() {
     priority: '中',
   })
   const [betaFeedbackNotice, setBetaFeedbackNotice] = useState('')
+  const [resultFeedbackForm, setResultFeedbackForm] = useState(createEmptyResultFeedbackForm)
+  const [resultFeedbackNotice, setResultFeedbackNotice] = useState('')
   const [openAiCommunicationMode, setOpenAiCommunicationMode] = useState('server')
   const [resultDetailView, setResultDetailView] = useState('overview')
   const [destinationSearch, setDestinationSearch] = useState('')
@@ -2772,6 +2791,37 @@ function App() {
     : []
   const currentBudget = destination ? getBudgetForSchedule(destination, currentTripSchedule) : '時期により変動'
   const longTripPacingItems = getLongTripPacingItems(currentTripSchedule, Boolean(planContext?.tripSuggestions?.some((item) => !item.isStayFocus)))
+  const resultFeedbackConditionText = destination && planContext ? [
+    `旅先：${destination.prefecture} ${destination.city}`,
+    `出発地：${planContext.departure || '未設定'}`,
+    `旅行日程：${currentTripSchedule.label}`,
+    `同行者・旅のスタイル：${planContext.selectedFilters?.length > 0 ? planContext.selectedFilters.join('・') : '指定なし'}`,
+    `旅の目的：${planContext.selectedTravelPurposes?.length > 0 ? planContext.selectedTravelPurposes.join('・') : '指定なし'}`,
+    `移動範囲：${movementRangeOptions.find((option) => option.value === planContext.movementRange)?.label ?? 'おまかせ'}`,
+    `表示元：${selectionMeta?.source === 'destination-list' ? '旅行先一覧から表示' : selectionMeta?.source === 'history' ? '履歴から表示' : '抽選結果'}`,
+  ].join('\n') : ''
+  const resultFeedbackCopyText = destination && planContext ? [
+    'DROPTRIP βテスト感想',
+    '',
+    resultFeedbackConditionText,
+    '',
+    `行ってみたい度：${resultFeedbackForm.wantToVisit}`,
+    '',
+    '良かったところ：',
+    resultFeedbackForm.good.trim() || '未入力',
+    '',
+    '分かりにくかったところ：',
+    resultFeedbackForm.unclear.trim() || '未入力',
+    '',
+    '情報が薄いところ：',
+    resultFeedbackForm.thinAreas.length > 0 ? resultFeedbackForm.thinAreas.join('、') : '未選択',
+    '',
+    '追加してほしいこと：',
+    resultFeedbackForm.request.trim() || '未入力',
+    '',
+    'スマホで見づらかったところ：',
+    resultFeedbackForm.mobileIssue.trim() || '未入力',
+  ].join('\n') : ''
 
   const apiKeySource = getGoogleMapsApiKeySource(savedApiKey)
   const maskedApiKey = savedApiKey ? savedApiKey.slice(-4) : ''
@@ -2954,6 +3004,59 @@ function App() {
     saveBetaFeedbackNotes(betaFeedbackNotes.filter((note) => note.id !== noteId))
   }
 
+  const clearBetaFeedbackNotes = () => {
+    saveBetaFeedbackNotes([])
+    setBetaFeedbackNotice('保存済みβテストメモを削除しました。')
+  }
+
+  const updateResultFeedbackForm = (field, value) => {
+    setResultFeedbackForm((current) => ({ ...current, [field]: value }))
+    setResultFeedbackNotice('')
+  }
+
+  const toggleResultFeedbackThinArea = (area) => {
+    setResultFeedbackForm((current) => ({
+      ...current,
+      thinAreas: current.thinAreas.includes(area)
+        ? current.thinAreas.filter((item) => item !== area)
+        : [...current.thinAreas, area],
+    }))
+    setResultFeedbackNotice('')
+  }
+
+  const saveResultFeedbackNote = (copiedText = resultFeedbackCopyText) => {
+    if (!destination || !planContext) return
+    const nextNote = {
+      id: globalThis.crypto?.randomUUID?.() ?? `beta-result-${Date.now()}`,
+      category: 'result-feedback',
+      screen: `結果画面：${destination.city}`,
+      issue: resultFeedbackForm.unclear.trim(),
+      suggestion: resultFeedbackForm.request.trim(),
+      priority: resultFeedbackForm.wantToVisit === 'あまり思わない' ? '高' : '中',
+      wantToVisit: resultFeedbackForm.wantToVisit,
+      good: resultFeedbackForm.good.trim(),
+      thinAreas: resultFeedbackForm.thinAreas,
+      mobileIssue: resultFeedbackForm.mobileIssue.trim(),
+      destinationName: `${destination.prefecture} ${destination.city}`,
+      conditions: resultFeedbackConditionText,
+      copiedText,
+      createdAt: new Date().toISOString(),
+    }
+    saveBetaFeedbackNotes([nextNote, ...betaFeedbackNotes].slice(0, 50))
+  }
+
+  const copyResultFeedback = async () => {
+    if (!resultFeedbackCopyText) return
+    try {
+      await navigator.clipboard.writeText(resultFeedbackCopyText)
+      saveResultFeedbackNote(resultFeedbackCopyText)
+      setResultFeedbackNotice('コピーしました。LINEやメモに貼り付けて共有できます。端末内にも保存しました。')
+    } catch {
+      saveResultFeedbackNote(resultFeedbackCopyText)
+      setResultFeedbackNotice('端末内に保存しました。コピーできない場合は、下の文章を選択して共有してください。')
+    }
+  }
+
   const saveApiKey = (event) => {
     event.preventDefault()
     const nextApiKey = apiKeyInput.trim()
@@ -3078,6 +3181,7 @@ function App() {
 
   const showResultDetailPage = (view) => {
     setResultDetailView(view)
+    setResultFeedbackNotice('')
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -3648,7 +3752,7 @@ function App() {
     <main className="app-shell">
       <section
         className={`trip-card ${currentPage === 'developer' ? 'developer-page' : currentPage === 'history' ? 'history-page' : currentPage === 'favorites' ? 'favorites-page' : currentPage === 'comparison' ? 'comparison-page' : currentPage === 'calculation' ? 'calculation-page' : currentPage === 'destinations' ? 'destinations-page' : currentPage === 'result' ? 'result-page' : 'main-page'}`}
-        aria-labelledby={currentPage === 'developer' ? 'developer-page-title' : currentPage === 'history' ? 'history-page-title' : currentPage === 'favorites' ? 'favorites-page-title' : currentPage === 'comparison' ? 'comparison-page-title' : currentPage === 'calculation' ? 'calculation-page-title' : currentPage === 'destinations' ? 'destinations-page-title' : currentPage === 'result' ? resultDetailView === 'food' ? 'result-food-page-title' : resultDetailView === 'spots' ? 'result-spots-page-title' : resultDetailView === 'trends' ? 'result-trends-page-title' : 'result-page-title' : 'app-title'}
+        aria-labelledby={currentPage === 'developer' ? 'developer-page-title' : currentPage === 'history' ? 'history-page-title' : currentPage === 'favorites' ? 'favorites-page-title' : currentPage === 'comparison' ? 'comparison-page-title' : currentPage === 'calculation' ? 'calculation-page-title' : currentPage === 'destinations' ? 'destinations-page-title' : currentPage === 'result' ? resultDetailView === 'food' ? 'result-food-page-title' : resultDetailView === 'spots' ? 'result-spots-page-title' : resultDetailView === 'trends' ? 'result-trends-page-title' : resultDetailView === 'feedback' ? 'result-feedback-page-title' : 'result-page-title' : 'app-title'}
       >
         {currentPage === 'main' || currentPage === 'result' ? (
           <>
@@ -3996,6 +4100,87 @@ function App() {
               </section>
             )}
 
+            {resultDetailView === 'feedback' && (
+              <section className="result-detail-page result-feedback-page" aria-labelledby="result-feedback-page-title">
+                <button type="button" className="result-detail-back-button" onClick={backToResultOverview}>← 結果に戻る</button>
+                <div className="result-detail-page-heading feedback-detail-heading">
+                  <p>{destination.prefecture} {destination.city}</p>
+                  <h2 id="result-feedback-page-title">β版の感想をメモする</h2>
+                  <span>名前や連絡先は不要です。感じたことだけ、短く残せます。</span>
+                </div>
+
+                <section className="result-feedback-card" aria-label="β版フィードバック入力">
+                  <div className="feedback-condition-summary">
+                    <strong>今回見ていた旅</strong>
+                    <pre>{resultFeedbackConditionText}</pre>
+                  </div>
+
+                  <fieldset className="feedback-choice-group">
+                    <legend>この旅先、行ってみたいと思った？</legend>
+                    {['とても思った', '少し思った', 'あまり思わない'].map((label) => (
+                      <label key={label}>
+                        <input
+                          type="radio"
+                          name="want-to-visit"
+                          value={label}
+                          checked={resultFeedbackForm.wantToVisit === label}
+                          onChange={(event) => updateResultFeedbackForm('wantToVisit', event.target.value)}
+                        />
+                        <span>{label}</span>
+                      </label>
+                    ))}
+                  </fieldset>
+
+                  <label>
+                    <span>良かったところ</span>
+                    <textarea value={resultFeedbackForm.good} onChange={(event) => updateResultFeedbackForm('good', event.target.value)} placeholder="例：グルメが具体的で見やすかった" />
+                  </label>
+
+                  <label>
+                    <span>分かりにくかったところ</span>
+                    <textarea value={resultFeedbackForm.unclear} onChange={(event) => updateResultFeedbackForm('unclear', event.target.value)} placeholder="例：映えとスポットの違いが少し分かりにくかった" />
+                  </label>
+
+                  <fieldset className="feedback-thin-area-group">
+                    <legend>情報が薄いと感じたところ</legend>
+                    <div>
+                      {resultFeedbackThinAreaOptions.map((area) => (
+                        <label key={area}>
+                          <input
+                            type="checkbox"
+                            checked={resultFeedbackForm.thinAreas.includes(area)}
+                            onChange={() => toggleResultFeedbackThinArea(area)}
+                          />
+                          <span>{area}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </fieldset>
+
+                  <label>
+                    <span>追加してほしいこと</span>
+                    <textarea value={resultFeedbackForm.request} onChange={(event) => updateResultFeedbackForm('request', event.target.value)} placeholder="例：写真があるともっと行きたくなる" />
+                  </label>
+
+                  <label>
+                    <span>スマホで見づらかったところ</span>
+                    <textarea value={resultFeedbackForm.mobileIssue} onChange={(event) => updateResultFeedbackForm('mobileIssue', event.target.value)} placeholder="例：特になし / ボタンは押しやすかった" />
+                  </label>
+
+                  <div className="feedback-copy-box">
+                    <strong>コピーされる内容</strong>
+                    <textarea readOnly value={resultFeedbackCopyText} aria-label="コピーされるフィードバック本文" />
+                  </div>
+
+                  {resultFeedbackNotice && <p className="settings-notice" role="status">{resultFeedbackNotice}</p>}
+                  <div className="feedback-actions">
+                    <button type="button" onClick={copyResultFeedback}>感想をコピーする</button>
+                    <button type="button" className="secondary" onClick={() => { saveResultFeedbackNote(); setResultFeedbackNotice('端末内に保存しました。開発者ページのβテストメモで確認できます。') }}>端末内に保存</button>
+                  </div>
+                </section>
+              </section>
+            )}
+
             {resultDetailView === 'overview' && (
               <>
             <section className="result-card result-proposal-hero" aria-label="旅先の提案">
@@ -4174,6 +4359,14 @@ function App() {
                 </button>
               )}
             </nav>
+            <section className="result-feedback-entry" aria-labelledby="result-feedback-entry-title">
+              <div>
+                <p>BETA FEEDBACK</p>
+                <h2 id="result-feedback-entry-title">使ってみた感想をメモする</h2>
+                <span>外部送信はせず、コピーや端末内保存で共有できます。</span>
+              </div>
+              <button type="button" onClick={() => showResultDetailPage('feedback')}>β版の感想を送る</button>
+            </section>
             </>
             )}
           </div>
@@ -4783,6 +4976,9 @@ function App() {
               <strong>保存済みメモ</strong>
               <span>{betaFeedbackNotes.length}件</span>
             </div>
+            {betaFeedbackNotes.length > 0 && (
+              <button type="button" className="beta-feedback-clear-button" onClick={clearBetaFeedbackNotes}>全削除</button>
+            )}
             {betaFeedbackNotes.length === 0 ? (
               <p className="beta-feedback-empty">まだメモはありません。</p>
             ) : (
@@ -4791,12 +4987,16 @@ function App() {
                   <header>
                     <div>
                       <strong>{note.screen}</strong>
-                      <span>重要度：{note.priority}</span>
+                      <span>{note.category === 'result-feedback' ? `行ってみたい度：${note.wantToVisit || '未入力'}` : `重要度：${note.priority}`}</span>
                     </div>
                     <button type="button" onClick={() => deleteBetaFeedbackNote(note.id)}>削除</button>
                   </header>
-                  <p>{note.issue}</p>
+                  {note.destinationName && <small>旅先：{note.destinationName}</small>}
+                  {note.good && <p>良かったところ：{note.good}</p>}
+                  {note.issue && <p>分かりにくかったところ：{note.issue}</p>}
+                  {note.thinAreas?.length > 0 && <small>薄いところ：{note.thinAreas.join('、')}</small>}
                   {note.suggestion && <small>改善案：{note.suggestion}</small>}
+                  {note.mobileIssue && <small>スマホ：{note.mobileIssue}</small>}
                 </article>
               ))
             )}
@@ -4994,6 +5194,7 @@ function App() {
             <div><span>ライセンス未確認</span><strong>{destinationQualityReport.imageStatus.licenseUnconfirmed}件</strong></div>
             <div><span>読み込み失敗</span><strong>{imageFailures.length}件</strong></div>
             <div><span>要確認</span><strong>{destinationQualityReport.imageStatus.needsReview}件</strong></div>
+            <div><span>hero管理対象</span><strong>{destinations.length}件</strong></div>
             <div><span>固定hero画像あり</span><strong>{getFixedHeroImageCities(destinations).length}/{destinations.length}件</strong></div>
             <div><span>固定hero画像なし</span><strong>{getMissingFixedHeroImageCities(destinations).length}件</strong></div>
             <div><span>優先旅先 固定hero</span><strong>{getPriorityFixedHeroReadiness(destinations)}</strong></div>
@@ -5084,6 +5285,7 @@ function App() {
               <div><dt>result journey image shortage</dt><dd>{formatShortageList(getResultJourneyImageShortageCities(destinations))}</dd></div>
               <div><dt>固定hero画像なし</dt><dd>{formatShortageList(getMissingFixedHeroImageCities(destinations))}</dd></div>
               <div><dt>甲府市 固定hero</dt><dd>{getFixedHeroImageCities(destinations).includes('甲府市') ? '設定済み' : '未設定'}</dd></div>
+              <div><dt>結果画面hero方針</dt><dd>destination_fixedのみ表示 / category fallback・generic・randomは非表示</dd></div>
               <div><dt>hero category fallback残存</dt><dd>{formatShortageList(getCategoryFallbackHeroCities(destinations))}</dd></div>
               <div><dt>hero generic残存</dt><dd>{formatShortageList(getGenericHeroImageCities(destinations))}</dd></div>
               <div><dt>hero alt不足</dt><dd>{formatShortageList(getHeroAltMissingCities(destinations))}</dd></div>
@@ -5541,6 +5743,8 @@ function App() {
               <div><dt>detail duplicate headings</dt><dd>LOCAL FOOD / SPOTS / TREND の重複見出しは非表示</dd></div>
               <div><dt>detail shared notice</dt><dd>長い注意文はページ下部に集約</dd></div>
               <div><dt>detail tag density</dt><dd>映えカードはcategoryのみ表示</dd></div>
+              <div><dt>beta result feedback</dt><dd>{betaFeedbackNotes.filter((note) => note.category === 'result-feedback').length}件保存</dd></div>
+              <div><dt>latest beta feedback</dt><dd>{betaFeedbackNotes[0]?.screen ?? '未保存'}</dd></div>
               <div><dt>route destination query</dt><dd>{routeDestinationQuery || '未設定'}</dd></div>
               <div><dt>route destination source</dt><dd>{routeDestinationSource || '未設定'}</dd></div>
               <div><dt>nearestStation / label</dt><dd>{destination?.nearestStation ?? '未設定'} / {destination?.nearestStationLabel ?? '未設定'}</dd></div>

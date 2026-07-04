@@ -161,13 +161,46 @@ const DESTINATION_LOCAL_IMAGES = {
   松江市: { hero: '/images/destinations/matsue-hero.jpg' }, 別府市: { hero: '/images/destinations/beppu-hero.jpg' },
 }
 
+const DESTINATION_IMAGE_ID_ALIASES = {
+  '京都府-京都市': '京都市',
+  '奈良県-奈良市': '奈良市',
+  '北海道-小樽市': '小樽市',
+  '北海道-札幌市': '札幌市',
+  '北海道-函館市': '函館市',
+  '石川県-金沢市': '金沢市',
+  '神奈川県-箱根町': '箱根町',
+  '静岡県-熱海市': '熱海市',
+  '群馬県-草津町': '草津町',
+  '栃木県-日光市': '日光市',
+  '神奈川県-鎌倉市': '鎌倉市',
+  '神奈川県-横浜市': '横浜市',
+  '宮城県-松島町': '松島町',
+  '宮城県-仙台市': '仙台市',
+  '福岡県-福岡市': '福岡市',
+  '長崎県-長崎市': '長崎市',
+  '広島県-広島市': '広島市',
+  '広島県-廿日市市': '廿日市市',
+  '沖縄県-那覇市': '那覇市',
+  '沖縄県-石垣市': '石垣市',
+  '岐阜県-高山市': '高山市',
+  '三重県-伊勢市': '伊勢市',
+  '和歌山県-白浜町': '白浜町',
+  '長野県-軽井沢町': '軽井沢町',
+  '北海道-富良野市': '富良野市',
+  '福島県-会津若松市': '会津若松市',
+  '広島県-尾道市': '尾道市',
+  '岡山県-倉敷市': '倉敷市',
+  '島根県-松江市': '松江市',
+  '大分県-別府市': '別府市',
+}
+
+Object.entries(DESTINATION_IMAGE_ID_ALIASES).forEach(([id, city]) => {
+  if (DESTINATION_LOCAL_IMAGES[city]) DESTINATION_LOCAL_IMAGES[id] = DESTINATION_LOCAL_IMAGES[city]
+})
+
 const getDestinationImageMapKey = (destination = {}) => (
   destination.id ?? (destination.prefecture && destination.city ? `${destination.prefecture}-${destination.city}` : destination.city)
 )
-
-const getFixedImageMap = (destination = {}) => DESTINATION_LOCAL_IMAGES[getDestinationImageMapKey(destination)]
-  ?? DESTINATION_LOCAL_IMAGES[destination.city]
-  ?? null
 
 const DESTINATION_IMAGE_THEMES = {
   京都市: {
@@ -222,6 +255,35 @@ const DESTINATION_IMAGE_THEMES = {
   },
 }
 
+const createDestinationFixedImageEntry = (key, mappedImages = {}) => Object.fromEntries(
+  Object.entries(mappedImages).map(([imageType, src]) => {
+    const city = DESTINATION_IMAGE_ID_ALIASES[key] ?? key
+    const theme = DESTINATION_IMAGE_THEMES[city]?.[imageType] ?? ''
+    return [imageType, {
+      src,
+      url: src,
+      alt: imageType === 'hero'
+        ? `${city}をイメージしたビジュアル`
+        : `${city}の${imageType === 'scenery' ? '景色' : 'ご当地グルメ'}をイメージしたビジュアル`,
+      type: 'destination_fixed',
+      status: 'needs_review',
+      isIllustration: true,
+      theme,
+    }]
+  }),
+)
+
+export const destinationImageMap = Object.freeze(Object.fromEntries(
+  Object.entries(DESTINATION_LOCAL_IMAGES).map(([key, mappedImages]) => [
+    key,
+    createDestinationFixedImageEntry(key, mappedImages),
+  ]),
+))
+
+const getFixedImageMap = (destination = {}) => destinationImageMap[getDestinationImageMapKey(destination)]
+  ?? destinationImageMap[destination.city]
+  ?? null
+
 const EXTENDED_DESTINATION_IMAGE_SLUGS = new Set([
   'kyoto',
   'nara',
@@ -256,13 +318,14 @@ const EXTENDED_DESTINATION_IMAGE_SLUGS = new Set([
 ])
 
 const getDestinationImageSlug = (mappedImages = {}) => {
-  const heroPath = mappedImages.hero ?? ''
+  const heroPath = getImageUrl(mappedImages.hero) || mappedImages.hero?.src || ''
   return heroPath.match(/\/images\/destinations\/(.+)-hero\.jpg$/)?.[1] ?? ''
 }
 
 const getMappedDestinationImageUrl = (mappedImages, imageType) => {
   if (!mappedImages) return ''
-  if (mappedImages[imageType]) return mappedImages[imageType]
+  const mappedUrl = getImageUrl(mappedImages[imageType]) || mappedImages[imageType]?.src || ''
+  if (mappedUrl) return mappedUrl
 
   const slug = getDestinationImageSlug(mappedImages)
   if (slug && EXTENDED_DESTINATION_IMAGE_SLUGS.has(slug) && ['food', 'scenery'].includes(imageType)) {
@@ -400,6 +463,9 @@ const normalizeImageAsset = (image, imageType) => {
     isLocal: image.isLocal,
     isGeneric: image.isGeneric,
     isDestinationSpecific: image.isDestinationSpecific,
+    isIllustration: image.isIllustration,
+    alt: image.alt,
+    assetType: image.assetType,
     isFoodSpecific: image.isFoodSpecific,
     isLocalFood: image.isLocalFood,
     foodTheme: image.foodTheme,
@@ -416,16 +482,17 @@ export const getDestinationImage = (destination = {}, imageType = 'hero') => {
   const configured = normalizeImageAsset(destination[field], imageType)
   const configuredUrl = getImageUrl(configured)
   const fixedImageMap = getFixedImageMap(destination)
+  const mappedAsset = fixedImageMap?.[imageType]
   const mappedUrl = getMappedDestinationImageUrl(fixedImageMap, imageType)
 
   if (mappedUrl) {
-    const theme = DESTINATION_IMAGE_THEMES[destination.city]?.[imageType] ?? ''
+    const theme = mappedAsset?.theme ?? DESTINATION_IMAGE_THEMES[destination.city]?.[imageType] ?? ''
     return createLocalAsset(mappedUrl, imageType, 'destination_fixed', '旅先イメージ', 'needs_review', {
       isFoodSpecific: imageType === 'food',
       isLocalFood: imageType === 'food',
-      alt: imageType === 'hero'
+      alt: mappedAsset?.alt || (imageType === 'hero'
         ? `${destination.city}をイメージしたビジュアル`
-        : `${destination.city}の${imageType === 'scenery' ? '景色' : 'ご当地グルメ'}をイメージしたビジュアル`,
+        : `${destination.city}の${imageType === 'scenery' ? '景色' : 'ご当地グルメ'}をイメージしたビジュアル`),
       foodTheme: imageType === 'food' ? theme || inferFoodThemeFromUrl(mappedUrl, 'curated') : '',
       note: theme
         ? `${theme}に沿った旅先固定画像です。現地写真ではなくイメージとして扱います。`
@@ -439,7 +506,7 @@ export const getDestinationImage = (destination = {}, imageType = 'hero') => {
       status: configured.status ?? 'needs_review',
       isDestinationSpecific: true,
       isGeneric: false,
-      isIllustration: configured.isIllustration ?? true,
+      isIllustration: true,
       assetType: 'destination_fixed',
       alt: configured.alt || `${destination.city}をイメージしたビジュアル`,
     })
