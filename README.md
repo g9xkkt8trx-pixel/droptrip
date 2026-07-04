@@ -156,6 +156,7 @@ OPENAI_PLAN_MODEL=gpt-4.1-mini
 - 画像は権利確認済みのものだけを使い、無断転載や外部サイトからの直リンクは行いません。
 - AI生成画像や手作りビジュアルを使う場合は `isIllustration: true`、`type: "destination_fixed"`、`status: "needs_review"` を付け、altは「〇〇をイメージしたビジュアル」として現地写真と誤認させないようにします。
 - 今後は旅先数分だけ専用hero画像が増える前提で、`public/images/destinations/{slug}/hero.webp` 形式を推奨します。WebP優先、横幅1200px前後、1枚100KB〜400KB程度を目安にします。
+- 第1弾として16旅先に軽量SVGの専用heroビジュアルを追加しています。SVGの場合も `destination_fixed` / `needs_review` / `isIllustration: true` として扱い、現地写真とは表現しません。
 - グルメ画像は料理名と一致するものだけ使い、料理専用画像がない場合は画像なしにします。
 
 画面側は `getDestinationImage(destination, imageType)` に画像解決を統一しています。結果画面hero用途では `destinationImageMap[destination.id].hero` がある場合だけ画像を返し、カテゴリfallbackや共通fallbackは返しません。

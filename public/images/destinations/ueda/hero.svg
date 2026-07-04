@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="title desc">
+  <title id="title">上田市をイメージしたビジュアル</title>
+  <desc id="desc">城跡と信州の山並みをテーマにしたDROPTRIP用の旅先固定heroイラストです。</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#6f8465"/>
+      <stop offset="58%" stop-color="#efe3c9"/>
+      <stop offset="100%" stop-color="#fffaf1"/>
+    </linearGradient>
+    <style>
+      :root { --bg:#6f8465; --light:#efe3c9; --accent:#8b3f3b; --dark:#566f91; }
+      text { font-family: "Yu Gothic", "Hiragino Sans", "Noto Sans JP", sans-serif; }
+    </style>
+  </defs>
+  <rect width="640" height="360" rx="0" fill="url(#sky)"/>
+  <circle cx="92" cy="80" r="74" fill="#fff8ed" opacity=".36"/>
+  <circle cx="582" cy="278" r="94" fill="#8b3f3b" opacity=".11"/>
+  <g opacity=".9"><rect x="388" y="196" width="116" height="90" rx="4" fill="#f1e5cd"/><path d="M370 196 L446 142 L522 196 Z" fill="#5c6070"/><rect x="422" y="225" width="34" height="61" fill="#7c5e52"/><path d="M402 178 L446 142 L490 178" fill="none" stroke="#f6efe4" stroke-width="9"/></g>
+<path d="M0 280 C80 190 120 210 190 150 C260 95 325 205 390 155 C470 90 560 190 640 125 L640 360 L0 360 Z" fill="var(--dark)" opacity=".18"/>
+<path d="M165 142 L165 270" stroke="#6c4f40" stroke-width="8"/><path d="M172 150 L252 174 L172 198 Z" fill="#b84f47" opacity=".86"/>
+<g opacity=".82"><rect x="92" y="212" width="72" height="70" rx="4" fill="#fff2d9"/><rect x="184" y="190" width="90" height="92" rx="5" fill="#d8a479"/><rect x="296" y="220" width="72" height="62" rx="4" fill="#f4d8b8"/><path d="M80 212 L128 170 L176 212 Z" fill="var(--accent)"/><path d="M172 190 L229 150 L286 190 Z" fill="var(--dark)"/><path d="M286 220 L332 184 L378 220 Z" fill="var(--accent)"/></g>
+  <rect x="34" y="34" width="230" height="82" rx="24" fill="#fffaf1" opacity=".82"/>
+  <text x="58" y="72" font-size="25" font-weight="700" fill="#566f91">上田市</text>
+  <text x="58" y="98" font-size="15" font-weight="600" fill="#566f91" opacity=".72">城跡と信州の山並み</text>
+</svg>

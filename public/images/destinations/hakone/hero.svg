@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="title desc">
+  <title id="title">箱根町をイメージしたビジュアル</title>
+  <desc id="desc">芦ノ湖と山並みをテーマにしたDROPTRIP用の旅先固定heroイラストです。</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#6e9fb2"/>
+      <stop offset="58%" stop-color="#eef6ef"/>
+      <stop offset="100%" stop-color="#fffaf1"/>
+    </linearGradient>
+    <style>
+      :root { --bg:#6e9fb2; --light:#eef6ef; --accent:#557c68; --dark:#b5483f; }
+      text { font-family: "Yu Gothic", "Hiragino Sans", "Noto Sans JP", sans-serif; }
+    </style>
+  </defs>
+  <rect width="640" height="360" rx="0" fill="url(#sky)"/>
+  <circle cx="92" cy="80" r="74" fill="#fff8ed" opacity=".36"/>
+  <circle cx="582" cy="278" r="94" fill="#557c68" opacity=".11"/>
+  <ellipse cx="330" cy="292" rx="250" ry="52" fill="#74aabd" opacity=".55"/>
+<path d="M0 280 C80 190 120 210 190 150 C260 95 325 205 390 155 C470 90 560 190 640 125 L640 360 L0 360 Z" fill="var(--dark)" opacity=".18"/>
+<g opacity=".88"><path d="M416 147 L545 147" stroke="#b7433f" stroke-width="16" stroke-linecap="round"/><path d="M435 170 L526 170" stroke="#b7433f" stroke-width="10" stroke-linecap="round"/><path d="M452 160 L452 265" stroke="#8e3a36" stroke-width="13"/><path d="M510 160 L510 265" stroke="#8e3a36" stroke-width="13"/></g>
+<g fill="none" stroke="#fff8f2" stroke-width="10" stroke-linecap="round" opacity=".78"><path d="M138 210 C110 176 158 160 136 125"/><path d="M203 211 C174 178 226 157 198 120"/><path d="M468 216 C442 184 490 162 466 129"/></g>
+  <rect x="34" y="34" width="230" height="82" rx="24" fill="#fffaf1" opacity=".82"/>
+  <text x="58" y="72" font-size="25" font-weight="700" fill="#b5483f">箱根町</text>
+  <text x="58" y="98" font-size="15" font-weight="600" fill="#b5483f" opacity=".72">芦ノ湖と山並み</text>
+</svg>

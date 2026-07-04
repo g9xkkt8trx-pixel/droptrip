@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="title desc">
+  <title id="title">下呂温泉をイメージしたビジュアル</title>
+  <desc id="desc">温泉街と川沿いをテーマにしたDROPTRIP用の旅先固定heroイラストです。</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f7d7c4"/>
+      <stop offset="58%" stop-color="#f6efe7"/>
+      <stop offset="100%" stop-color="#fffaf1"/>
+    </linearGradient>
+    <style>
+      :root { --bg:#f7d7c4; --light:#f6efe7; --accent:#8fb9a8; --dark:#d58b72; }
+      text { font-family: "Yu Gothic", "Hiragino Sans", "Noto Sans JP", sans-serif; }
+    </style>
+  </defs>
+  <rect width="640" height="360" rx="0" fill="url(#sky)"/>
+  <circle cx="92" cy="80" r="74" fill="#fff8ed" opacity=".36"/>
+  <circle cx="582" cy="278" r="94" fill="#8fb9a8" opacity=".11"/>
+  <g fill="none" stroke="#fff8f2" stroke-width="10" stroke-linecap="round" opacity=".78"><path d="M138 210 C110 176 158 160 136 125"/><path d="M203 211 C174 178 226 157 198 120"/><path d="M468 216 C442 184 490 162 466 129"/></g>
+<path d="M0 315 C105 275 170 350 275 310 C400 262 475 335 640 292 L640 360 L0 360 Z" fill="#6fa8b8" opacity=".55"/>
+<g opacity=".82"><rect x="92" y="212" width="72" height="70" rx="4" fill="#fff2d9"/><rect x="184" y="190" width="90" height="92" rx="5" fill="#d8a479"/><rect x="296" y="220" width="72" height="62" rx="4" fill="#f4d8b8"/><path d="M80 212 L128 170 L176 212 Z" fill="var(--accent)"/><path d="M172 190 L229 150 L286 190 Z" fill="var(--dark)"/><path d="M286 220 L332 184 L378 220 Z" fill="var(--accent)"/></g>
+<rect x="92" y="270" width="170" height="42" rx="18" fill="#c98b70" opacity=".75"/><path d="M116 290 C154 277 199 303 240 287" fill="none" stroke="#fff4e8" stroke-width="7" opacity=".7"/>
+  <rect x="34" y="34" width="230" height="82" rx="24" fill="#fffaf1" opacity=".82"/>
+  <text x="58" y="72" font-size="25" font-weight="700" fill="#d58b72">下呂温泉</text>
+  <text x="58" y="98" font-size="15" font-weight="600" fill="#d58b72" opacity=".72">温泉街と川沿い</text>
+</svg>

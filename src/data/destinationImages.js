@@ -97,7 +97,7 @@ Object.entries(CATEGORY_ALIASES).forEach(([aliasKey, targetKey]) => {
 // まず destination.id を優先し、既存データとの互換性のため city キーも残す。
 const DESTINATION_LOCAL_IMAGES = {
   京都市: {
-    hero: '/images/destinations/kyoto-hero.jpg',
+    hero: '/images/destinations/kyoto/hero.svg',
     scenery: '/images/destinations/kyoto-scenery.jpg',
     food: '/images/destinations/kyoto-food.jpg',
   },
@@ -107,42 +107,42 @@ const DESTINATION_LOCAL_IMAGES = {
     food: '/images/destinations/nara-food.jpg',
   },
   小樽市: {
-    hero: '/images/destinations/otaru-hero.jpg',
+    hero: '/images/destinations/otaru/hero.svg',
     scenery: '/images/destinations/otaru-scenery.jpg',
     food: '/images/destinations/otaru-food.jpg',
   },
   札幌市: { hero: '/images/destinations/sapporo-hero.jpg' },
   函館市: { hero: '/images/destinations/hakodate-hero.jpg' },
   金沢市: {
-    hero: '/images/destinations/kanazawa-hero.jpg',
+    hero: '/images/destinations/kanazawa/hero.svg',
     scenery: '/images/destinations/kanazawa-scenery.jpg',
     food: '/images/destinations/kanazawa-food.jpg',
   },
   箱根町: {
-    hero: '/images/destinations/hakone-hero.jpg',
+    hero: '/images/destinations/hakone/hero.svg',
     scenery: '/images/destinations/hakone-scenery.jpg',
     food: '/images/destinations/hakone-food.jpg',
   },
   熱海市: {
-    hero: '/images/destinations/atami-hero.jpg',
+    hero: '/images/destinations/atami/hero.svg',
     scenery: '/images/destinations/atami-scenery.jpg',
     food: '/images/destinations/atami-food.jpg',
   },
   草津町: {
-    hero: '/images/destinations/kusatsu-hero.jpg',
+    hero: '/images/destinations/kusatsu/hero.svg',
     scenery: '/images/destinations/kusatsu-scenery.jpg',
     food: '/images/destinations/kusatsu-food.jpg',
   },
   日光市: { hero: '/images/destinations/nikko-hero.jpg' },
   鎌倉市: {
-    hero: '/images/destinations/kamakura-hero.jpg',
+    hero: '/images/destinations/kamakura/hero.svg',
     scenery: '/images/destinations/kamakura-scenery.jpg',
     food: '/images/destinations/kamakura-food.jpg',
   },
   横浜市: { hero: '/images/destinations/yokohama-hero.jpg' },
-  松島町: { hero: '/images/destinations/matsushima-hero.jpg' }, 仙台市: { hero: '/images/destinations/sendai-hero.jpg' },
+  松島町: { hero: '/images/destinations/matsushima-hero.jpg' }, 仙台市: { hero: '/images/destinations/sendai/hero.svg' },
   福岡市: {
-    hero: '/images/destinations/fukuoka-hero.jpg',
+    hero: '/images/destinations/fukuoka/hero.svg',
     scenery: '/images/destinations/fukuoka-scenery.jpg',
     food: '/images/destinations/fukuoka-food.jpg',
   },
@@ -158,7 +158,13 @@ const DESTINATION_LOCAL_IMAGES = {
   白浜町: { hero: '/images/destinations/shirahama-hero.jpg' }, 軽井沢町: { hero: '/images/destinations/karuizawa-hero.jpg' },
   富良野市: { hero: '/images/destinations/furano-hero.jpg' }, 会津若松市: { hero: '/images/destinations/aizuwakamatsu-hero.jpg' },
   尾道市: { hero: '/images/destinations/onomichi-hero.jpg' }, 倉敷市: { hero: '/images/destinations/kurashiki-hero.jpg' },
-  松江市: { hero: '/images/destinations/matsue-hero.jpg' }, 別府市: { hero: '/images/destinations/beppu-hero.jpg' },
+  松江市: { hero: '/images/destinations/matsue-hero.jpg' }, 別府市: { hero: '/images/destinations/beppu/hero.svg' },
+  下呂市: { hero: '/images/destinations/gero-onsen/hero.svg' },
+  鳴門市: { hero: '/images/destinations/naruto/hero.svg' },
+  甲府市: { hero: '/images/destinations/kofu/hero.svg' },
+  川越市: { hero: '/images/destinations/kawagoe/hero.svg' },
+  佐野市: { hero: '/images/destinations/sano/hero.svg' },
+  上田市: { hero: '/images/destinations/ueda/hero.svg' },
 }
 
 const DESTINATION_IMAGE_ID_ALIASES = {
@@ -192,6 +198,12 @@ const DESTINATION_IMAGE_ID_ALIASES = {
   '岡山県-倉敷市': '倉敷市',
   '島根県-松江市': '松江市',
   '大分県-別府市': '別府市',
+  '岐阜県-下呂市': '下呂市',
+  '徳島県-鳴門市': '鳴門市',
+  '山梨県-甲府市': '甲府市',
+  '埼玉県-川越市': '川越市',
+  '栃木県-佐野市': '佐野市',
+  '長野県-上田市': '上田市',
 }
 
 Object.entries(DESTINATION_IMAGE_ID_ALIASES).forEach(([id, city]) => {
@@ -204,7 +216,7 @@ const getDestinationImageMapKey = (destination = {}) => (
 
 const DESTINATION_IMAGE_THEMES = {
   京都市: {
-    hero: '京都らしい街並み・寺社・鴨川のイメージ',
+    hero: '寺社・石畳・町家の和の雰囲気',
     scenery: '清水寺・嵐山・伏見稲荷などの景観候補',
     food: '湯豆腐・抹茶スイーツ・京料理',
   },
@@ -214,37 +226,37 @@ const DESTINATION_IMAGE_THEMES = {
     food: '柿の葉寿司・茶粥・奈良漬',
   },
   小樽市: {
-    hero: '小樽運河・港町・レンガ倉庫',
+    hero: '小樽運河・倉庫群・港町の夜景の雰囲気',
     scenery: '運河夜景・天狗山・堺町通りの景観候補',
     food: '寿司・海鮮丼・市場グルメ',
   },
   金沢市: {
-    hero: 'ひがし茶屋街・兼六園・金沢駅',
+    hero: '兼六園・ひがし茶屋街・金箔感のあるしっとりした街並み',
     scenery: '兼六園・浅野川・城下町の景観候補',
     food: '海鮮丼・金沢おでん・加賀料理',
   },
   箱根町: {
-    hero: '芦ノ湖・温泉旅館・富士山が見える風景',
+    hero: '芦ノ湖・箱根神社・山並み・温泉',
     scenery: '大涌谷・箱根神社・ロープウェイの景観候補',
     food: '温泉まんじゅう・そば・豆腐料理',
   },
   熱海市: {
-    hero: '海と温泉街・熱海サンビーチ',
+    hero: '海・温泉街・坂道・レトロ観光地',
     scenery: '来宮神社・海岸線・温泉街の景観候補',
     food: '海鮮・干物・温泉まんじゅう',
   },
   草津町: {
-    hero: '湯畑・温泉街・湯けむり',
+    hero: '湯畑・湯けむり・温泉街・夜の灯り',
     scenery: '西の河原公園・温泉街夜景・雪景色',
     food: '温泉まんじゅう・そば・舞茸料理',
   },
   鎌倉市: {
-    hero: '海と寺社・江ノ電・鎌倉大仏',
+    hero: '鶴岡八幡宮・江ノ電・海・古都散策',
     scenery: '長谷・由比ヶ浜・小町通りの景観候補',
     food: 'しらす丼・鎌倉野菜・和カフェ',
   },
   福岡市: {
-    hero: '博多・天神の街並み・屋台',
+    hero: '屋台・博多ラーメン・夜の街・港町感',
     scenery: '中洲・福岡タワー・大濠公園の景観候補',
     food: '博多ラーメン・もつ鍋・屋台グルメ',
   },
@@ -252,6 +264,30 @@ const DESTINATION_IMAGE_THEMES = {
     hero: '青い海・離島ターミナル・川平湾',
     scenery: 'ビーチ・夕景・南国の自然',
     food: '石垣牛・八重山そば・南国カフェ',
+  },
+  下呂市: {
+    hero: '温泉街・川沿い・足湯・やわらかい湯けむり',
+  },
+  仙台市: {
+    hero: '杜の都・青葉城跡・牛タン・街と緑',
+  },
+  鳴門市: {
+    hero: '渦潮・鳴門海峡・橋・海の迫力',
+  },
+  別府市: {
+    hero: '湯けむり・地獄めぐり・温泉街・坂のある街',
+  },
+  甲府市: {
+    hero: '甲府城跡・昇仙峡・ぶどう畑・山梨の山並み',
+  },
+  川越市: {
+    hero: '蔵造りの町並み・時の鐘・菓子屋横丁・レトロ街歩き',
+  },
+  佐野市: {
+    hero: '佐野ラーメン・厄除け大師・日帰り街歩き',
+  },
+  上田市: {
+    hero: '上田城跡・真田・城下町・信州の山並み',
   },
 }
 

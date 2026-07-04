@@ -741,7 +741,9 @@ h1 {
 
 .result-hero-image {
   width: calc(100% + 44px);
-  height: 250px;
+  max-height: 250px;
+  aspect-ratio: 16 / 9;
+  height: auto;
   display: block;
   margin: -25px -22px 18px;
   object-fit: cover;
@@ -6610,7 +6612,7 @@ h1 {
 
   .result-card { margin-top: 22px; padding: 20px 16px 18px; }
   .result-hero-image { margin: -20px -16px 18px; width: calc(100% + 32px); }
-  .result-hero-image { height: 220px; }
+  .result-hero-image { max-height: 220px; }
   .result-city { font-size: 1.65rem; }
   .result-recommendation { font-size: 0.78rem; line-height: 1.75; }
   .result-hero-meta span { font-size: 0.58rem; }

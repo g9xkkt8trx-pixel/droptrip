@@ -17,6 +17,7 @@ import {
 import destinations from './data/destinations.js'
 import {
   DEFAULT_TRAVEL_IMAGE,
+  destinationImageMap,
   getDestinationImageCandidates,
   getImageCredit,
   getImageUrl,
@@ -1363,6 +1364,25 @@ const imageImprovementPriorityCities = [
   '別府市',
 ]
 
+const firstHeroWaveDestinations = [
+  { id: '岐阜県-下呂市', city: '下呂市' },
+  { id: '京都府-京都市', city: '京都市' },
+  { id: '北海道-小樽市', city: '小樽市' },
+  { id: '神奈川県-箱根町', city: '箱根町' },
+  { id: '群馬県-草津町', city: '草津町' },
+  { id: '静岡県-熱海市', city: '熱海市' },
+  { id: '石川県-金沢市', city: '金沢市' },
+  { id: '神奈川県-鎌倉市', city: '鎌倉市' },
+  { id: '宮城県-仙台市', city: '仙台市' },
+  { id: '福岡県-福岡市', city: '福岡市' },
+  { id: '徳島県-鳴門市', city: '鳴門市' },
+  { id: '大分県-別府市', city: '別府市' },
+  { id: '山梨県-甲府市', city: '甲府市' },
+  { id: '埼玉県-川越市', city: '川越市' },
+  { id: '栃木県-佐野市', city: '佐野市' },
+  { id: '長野県-上田市', city: '上田市' },
+]
+
 const getImageMetaValue = (image, key, fallback = '') => (
   typeof image === 'object' && image
     ? image[key] ?? image[`image${key[0].toUpperCase()}${key.slice(1)}`] ?? fallback
@@ -2029,6 +2049,32 @@ const getPriorityFixedHeroReadiness = (destinationList = []) => {
   const completed = imageImprovementPriorityCities.filter((city) => fixedCities.has(city)).length
   return `${completed}/${imageImprovementPriorityCities.length}`
 }
+
+const getFirstHeroWaveReadiness = (destinationList = []) => {
+  const fixedCities = new Set(getFixedHeroImageCities(destinationList))
+  const completed = firstHeroWaveDestinations.filter(({ id, city }) => (
+    fixedCities.has(city) || Boolean(destinationImageMap[id]?.hero?.src)
+  )).length
+  return `${completed}/${firstHeroWaveDestinations.length}`
+}
+
+const getFirstHeroWaveMissingCities = (destinationList = []) => {
+  const fixedCities = new Set(getFixedHeroImageCities(destinationList))
+  return firstHeroWaveDestinations
+    .filter(({ id, city }) => !fixedCities.has(city) && !destinationImageMap[id]?.hero?.src)
+    .map(({ city }) => city)
+}
+
+const getFirstHeroWaveMetadataIssueCities = () => firstHeroWaveDestinations
+  .filter(({ id }) => {
+    const hero = destinationImageMap[id]?.hero
+    return !hero?.alt || hero.status !== 'needs_review' || hero.isIllustration !== true
+  })
+  .map(({ city }) => city)
+
+const getFirstHeroWaveLoadFailureCities = (failures = []) => firstHeroWaveDestinations
+  .filter(({ id }) => failures.some((failure) => failure.destinationId === id && failure.imageType === 'hero'))
+  .map(({ city }) => city)
 
 const getPurposeSpotShortageCities = (destinationList = []) => destinationList
   .filter((place) => {
@@ -4193,7 +4239,7 @@ function App() {
                   imageType="hero"
                   className="result-hero-image"
                   alt={getImageMetaValue(destination.heroImage, 'alt', `${destination.city}をイメージしたビジュアル`)}
-                  loading="eager"
+                  loading="lazy"
                   showCredit
                   onLoadFailure={(fallbackType) => reportImageFailure(destination.id, 'hero', fallbackType)}
                 />
@@ -5197,6 +5243,7 @@ function App() {
             <div><span>hero管理対象</span><strong>{destinations.length}件</strong></div>
             <div><span>固定hero画像あり</span><strong>{getFixedHeroImageCities(destinations).length}/{destinations.length}件</strong></div>
             <div><span>固定hero画像なし</span><strong>{getMissingFixedHeroImageCities(destinations).length}件</strong></div>
+            <div><span>第1弾SVG hero</span><strong>{getFirstHeroWaveReadiness(destinations)}</strong></div>
             <div><span>優先旅先 固定hero</span><strong>{getPriorityFixedHeroReadiness(destinations)}</strong></div>
             <div><span>hero isIllustration</span><strong>{getIllustrationHeroCities(destinations).length}件</strong></div>
             <div><span>hero needs_review</span><strong>{getHeroNeedsReviewCities(destinations).length}件</strong></div>
@@ -5285,6 +5332,9 @@ function App() {
               <div><dt>result journey image shortage</dt><dd>{formatShortageList(getResultJourneyImageShortageCities(destinations))}</dd></div>
               <div><dt>固定hero画像なし</dt><dd>{formatShortageList(getMissingFixedHeroImageCities(destinations))}</dd></div>
               <div><dt>甲府市 固定hero</dt><dd>{getFixedHeroImageCities(destinations).includes('甲府市') ? '設定済み' : '未設定'}</dd></div>
+              <div><dt>第1弾16旅先 hero未登録</dt><dd>{formatShortageList(getFirstHeroWaveMissingCities(destinations))}</dd></div>
+              <div><dt>第1弾16旅先 メタ情報要確認</dt><dd>{formatShortageList(getFirstHeroWaveMetadataIssueCities())}</dd></div>
+              <div><dt>第1弾16旅先 読み込み失敗</dt><dd>{formatShortageList(getFirstHeroWaveLoadFailureCities(imageFailures))}</dd></div>
               <div><dt>結果画面hero方針</dt><dd>destination_fixedのみ表示 / category fallback・generic・randomは非表示</dd></div>
               <div><dt>hero category fallback残存</dt><dd>{formatShortageList(getCategoryFallbackHeroCities(destinations))}</dd></div>
               <div><dt>hero generic残存</dt><dd>{formatShortageList(getGenericHeroImageCities(destinations))}</dd></div>

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="title desc">
+  <title id="title">京都市をイメージしたビジュアル</title>
+  <desc id="desc">寺社と石畳をテーマにしたDROPTRIP用の旅先固定heroイラストです。</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#d9b99b"/>
+      <stop offset="58%" stop-color="#f6efe4"/>
+      <stop offset="100%" stop-color="#fffaf1"/>
+    </linearGradient>
+    <style>
+      :root { --bg:#d9b99b; --light:#f6efe4; --accent:#8e4f43; --dark:#6f8f72; }
+      text { font-family: "Yu Gothic", "Hiragino Sans", "Noto Sans JP", sans-serif; }
+    </style>
+  </defs>
+  <rect width="640" height="360" rx="0" fill="url(#sky)"/>
+  <circle cx="92" cy="80" r="74" fill="#fff8ed" opacity=".36"/>
+  <circle cx="582" cy="278" r="94" fill="#8e4f43" opacity=".11"/>
+  <g opacity=".88"><path d="M416 147 L545 147" stroke="#b7433f" stroke-width="16" stroke-linecap="round"/><path d="M435 170 L526 170" stroke="#b7433f" stroke-width="10" stroke-linecap="round"/><path d="M452 160 L452 265" stroke="#8e3a36" stroke-width="13"/><path d="M510 160 L510 265" stroke="#8e3a36" stroke-width="13"/></g>
+<g opacity=".82"><rect x="92" y="212" width="72" height="70" rx="4" fill="#fff2d9"/><rect x="184" y="190" width="90" height="92" rx="5" fill="#d8a479"/><rect x="296" y="220" width="72" height="62" rx="4" fill="#f4d8b8"/><path d="M80 212 L128 170 L176 212 Z" fill="var(--accent)"/><path d="M172 190 L229 150 L286 190 Z" fill="var(--dark)"/><path d="M286 220 L332 184 L378 220 Z" fill="var(--accent)"/></g>
+<path d="M318 360 C322 312 350 272 388 230 C424 190 438 165 432 126" fill="none" stroke="#f5e3c8" stroke-width="32" opacity=".55"/>
+<circle cx="526" cy="92" r="32" fill="#f4dca0" opacity=".85"/><circle cx="540" cy="82" r="28" fill="var(--bg)" opacity=".72"/>
+  <rect x="34" y="34" width="230" height="82" rx="24" fill="#fffaf1" opacity=".82"/>
+  <text x="58" y="72" font-size="25" font-weight="700" fill="#6f8f72">京都市</text>
+  <text x="58" y="98" font-size="15" font-weight="600" fill="#6f8f72" opacity=".72">寺社と石畳</text>
+</svg>

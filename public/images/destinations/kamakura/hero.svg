@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="title desc">
+  <title id="title">鎌倉市をイメージしたビジュアル</title>
+  <desc id="desc">古都と海、江ノ電をテーマにしたDROPTRIP用の旅先固定heroイラストです。</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#7db7c5"/>
+      <stop offset="58%" stop-color="#f4e4c8"/>
+      <stop offset="100%" stop-color="#fffaf1"/>
+    </linearGradient>
+    <style>
+      :root { --bg:#7db7c5; --light:#f4e4c8; --accent:#9d594a; --dark:#6b8f63; }
+      text { font-family: "Yu Gothic", "Hiragino Sans", "Noto Sans JP", sans-serif; }
+    </style>
+  </defs>
+  <rect width="640" height="360" rx="0" fill="url(#sky)"/>
+  <circle cx="92" cy="80" r="74" fill="#fff8ed" opacity=".36"/>
+  <circle cx="582" cy="278" r="94" fill="#9d594a" opacity=".11"/>
+  <path d="M0 284 C88 270 126 300 205 284 C285 267 340 298 420 281 C510 262 560 293 640 275 L640 360 L0 360 Z" fill="#5fa6bd" opacity=".64"/>
+<g opacity=".9"><rect x="89" y="250" width="190" height="50" rx="18" fill="#7bb6b3"/><rect x="118" y="262" width="44" height="20" rx="5" fill="#f5efe1"/><rect x="176" y="262" width="44" height="20" rx="5" fill="#f5efe1"/><circle cx="130" cy="302" r="8" fill="#4b5960"/><circle cx="236" cy="302" r="8" fill="#4b5960"/></g>
+<g opacity=".88"><path d="M416 147 L545 147" stroke="#b7433f" stroke-width="16" stroke-linecap="round"/><path d="M435 170 L526 170" stroke="#b7433f" stroke-width="10" stroke-linecap="round"/><path d="M452 160 L452 265" stroke="#8e3a36" stroke-width="13"/><path d="M510 160 L510 265" stroke="#8e3a36" stroke-width="13"/></g>
+<path d="M318 360 C322 312 350 272 388 230 C424 190 438 165 432 126" fill="none" stroke="#f5e3c8" stroke-width="32" opacity=".55"/>
+  <rect x="34" y="34" width="230" height="82" rx="24" fill="#fffaf1" opacity=".82"/>
+  <text x="58" y="72" font-size="25" font-weight="700" fill="#6b8f63">鎌倉市</text>
+  <text x="58" y="98" font-size="15" font-weight="600" fill="#6b8f63" opacity=".72">古都と海、江ノ電</text>
+</svg>
