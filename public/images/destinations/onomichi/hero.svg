@@ -1,0 +1,21 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="title desc">
+  <title>尾道市の旅先イメージ</title>
+  <desc>尾道市の坂道、瀬戸内海、しまなみ海道、レトロな街並みをイメージしたビジュアル</desc>
+  <title id="title">尾道市をイメージしたビジュアル</title>
+  <desc id="desc">坂道と瀬戸内海をテーマにしたDROPTRIP用の旅先固定heroイラストです。</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#78adc0"/>
+      <stop offset="58%" stop-color="#f0dfbf"/>
+      <stop offset="100%" stop-color="#fffaf1"/>
+    </linearGradient>
+    <style>:root { --bg:#78adc0; --light:#f0dfbf; --accent:#b16a53; --dark:#5d7180; }</style>
+  </defs>
+  <rect width="640" height="360" fill="url(#sky)"/>
+  <circle cx="92" cy="80" r="74" fill="#fff8ed" opacity=".36"/>
+  <circle cx="582" cy="278" r="94" fill="#b16a53" opacity=".11"/>
+  <path d="M0 282 C86 260 138 302 224 280 C312 258 382 306 470 278 C542 254 588 274 640 260 L640 360 L0 360 Z" fill="#61a8bf" opacity=".62"/>
+<path d="M82 322 L568 204" stroke="#edc7a4" stroke-width="36" stroke-linecap="round" opacity=".56"/><path d="M96 324 L558 211" stroke="#fff2e2" stroke-width="7" stroke-linecap="round" opacity=".75"/>
+<g opacity=".85"><rect x="100" y="215" width="82" height="70" rx="5" fill="#f3dec2"/><rect x="205" y="190" width="100" height="95" rx="5" fill="#d7a477"/><rect x="332" y="220" width="78" height="65" rx="5" fill="#ecd0aa"/><path d="M88 215 L141 176 L194 215 Z" fill="var(--accent)"/><path d="M192 190 L255 150 L318 190 Z" fill="var(--dark)"/><path d="M320 220 L371 184 L422 220 Z" fill="var(--accent)"/></g>
+<path d="M90 218 C215 156 420 158 552 218" fill="none" stroke="#eef4f3" stroke-width="15" opacity=".9"/><path d="M105 226 L540 226" stroke="#5d7280" stroke-width="8" opacity=".65"/>
+</svg>

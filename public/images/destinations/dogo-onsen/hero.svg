@@ -1,0 +1,21 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="title desc">
+  <title>道後温泉の旅先イメージ</title>
+  <desc>道後温泉の温泉街、レトロ建築、夜の灯りをイメージしたビジュアル</desc>
+  <title id="title">道後温泉をイメージしたビジュアル</title>
+  <desc id="desc">レトロ建築と夜の灯りをテーマにしたDROPTRIP用の旅先固定heroイラストです。</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#d6a36f"/>
+      <stop offset="58%" stop-color="#f6e7cf"/>
+      <stop offset="100%" stop-color="#fffaf1"/>
+    </linearGradient>
+    <style>:root { --bg:#d6a36f; --light:#f6e7cf; --accent:#8f5e4b; --dark:#6b5965; }</style>
+  </defs>
+  <rect width="640" height="360" fill="url(#sky)"/>
+  <circle cx="92" cy="80" r="74" fill="#fff8ed" opacity=".36"/>
+  <circle cx="582" cy="278" r="94" fill="#8f5e4b" opacity=".11"/>
+  <g opacity=".85"><rect x="100" y="215" width="82" height="70" rx="5" fill="#f3dec2"/><rect x="205" y="190" width="100" height="95" rx="5" fill="#d7a477"/><rect x="332" y="220" width="78" height="65" rx="5" fill="#ecd0aa"/><path d="M88 215 L141 176 L194 215 Z" fill="var(--accent)"/><path d="M192 190 L255 150 L318 190 Z" fill="var(--dark)"/><path d="M320 220 L371 184 L422 220 Z" fill="var(--accent)"/></g>
+<ellipse cx="198" cy="278" rx="110" ry="44" fill="#69a8ad" opacity=".62"/><g fill="none" stroke="#fff7ed" stroke-width="8" stroke-linecap="round" opacity=".78"><path d="M146 246 C118 218 164 202 142 172"/><path d="M206 244 C178 214 228 200 204 168"/></g>
+<g opacity=".84"><path d="M500 156 L500 286" stroke="#3e4854" stroke-width="8"/><circle cx="500" cy="144" r="18" fill="#f3d37d"/><path d="M482 144 C486 120 514 120 518 144" fill="none" stroke="#3e4854" stroke-width="6"/></g>
+<circle cx="532" cy="88" r="36" fill="#f4d58a" opacity=".84"/>
+</svg>

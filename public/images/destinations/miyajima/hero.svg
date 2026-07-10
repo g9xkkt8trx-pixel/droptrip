@@ -1,0 +1,21 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="title desc">
+  <title>宮島の旅先イメージ</title>
+  <desc>宮島の海上鳥居、瀬戸内海、島の雰囲気をイメージしたビジュアル</desc>
+  <title id="title">宮島をイメージしたビジュアル</title>
+  <desc id="desc">海上鳥居と瀬戸内海をテーマにしたDROPTRIP用の旅先固定heroイラストです。</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#78b8c7"/>
+      <stop offset="58%" stop-color="#f4e4c8"/>
+      <stop offset="100%" stop-color="#fffaf1"/>
+    </linearGradient>
+    <style>:root { --bg:#78b8c7; --light:#f4e4c8; --accent:#b7433f; --dark:#627782; }</style>
+  </defs>
+  <rect width="640" height="360" fill="url(#sky)"/>
+  <circle cx="92" cy="80" r="74" fill="#fff8ed" opacity=".36"/>
+  <circle cx="582" cy="278" r="94" fill="#b7433f" opacity=".11"/>
+  <path d="M0 282 C86 260 138 302 224 280 C312 258 382 306 470 278 C542 254 588 274 640 260 L640 360 L0 360 Z" fill="#61a8bf" opacity=".62"/>
+<g opacity=".9"><path d="M405 152 L550 152" stroke="#b7433f" stroke-width="16" stroke-linecap="round"/><path d="M426 175 L530 175" stroke="#b7433f" stroke-width="10" stroke-linecap="round"/><path d="M444 164 L444 266" stroke="#8e3a36" stroke-width="13"/><path d="M512 164 L512 266" stroke="#8e3a36" stroke-width="13"/></g>
+<g opacity=".62" fill="#b78b61"><ellipse cx="180" cy="270" rx="34" ry="18"/><circle cx="218" cy="252" r="14"/><path d="M208 240 L198 220 M226 240 L238 220" stroke="#8d6749" stroke-width="5" stroke-linecap="round"/><path d="M160 286 L154 312 M190 286 L198 312" stroke="#8d6749" stroke-width="6" stroke-linecap="round"/></g>
+<path d="M250 282 C300 240 362 242 420 280 C372 294 300 294 250 282 Z" fill="#6d9d67" opacity=".82"/>
+</svg>

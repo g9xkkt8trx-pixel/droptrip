@@ -150,16 +150,17 @@ OPENAI_PLAN_MODEL=gpt-4.1-mini
 
 ## 旅行先画像の利用方針
 
-- 結果画面のhero画像は、旅先ごとの `destination_fixed` 画像がある場合だけ表示します。
+- 結果画面のhero画像は、旅先ごとの `destination_fixed` 画像のうち品質確認済みの `confirmed` だけを表示します。
 - 画像は `destination.id` で `destinationImageMap` に紐づけます。同じ旅先では毎回同じ専用hero画像を表示し、ランダム表示は行いません。
+- 一般結果画面に表示するhero画像は `status: "confirmed"` のみです。`needs_review`、`rejected`、`missing` の画像は開発者ページやTODOでは確認できますが、一般画面には表示しません。
 - カテゴリ画像、汎用画像、共通画像は一般結果画面のhero代替として使いません。固定hero画像がない旅先では画像セクションごと非表示にし、「写真準備中」も出しません。
 - 画像は権利確認済みのものだけを使い、無断転載や外部サイトからの直リンクは行いません。
-- AI生成画像や手作りビジュアルを使う場合は `isIllustration: true`、`type: "destination_fixed"`、`status: "needs_review"` を付け、altは「〇〇をイメージしたビジュアル」として現地写真と誤認させないようにします。
-- 今後は旅先数分だけ専用hero画像が増える前提で、`public/images/destinations/{slug}/hero.webp` 形式を推奨します。WebP優先、横幅1200px前後、1枚100KB〜400KB程度を目安にします。
-- 第1弾として16旅先に軽量SVGの専用heroビジュアルを追加しています。SVGの場合も `destination_fixed` / `needs_review` / `isIllustration: true` として扱い、現地写真とは表現しません。
+- AI生成画像や手作りビジュアルを使う場合は `isIllustration: true`、`type: "destination_fixed"` を付け、作成直後は `status: "needs_review"` として品質確認します。altは「〇〇をイメージしたビジュアル」として現地写真と誤認させないようにします。
+- 今後は旅先数分だけ専用hero画像が増える前提で、`public/images/destinations/{slug}/hero.webp` または権利確認済みjpgを推奨します。WebPの場合は横幅1200px前後、1枚100KB〜400KB程度を目安にします。
+- 第1弾・第2弾として追加した軽量SVGは、旅行アプリのheroとしては品質不足のため一般画面には表示せず、`rejected` として管理します。今後は簡易SVGの自動量産を行わず、高品質AI生成画像または権利確認済み写真素材を1枚ずつ確認して `confirmed` にします。
 - グルメ画像は料理名と一致するものだけ使い、料理専用画像がない場合は画像なしにします。
 
-画面側は `getDestinationImage(destination, imageType)` に画像解決を統一しています。結果画面hero用途では `destinationImageMap[destination.id].hero` がある場合だけ画像を返し、カテゴリfallbackや共通fallbackは返しません。
+画面側は `getDestinationImage(destination, imageType)` に画像解決を統一しています。結果画面hero用途では `destinationImageMap[destination.id].hero` のうち、`confirmed` の固定画像だけを表示し、カテゴリfallbackや共通fallbackは返しません。
 
 現地写真・旅先イメージ画像の追加候補は [IMAGE_TODO.md](./IMAGE_TODO.md) で管理します。現在登録されている全旅先について、固定hero画像の有無、必要テーマ、想定ファイル、確認状態を追跡しています。
 

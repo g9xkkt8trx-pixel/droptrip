@@ -111,8 +111,8 @@ const DESTINATION_LOCAL_IMAGES = {
     scenery: '/images/destinations/otaru-scenery.jpg',
     food: '/images/destinations/otaru-food.jpg',
   },
-  札幌市: { hero: '/images/destinations/sapporo-hero.jpg' },
-  函館市: { hero: '/images/destinations/hakodate-hero.jpg' },
+  札幌市: { hero: '/images/destinations/sapporo/hero.svg' },
+  函館市: { hero: '/images/destinations/hakodate/hero.svg' },
   金沢市: {
     hero: '/images/destinations/kanazawa/hero.svg',
     scenery: '/images/destinations/kanazawa-scenery.jpg',
@@ -146,25 +146,31 @@ const DESTINATION_LOCAL_IMAGES = {
     scenery: '/images/destinations/fukuoka-scenery.jpg',
     food: '/images/destinations/fukuoka-food.jpg',
   },
-  長崎市: { hero: '/images/destinations/nagasaki-hero.jpg' },
-  広島市: { hero: '/images/destinations/hiroshima-hero.jpg' }, 廿日市市: { hero: '/images/destinations/miyajima-hero.jpg' },
+  長崎市: { hero: '/images/destinations/nagasaki/hero.svg' },
+  広島市: { hero: '/images/destinations/hiroshima/hero.svg' }, 廿日市市: { hero: '/images/destinations/miyajima/hero.svg' },
   那覇市: { hero: '/images/destinations/naha-hero.jpg' },
   石垣市: {
-    hero: '/images/destinations/ishigaki-hero.jpg',
+    hero: '/images/destinations/ishigaki/hero.svg',
     scenery: '/images/destinations/ishigaki-scenery.jpg',
     food: '/images/destinations/ishigaki-food.jpg',
   },
-  高山市: { hero: '/images/destinations/takayama-hero.jpg' }, 伊勢市: { hero: '/images/destinations/ise-hero.jpg' },
+  高山市: { hero: '/images/destinations/takayama/hero.svg' }, 伊勢市: { hero: '/images/destinations/ise-hero.jpg' },
   白浜町: { hero: '/images/destinations/shirahama-hero.jpg' }, 軽井沢町: { hero: '/images/destinations/karuizawa-hero.jpg' },
   富良野市: { hero: '/images/destinations/furano-hero.jpg' }, 会津若松市: { hero: '/images/destinations/aizuwakamatsu-hero.jpg' },
-  尾道市: { hero: '/images/destinations/onomichi-hero.jpg' }, 倉敷市: { hero: '/images/destinations/kurashiki-hero.jpg' },
-  松江市: { hero: '/images/destinations/matsue-hero.jpg' }, 別府市: { hero: '/images/destinations/beppu/hero.svg' },
+  尾道市: { hero: '/images/destinations/onomichi/hero.svg' }, 倉敷市: { hero: '/images/destinations/kurashiki/hero.svg' },
+  松江市: { hero: '/images/destinations/matsue/hero.svg' }, 別府市: { hero: '/images/destinations/beppu/hero.svg' },
   下呂市: { hero: '/images/destinations/gero-onsen/hero.svg' },
   鳴門市: { hero: '/images/destinations/naruto/hero.svg' },
   甲府市: { hero: '/images/destinations/kofu/hero.svg' },
   川越市: { hero: '/images/destinations/kawagoe/hero.svg' },
   佐野市: { hero: '/images/destinations/sano/hero.svg' },
   上田市: { hero: '/images/destinations/ueda/hero.svg' },
+  宮古島市: { hero: '/images/destinations/miyakojima/hero.svg' },
+  由布市: { hero: '/images/destinations/yufuin/hero.svg' },
+  松山市: { hero: '/images/destinations/dogo-onsen/hero.svg' },
+  神戸市: { hero: '/images/destinations/arima-onsen/hero.svg' },
+  豊岡市: { hero: '/images/destinations/kinosaki-onsen/hero.svg' },
+  尾花沢市: { hero: '/images/destinations/ginzan-onsen/hero.svg' },
 }
 
 const DESTINATION_IMAGE_ID_ALIASES = {
@@ -204,6 +210,12 @@ const DESTINATION_IMAGE_ID_ALIASES = {
   '埼玉県-川越市': '川越市',
   '栃木県-佐野市': '佐野市',
   '長野県-上田市': '上田市',
+  '沖縄県-宮古島市': '宮古島市',
+  '大分県-由布市': '由布市',
+  '愛媛県-松山市': '松山市',
+  '兵庫県-神戸市': '神戸市',
+  '兵庫県-豊岡市': '豊岡市',
+  '山形県-尾花沢市': '尾花沢市',
 }
 
 Object.entries(DESTINATION_IMAGE_ID_ALIASES).forEach(([id, city]) => {
@@ -261,7 +273,7 @@ const DESTINATION_IMAGE_THEMES = {
     food: '博多ラーメン・もつ鍋・屋台グルメ',
   },
   石垣市: {
-    hero: '青い海・離島ターミナル・川平湾',
+    hero: '青い海・白い砂浜・川平湾・南国の空気感',
     scenery: 'ビーチ・夕景・南国の自然',
     food: '石垣牛・八重山そば・南国カフェ',
   },
@@ -289,12 +301,66 @@ const DESTINATION_IMAGE_THEMES = {
   上田市: {
     hero: '上田城跡・真田・城下町・信州の山並み',
   },
+  宮古島市: {
+    hero: '宮古ブルーの海・伊良部大橋・砂浜・リゾート感',
+  },
+  札幌市: {
+    hero: '大通公園・札幌時計台・雪景色・都市と自然',
+  },
+  函館市: {
+    hero: '函館山夜景・赤レンガ倉庫・港町・坂道',
+  },
+  長崎市: {
+    hero: '異国情緒・坂の街・港・夜景',
+  },
+  広島市: {
+    hero: '平和記念公園・路面電車・川沿い・都市観光',
+  },
+  廿日市市: {
+    hero: '厳島神社・海上鳥居・瀬戸内海・鹿のいる島の雰囲気',
+  },
+  高山市: {
+    hero: '古い町並み・飛騨の山並み・朝市・和の街歩き',
+  },
+  尾道市: {
+    hero: '坂道・瀬戸内海・しまなみ海道・レトロな街並み',
+  },
+  倉敷市: {
+    hero: '美観地区・白壁の町並み・柳並木・川舟の雰囲気',
+  },
+  松江市: {
+    hero: '松江城・宍道湖・水辺の街・夕景',
+  },
+  由布市: {
+    hero: '由布岳・温泉街・金鱗湖・ゆったり散策',
+  },
+  松山市: {
+    hero: '道後温泉本館・温泉街・レトロ建築・夜の灯り',
+  },
+  神戸市: {
+    hero: '有馬温泉の温泉街・坂道・金泉銀泉の雰囲気',
+  },
+  豊岡市: {
+    hero: '城崎温泉の柳並木・外湯めぐり・浴衣散策・川沿いの温泉街',
+  },
+  尾花沢市: {
+    hero: '銀山温泉の大正ロマン・雪景色・ガス灯・木造旅館街',
+  },
+}
+
+const CONFIRMED_HERO_IMAGE_CITIES = new Set()
+
+const getHeroImageQualityStatus = (city, imageType, src = '') => {
+  if (imageType !== 'hero') return 'needs_review'
+  if (src.endsWith('.svg')) return 'rejected'
+  return CONFIRMED_HERO_IMAGE_CITIES.has(city) ? 'confirmed' : 'needs_review'
 }
 
 const createDestinationFixedImageEntry = (key, mappedImages = {}) => Object.fromEntries(
   Object.entries(mappedImages).map(([imageType, src]) => {
     const city = DESTINATION_IMAGE_ID_ALIASES[key] ?? key
     const theme = DESTINATION_IMAGE_THEMES[city]?.[imageType] ?? ''
+    const status = getHeroImageQualityStatus(city, imageType, src)
     return [imageType, {
       src,
       url: src,
@@ -302,7 +368,7 @@ const createDestinationFixedImageEntry = (key, mappedImages = {}) => Object.from
         ? `${city}をイメージしたビジュアル`
         : `${city}の${imageType === 'scenery' ? '景色' : 'ご当地グルメ'}をイメージしたビジュアル`,
       type: 'destination_fixed',
-      status: 'needs_review',
+      status,
       isIllustration: true,
       theme,
     }]
@@ -523,7 +589,8 @@ export const getDestinationImage = (destination = {}, imageType = 'hero') => {
 
   if (mappedUrl) {
     const theme = mappedAsset?.theme ?? DESTINATION_IMAGE_THEMES[destination.city]?.[imageType] ?? ''
-    return createLocalAsset(mappedUrl, imageType, 'destination_fixed', '旅先イメージ', 'needs_review', {
+    const status = mappedAsset?.status ?? 'needs_review'
+    return createLocalAsset(mappedUrl, imageType, 'destination_fixed', '旅先イメージ', status, {
       isFoodSpecific: imageType === 'food',
       isLocalFood: imageType === 'food',
       alt: mappedAsset?.alt || (imageType === 'hero'
@@ -583,7 +650,7 @@ export const getDestinationImages = (prefecture, city, tags = [], details = {}) 
     imageCredit: hasFixedImage ? '旅先イメージ' : '',
     imageSource: hasFixedImage ? 'destination_fixed' : 'missing',
     imageLicense: PHOTO_LICENSE,
-    imageStatus: hasFixedImage ? 'needs_review' : 'missing',
+    imageStatus: heroImage.status ?? (hasFixedImage ? 'needs_review' : 'missing'),
     imageSourceType: hasFixedImage ? 'destination_fixed' : 'missing',
     imageLocationLabel: city ? `${prefecture} ${city}の旅先イメージ` : '',
   }

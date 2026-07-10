@@ -1383,6 +1383,25 @@ const firstHeroWaveDestinations = [
   { id: '長野県-上田市', city: '上田市' },
 ]
 
+const secondHeroWaveDestinations = [
+  { id: '沖縄県-石垣市', city: '石垣市' },
+  { id: '沖縄県-宮古島市', city: '宮古島市' },
+  { id: '北海道-札幌市', city: '札幌市' },
+  { id: '北海道-函館市', city: '函館市' },
+  { id: '長崎県-長崎市', city: '長崎市' },
+  { id: '広島県-広島市', city: '広島市' },
+  { id: '広島県-廿日市市', city: '廿日市市' },
+  { id: '岐阜県-高山市', city: '高山市' },
+  { id: '広島県-尾道市', city: '尾道市' },
+  { id: '岡山県-倉敷市', city: '倉敷市' },
+  { id: '島根県-松江市', city: '松江市' },
+  { id: '大分県-由布市', city: '由布市' },
+  { id: '愛媛県-松山市', city: '松山市' },
+  { id: '兵庫県-神戸市', city: '神戸市' },
+  { id: '兵庫県-豊岡市', city: '豊岡市' },
+  { id: '山形県-尾花沢市', city: '尾花沢市' },
+]
+
 const getImageMetaValue = (image, key, fallback = '') => (
   typeof image === 'object' && image
     ? image[key] ?? image[`image${key[0].toUpperCase()}${key.slice(1)}`] ?? fallback
@@ -1407,7 +1426,9 @@ const isStrongResultImage = (image) => {
   const source = getImageMetaValue(image, 'source')
   return Boolean(getImageMetaValue(image, 'isDestinationSpecific'))
     && source === 'destination_fixed'
-    && ['confirmed', 'needs_review'].includes(status)
+    && status === 'confirmed'
+    && (getImageMetaValue(image, 'isIllustration') === true || getImageMetaValue(image, 'isPhoto') === true)
+    && Boolean(getImageMetaValue(image, 'alt'))
     && !getImageMetaValue(image, 'isGeneric')
 }
 
@@ -1976,6 +1997,22 @@ const getMissingFixedHeroImageCities = (destinationList = []) => destinationList
   .filter((place) => !isFixedHeroImage(place.heroImage))
   .map((place) => place.city)
 
+const getRegisteredFixedHeroImageCities = (destinationList = []) => destinationList
+  .filter((place) => getImageMetaValue(place.heroImage, 'source') === 'destination_fixed' && Boolean(getImageUrl(place.heroImage)))
+  .map((place) => place.city)
+
+const getHeroRejectedCities = (destinationList = []) => destinationList
+  .filter((place) => getImageMetaValue(place.heroImage, 'status') === 'rejected')
+  .map((place) => place.city)
+
+const getHeroMissingStatusCities = (destinationList = []) => destinationList
+  .filter((place) => getImageMetaValue(place.heroImage, 'status') === 'missing')
+  .map((place) => place.city)
+
+const getNonConfirmedDisplayedHeroCities = (destinationList = []) => destinationList
+  .filter((place) => isFixedHeroImage(place.heroImage) && getImageMetaValue(place.heroImage, 'status') !== 'confirmed')
+  .map((place) => place.city)
+
 const getCategoryFallbackHeroCities = (destinationList = []) => destinationList
   .filter((place) => getImageMetaValue(place.heroImage, 'source') === 'fallback' || getImageUrl(place.heroImage).startsWith('/images/categories/'))
   .map((place) => place.city)
@@ -1989,7 +2026,15 @@ const getIllustrationHeroCities = (destinationList = []) => destinationList
   .map((place) => place.city)
 
 const getHeroAltMissingCities = (destinationList = []) => destinationList
-  .filter((place) => isFixedHeroImage(place.heroImage) && !getImageMetaValue(place.heroImage, 'alt'))
+  .filter((place) => getImageMetaValue(place.heroImage, 'source') === 'destination_fixed' && Boolean(getImageUrl(place.heroImage)) && !getImageMetaValue(place.heroImage, 'alt'))
+  .map((place) => place.city)
+
+const getHeroMediaKindMissingCities = (destinationList = []) => destinationList
+  .filter((place) => getImageMetaValue(place.heroImage, 'source') === 'destination_fixed' && Boolean(getImageUrl(place.heroImage)) && getImageMetaValue(place.heroImage, 'isIllustration') !== true && getImageMetaValue(place.heroImage, 'isPhoto') !== true)
+  .map((place) => place.city)
+
+const getHeroTypeIssueCities = (destinationList = []) => destinationList
+  .filter((place) => getImageMetaValue(place.heroImage, 'source') === 'destination_fixed' && Boolean(getImageUrl(place.heroImage)) && getImageMetaValue(place.heroImage, 'type') !== 'hero')
   .map((place) => place.city)
 
 const getHeroNeedsReviewCities = (destinationList = []) => destinationList
@@ -2050,29 +2095,29 @@ const getPriorityFixedHeroReadiness = (destinationList = []) => {
   return `${completed}/${imageImprovementPriorityCities.length}`
 }
 
-const getFirstHeroWaveReadiness = (destinationList = []) => {
+const getHeroWaveReadiness = (destinationList = [], waveDestinations = []) => {
   const fixedCities = new Set(getFixedHeroImageCities(destinationList))
-  const completed = firstHeroWaveDestinations.filter(({ id, city }) => (
+  const completed = waveDestinations.filter(({ id, city }) => (
     fixedCities.has(city) || Boolean(destinationImageMap[id]?.hero?.src)
   )).length
-  return `${completed}/${firstHeroWaveDestinations.length}`
+  return `${completed}/${waveDestinations.length}`
 }
 
-const getFirstHeroWaveMissingCities = (destinationList = []) => {
+const getHeroWaveMissingCities = (destinationList = [], waveDestinations = []) => {
   const fixedCities = new Set(getFixedHeroImageCities(destinationList))
-  return firstHeroWaveDestinations
+  return waveDestinations
     .filter(({ id, city }) => !fixedCities.has(city) && !destinationImageMap[id]?.hero?.src)
     .map(({ city }) => city)
 }
 
-const getFirstHeroWaveMetadataIssueCities = () => firstHeroWaveDestinations
+const getHeroWaveMetadataIssueCities = (waveDestinations = []) => waveDestinations
   .filter(({ id }) => {
     const hero = destinationImageMap[id]?.hero
-    return !hero?.alt || hero.status !== 'needs_review' || hero.isIllustration !== true
+    return !hero?.alt || !['confirmed', 'needs_review', 'rejected'].includes(hero.status) || hero.isIllustration !== true
   })
   .map(({ city }) => city)
 
-const getFirstHeroWaveLoadFailureCities = (failures = []) => firstHeroWaveDestinations
+const getHeroWaveLoadFailureCities = (failures = [], waveDestinations = []) => waveDestinations
   .filter(({ id }) => failures.some((failure) => failure.destinationId === id && failure.imageType === 'hero'))
   .map(({ city }) => city)
 
@@ -5241,12 +5286,16 @@ function App() {
             <div><span>読み込み失敗</span><strong>{imageFailures.length}件</strong></div>
             <div><span>要確認</span><strong>{destinationQualityReport.imageStatus.needsReview}件</strong></div>
             <div><span>hero管理対象</span><strong>{destinations.length}件</strong></div>
-            <div><span>固定hero画像あり</span><strong>{getFixedHeroImageCities(destinations).length}/{destinations.length}件</strong></div>
-            <div><span>固定hero画像なし</span><strong>{getMissingFixedHeroImageCities(destinations).length}件</strong></div>
-            <div><span>第1弾SVG hero</span><strong>{getFirstHeroWaveReadiness(destinations)}</strong></div>
+            <div><span>固定hero登録あり</span><strong>{getRegisteredFixedHeroImageCities(destinations).length}/{destinations.length}件</strong></div>
+            <div><span>一般表示hero</span><strong>{getFixedHeroImageCities(destinations).length}件</strong></div>
+            <div><span>hero confirmed</span><strong>{getFixedHeroImageCities(destinations).length}件</strong></div>
+            <div><span>hero needs_review</span><strong>{getHeroNeedsReviewCities(destinations).length}件</strong></div>
+            <div><span>hero rejected</span><strong>{getHeroRejectedCities(destinations).length}件</strong></div>
+            <div><span>hero missing</span><strong>{getHeroMissingStatusCities(destinations).length}件</strong></div>
+            <div><span>第1弾SVG登録</span><strong>{getHeroWaveReadiness(destinations, firstHeroWaveDestinations)}</strong></div>
+            <div><span>第2弾SVG登録</span><strong>{getHeroWaveReadiness(destinations, secondHeroWaveDestinations)}</strong></div>
             <div><span>優先旅先 固定hero</span><strong>{getPriorityFixedHeroReadiness(destinations)}</strong></div>
             <div><span>hero isIllustration</span><strong>{getIllustrationHeroCities(destinations).length}件</strong></div>
-            <div><span>hero needs_review</span><strong>{getHeroNeedsReviewCities(destinations).length}件</strong></div>
             <div><span>映え・トレンド整備率</span><strong>{getTrendReadiness(destinations)}</strong></div>
             <div><span>trendHighlights未整備</span><strong>{getTrendHighlightsMissingCities(destinations).length}件</strong></div>
           </div>
@@ -5330,16 +5379,26 @@ function App() {
               <div><dt>generic food画像の大表示リスク</dt><dd>{formatShortageList(getGenericFoodImageRiskCities(destinations))}</dd></div>
               <div><dt>food image / dish mismatch risk</dt><dd>{formatShortageList(getFoodImageMismatchRiskCities(destinations))}</dd></div>
               <div><dt>result journey image shortage</dt><dd>{formatShortageList(getResultJourneyImageShortageCities(destinations))}</dd></div>
-              <div><dt>固定hero画像なし</dt><dd>{formatShortageList(getMissingFixedHeroImageCities(destinations))}</dd></div>
-              <div><dt>甲府市 固定hero</dt><dd>{getFixedHeroImageCities(destinations).includes('甲府市') ? '設定済み' : '未設定'}</dd></div>
-              <div><dt>第1弾16旅先 hero未登録</dt><dd>{formatShortageList(getFirstHeroWaveMissingCities(destinations))}</dd></div>
-              <div><dt>第1弾16旅先 メタ情報要確認</dt><dd>{formatShortageList(getFirstHeroWaveMetadataIssueCities())}</dd></div>
-              <div><dt>第1弾16旅先 読み込み失敗</dt><dd>{formatShortageList(getFirstHeroWaveLoadFailureCities(imageFailures))}</dd></div>
-              <div><dt>結果画面hero方針</dt><dd>destination_fixedのみ表示 / category fallback・generic・randomは非表示</dd></div>
+              <div><dt>固定hero登録あり</dt><dd>{formatShortageList(getRegisteredFixedHeroImageCities(destinations))}</dd></div>
+              <div><dt>一般表示hero（confirmed）</dt><dd>{formatShortageList(getFixedHeroImageCities(destinations))}</dd></div>
+              <div><dt>一般表示heroなし</dt><dd>{formatShortageList(getMissingFixedHeroImageCities(destinations))}</dd></div>
+              <div><dt>甲府市 一般表示hero</dt><dd>{getFixedHeroImageCities(destinations).includes('甲府市') ? '表示対象' : '非表示'}</dd></div>
+              <div><dt>第1弾16旅先 hero未登録</dt><dd>{formatShortageList(getHeroWaveMissingCities(destinations, firstHeroWaveDestinations))}</dd></div>
+              <div><dt>第1弾16旅先 メタ情報要確認</dt><dd>{formatShortageList(getHeroWaveMetadataIssueCities(firstHeroWaveDestinations))}</dd></div>
+              <div><dt>第1弾16旅先 読み込み失敗</dt><dd>{formatShortageList(getHeroWaveLoadFailureCities(imageFailures, firstHeroWaveDestinations))}</dd></div>
+              <div><dt>第2弾16旅先 hero未登録</dt><dd>{formatShortageList(getHeroWaveMissingCities(destinations, secondHeroWaveDestinations))}</dd></div>
+              <div><dt>第2弾16旅先 メタ情報要確認</dt><dd>{formatShortageList(getHeroWaveMetadataIssueCities(secondHeroWaveDestinations))}</dd></div>
+              <div><dt>第2弾16旅先 読み込み失敗</dt><dd>{formatShortageList(getHeroWaveLoadFailureCities(imageFailures, secondHeroWaveDestinations))}</dd></div>
+              <div><dt>結果画面hero方針</dt><dd>confirmedのdestination_fixedのみ表示 / needs_review・rejected・missing・category fallback・generic・randomは非表示</dd></div>
               <div><dt>hero category fallback残存</dt><dd>{formatShortageList(getCategoryFallbackHeroCities(destinations))}</dd></div>
               <div><dt>hero generic残存</dt><dd>{formatShortageList(getGenericHeroImageCities(destinations))}</dd></div>
               <div><dt>hero alt不足</dt><dd>{formatShortageList(getHeroAltMissingCities(destinations))}</dd></div>
+              <div><dt>hero isIllustration/isPhoto不足</dt><dd>{formatShortageList(getHeroMediaKindMissingCities(destinations))}</dd></div>
+              <div><dt>hero type不一致</dt><dd>{formatShortageList(getHeroTypeIssueCities(destinations))}</dd></div>
               <div><dt>hero needs_review</dt><dd>{formatShortageList(getHeroNeedsReviewCities(destinations))}</dd></div>
+              <div><dt>hero rejected</dt><dd>{formatShortageList(getHeroRejectedCities(destinations))}</dd></div>
+              <div><dt>hero missing</dt><dd>{formatShortageList(getHeroMissingStatusCities(destinations))}</dd></div>
+              <div><dt>confirmed以外の一般表示hero</dt><dd>{formatShortageList(getNonConfirmedDisplayedHeroCities(destinations))}</dd></div>
               <div><dt>trendHighlights未整備</dt><dd>{formatShortageList(getTrendHighlightsMissingCities(destinations))}</dd></div>
               <div><dt>trendHighlights 3件未満</dt><dd>{formatShortageList(getTrendHighlightsUnderThreeCities(destinations))}</dd></div>
               <div><dt>trend sourceStatus missing</dt><dd>{formatShortageList(getTrendMissingSourceStatusCities(destinations))}</dd></div>

@@ -1,0 +1,21 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="title desc">
+  <title>松江市の旅先イメージ</title>
+  <desc>松江市の松江城、宍道湖、水辺の街、夕景をイメージしたビジュアル</desc>
+  <title id="title">松江市をイメージしたビジュアル</title>
+  <desc id="desc">松江城と宍道湖をテーマにしたDROPTRIP用の旅先固定heroイラストです。</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#8fb1bd"/>
+      <stop offset="58%" stop-color="#f1dec0"/>
+      <stop offset="100%" stop-color="#fffaf1"/>
+    </linearGradient>
+    <style>:root { --bg:#8fb1bd; --light:#f1dec0; --accent:#6a7d62; --dark:#5b6470; }</style>
+  </defs>
+  <rect width="640" height="360" fill="url(#sky)"/>
+  <circle cx="92" cy="80" r="74" fill="#fff8ed" opacity=".36"/>
+  <circle cx="582" cy="278" r="94" fill="#6a7d62" opacity=".11"/>
+  <ellipse cx="328" cy="292" rx="250" ry="52" fill="#72aabe" opacity=".55"/>
+<g opacity=".9"><rect x="388" y="198" width="116" height="88" rx="4" fill="#f0e4ce"/><path d="M370 198 L446 144 L522 198 Z" fill="#5c6070"/><rect x="422" y="228" width="34" height="58" fill="#7c5e52"/></g>
+<circle cx="512" cy="108" r="38" fill="#e3a55e" opacity=".62"/>
+<path d="M455 285 L548 285 L525 308 L478 308 Z" fill="#8d604d" opacity=".82"/><path d="M486 250 L486 285" stroke="#5b4a41" stroke-width="6"/><path d="M490 253 L532 278 L490 278 Z" fill="#f1dfbd" opacity=".85"/>
+</svg>

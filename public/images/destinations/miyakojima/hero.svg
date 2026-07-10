@@ -1,0 +1,21 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="title desc">
+  <title>宮古島市の旅先イメージ</title>
+  <desc>宮古島市の宮古ブルーの海、伊良部大橋、砂浜をイメージしたビジュアル</desc>
+  <title id="title">宮古島をイメージしたビジュアル</title>
+  <desc id="desc">宮古ブルーと橋をテーマにしたDROPTRIP用の旅先固定heroイラストです。</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#75c9df"/>
+      <stop offset="58%" stop-color="#f9f0d8"/>
+      <stop offset="100%" stop-color="#fffaf1"/>
+    </linearGradient>
+    <style>:root { --bg:#75c9df; --light:#f9f0d8; --accent:#48a6b8; --dark:#4b7891; }</style>
+  </defs>
+  <rect width="640" height="360" fill="url(#sky)"/>
+  <circle cx="92" cy="80" r="74" fill="#fff8ed" opacity=".36"/>
+  <circle cx="582" cy="278" r="94" fill="#48a6b8" opacity=".11"/>
+  <path d="M0 282 C86 260 138 302 224 280 C312 258 382 306 470 278 C542 254 588 274 640 260 L640 360 L0 360 Z" fill="#61a8bf" opacity=".62"/>
+<path d="M0 315 C142 292 268 330 410 306 C505 290 582 286 640 278 L640 360 L0 360 Z" fill="#f3dfb3" opacity=".72"/>
+<path d="M90 218 C215 156 420 158 552 218" fill="none" stroke="#eef4f3" stroke-width="15" opacity=".9"/><path d="M105 226 L540 226" stroke="#5d7280" stroke-width="8" opacity=".65"/>
+<path d="M250 282 C300 240 362 242 420 280 C372 294 300 294 250 282 Z" fill="#6d9d67" opacity=".82"/>
+</svg>

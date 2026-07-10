@@ -1,0 +1,21 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="title desc">
+  <title>湯布院の旅先イメージ</title>
+  <desc>湯布院の由布岳、温泉街、金鱗湖、ゆったりした散策をイメージしたビジュアル</desc>
+  <title id="title">湯布院をイメージしたビジュアル</title>
+  <desc id="desc">由布岳と温泉街をテーマにしたDROPTRIP用の旅先固定heroイラストです。</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#9eb987"/>
+      <stop offset="58%" stop-color="#f3e8ce"/>
+      <stop offset="100%" stop-color="#fffaf1"/>
+    </linearGradient>
+    <style>:root { --bg:#9eb987; --light:#f3e8ce; --accent:#6c8a6a; --dark:#697a85; }</style>
+  </defs>
+  <rect width="640" height="360" fill="url(#sky)"/>
+  <circle cx="92" cy="80" r="74" fill="#fff8ed" opacity=".36"/>
+  <circle cx="582" cy="278" r="94" fill="#6c8a6a" opacity=".11"/>
+  <path d="M0 280 C78 198 126 210 190 150 C260 86 328 207 392 154 C470 94 556 190 640 124 L640 360 L0 360 Z" fill="var(--dark)" opacity=".18"/>
+<ellipse cx="198" cy="278" rx="110" ry="44" fill="#69a8ad" opacity=".62"/><g fill="none" stroke="#fff7ed" stroke-width="8" stroke-linecap="round" opacity=".78"><path d="M146 246 C118 218 164 202 142 172"/><path d="M206 244 C178 214 228 200 204 168"/></g>
+<g opacity=".85"><rect x="100" y="215" width="82" height="70" rx="5" fill="#f3dec2"/><rect x="205" y="190" width="100" height="95" rx="5" fill="#d7a477"/><rect x="332" y="220" width="78" height="65" rx="5" fill="#ecd0aa"/><path d="M88 215 L141 176 L194 215 Z" fill="var(--accent)"/><path d="M192 190 L255 150 L318 190 Z" fill="var(--dark)"/><path d="M320 220 L371 184 L422 220 Z" fill="var(--accent)"/></g>
+<ellipse cx="328" cy="292" rx="250" ry="52" fill="#72aabe" opacity=".55"/>
+</svg>

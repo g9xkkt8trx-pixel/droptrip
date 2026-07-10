@@ -1,0 +1,21 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="title desc">
+  <title>倉敷市の旅先イメージ</title>
+  <desc>倉敷市の美観地区、白壁の町並み、柳並木、川舟をイメージしたビジュアル</desc>
+  <title id="title">倉敷市をイメージしたビジュアル</title>
+  <desc id="desc">白壁と柳並木をテーマにしたDROPTRIP用の旅先固定heroイラストです。</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#9fb8ad"/>
+      <stop offset="58%" stop-color="#f5ead6"/>
+      <stop offset="100%" stop-color="#fffaf1"/>
+    </linearGradient>
+    <style>:root { --bg:#9fb8ad; --light:#f5ead6; --accent:#6d776f; --dark:#547786; }</style>
+  </defs>
+  <rect width="640" height="360" fill="url(#sky)"/>
+  <circle cx="92" cy="80" r="74" fill="#fff8ed" opacity=".36"/>
+  <circle cx="582" cy="278" r="94" fill="#6d776f" opacity=".11"/>
+  <path d="M0 300 C132 268 252 336 390 296 C482 270 548 280 640 250 L640 360 L0 360 Z" fill="#3d728b" opacity=".66"/>
+<g opacity=".78"><path d="M166 178 C152 230 130 262 112 302" stroke="#6f925f" stroke-width="7" stroke-linecap="round"/><path d="M186 168 C182 228 164 260 148 310" stroke="#6f925f" stroke-width="7" stroke-linecap="round"/><path d="M206 184 C215 238 205 272 190 315" stroke="#6f925f" stroke-width="7" stroke-linecap="round"/><circle cx="184" cy="160" r="42" fill="#75a16a"/></g>
+<g opacity=".9"><rect x="130" y="203" width="120" height="82" rx="4" fill="#b06552"/><rect x="280" y="188" width="128" height="97" rx="4" fill="#d59b70"/><path d="M116 203 L190 160 L264 203 Z" fill="#59616b"/><path d="M266 188 L344 144 L422 188 Z" fill="#59616b"/></g>
+<path d="M455 285 L548 285 L525 308 L478 308 Z" fill="#8d604d" opacity=".82"/><path d="M486 250 L486 285" stroke="#5b4a41" stroke-width="6"/><path d="M490 253 L532 278 L490 278 Z" fill="#f1dfbd" opacity=".85"/>
+</svg>
