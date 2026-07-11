@@ -134,6 +134,62 @@ const KYOTO_CONFIRMED_HERO = {
   rejectedReason: '',
 }
 
+const HAKONE_CONFIRMED_HERO = {
+  src: '/images/destinations/hakone/hero-v1.webp',
+  alt: '芦ノ湖と鳥居、山並みをイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '芦ノ湖・鳥居・山並み・温泉旅',
+  reviewNote: 'ユーザー確認済み。高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-11',
+  rejectedReason: '',
+}
+
+const OTARU_CONFIRMED_HERO = {
+  src: '/images/destinations/otaru/hero-v1.webp',
+  alt: '小樽運河と倉庫群の街並みをイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '小樽運河・倉庫群・ガス灯・港町・夕景',
+  reviewNote: 'ユーザー確認済み。高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-11',
+  rejectedReason: '',
+}
+
+const KUSATSU_CONFIRMED_HERO = {
+  src: '/images/destinations/kusatsu/hero-v1.webp',
+  alt: '湯畑と湯けむりの温泉街をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '湯畑・湯けむり・温泉街・夜景',
+  reviewNote: 'ユーザー確認済み。高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-11',
+  rejectedReason: '',
+}
+
+const KANAZAWA_CONFIRMED_HERO = {
+  src: '/images/destinations/kanazawa/hero-v1.webp',
+  alt: '金沢の茶屋街と和の街並みをイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '茶屋街・兼六園・城下町・和の街並み',
+  reviewNote: 'ユーザー確認済み。高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-11',
+  rejectedReason: '',
+}
+
 // 旅先ごとの固定イメージ画像を追加したときは、この対応表へ登録する。
 // まず destination.id を優先し、既存データとの互換性のため city キーも残す。
 const DESTINATION_LOCAL_IMAGES = {
@@ -150,20 +206,29 @@ const DESTINATION_LOCAL_IMAGES = {
     scenery: '/images/destinations/nara-scenery.jpg',
     food: '/images/destinations/nara-food.jpg',
   },
+  '北海道-小樽市': {
+    hero: OTARU_CONFIRMED_HERO,
+  },
   小樽市: {
-    hero: '/images/destinations/otaru/hero.svg',
+    hero: OTARU_CONFIRMED_HERO,
     scenery: '/images/destinations/otaru-scenery.jpg',
     food: '/images/destinations/otaru-food.jpg',
   },
   札幌市: { hero: '/images/destinations/sapporo/hero.svg' },
   函館市: { hero: '/images/destinations/hakodate/hero.svg' },
+  '石川県-金沢市': {
+    hero: KANAZAWA_CONFIRMED_HERO,
+  },
   金沢市: {
-    hero: '/images/destinations/kanazawa/hero.svg',
+    hero: KANAZAWA_CONFIRMED_HERO,
     scenery: '/images/destinations/kanazawa-scenery.jpg',
     food: '/images/destinations/kanazawa-food.jpg',
   },
+  '神奈川県-箱根町': {
+    hero: HAKONE_CONFIRMED_HERO,
+  },
   箱根町: {
-    hero: '/images/destinations/hakone/hero.svg',
+    hero: HAKONE_CONFIRMED_HERO,
     scenery: '/images/destinations/hakone-scenery.jpg',
     food: '/images/destinations/hakone-food.jpg',
   },
@@ -172,8 +237,11 @@ const DESTINATION_LOCAL_IMAGES = {
     scenery: '/images/destinations/atami-scenery.jpg',
     food: '/images/destinations/atami-food.jpg',
   },
+  '群馬県-草津町': {
+    hero: KUSATSU_CONFIRMED_HERO,
+  },
   草津町: {
-    hero: '/images/destinations/kusatsu/hero.svg',
+    hero: KUSATSU_CONFIRMED_HERO,
     scenery: '/images/destinations/kusatsu-scenery.jpg',
     food: '/images/destinations/kusatsu-food.jpg',
   },
@@ -546,7 +614,7 @@ export const COMMON_IMAGE_PLACEHOLDER = DEFAULT_TRAVEL_IMAGE
 
 export const getImageUrl = (image) => {
   if (typeof image === 'string') return image
-  return image?.url ?? image?.imageUrl ?? ''
+  return image?.src ?? image?.url ?? image?.imageUrl ?? ''
 }
 
 export const getImageCredit = (image) => {

@@ -48,6 +48,7 @@
 - [ ] 375px / 390px / 430px 幅でも、confirmed hero画像はPCと同じ条件で表示される
 - [ ] 下呂市のconfirmed heroは `/images/destinations/gero-onsen/hero-v2.webp` を参照し、旧 `hero.svg` を参照していない
 - [ ] 京都市のconfirmed heroは `/images/destinations/kyoto/hero-v1.webp` を参照し、旧 `hero.svg` を参照していない
+- [ ] 箱根町・小樽市・草津町・金沢市のconfirmed heroは各 `hero-v1.webp` を参照し、旧 `hero.svg` を参照していない
 - [ ] confirmed hero画像ファイルはGit管理に入っており、Vercel配信後もPC・スマホの両方で表示される
 - [ ] 一般結果画面に `GERO HERO DEBUG` などの一時デバッグ表示や直書きhero画像が残っていない
 - [ ] 第2弾SVG内に旅先名などの大きな表示文字がなく、現地写真と誤認する文言が出ていない
