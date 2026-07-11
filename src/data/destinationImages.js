@@ -190,6 +190,62 @@ const KANAZAWA_CONFIRMED_HERO = {
   rejectedReason: '',
 }
 
+const KAMAKURA_CONFIRMED_HERO = {
+  src: '/images/destinations/kamakura/hero-v1.webp',
+  alt: '鎌倉の海沿いと古都散策をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '江ノ電・海・古都・寺社・紫陽花',
+  reviewNote: 'ユーザー確認済み。高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-11',
+  rejectedReason: '',
+}
+
+const ATAMI_CONFIRMED_HERO = {
+  src: '/images/destinations/atami/hero-v1.webp',
+  alt: '熱海の海辺温泉と夕景をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '海辺温泉・坂道・リゾート温泉街・夕景',
+  reviewNote: 'ユーザー確認済み。高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-11',
+  rejectedReason: '',
+}
+
+const SENDAI_CONFIRMED_HERO = {
+  src: '/images/destinations/sendai/hero-v1.webp',
+  alt: '仙台の街並みと緑、歴史をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '杜の都・青葉城跡・街と緑・都市景観',
+  reviewNote: 'ユーザー確認済み。高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-11',
+  rejectedReason: '',
+}
+
+const FUKUOKA_CONFIRMED_HERO = {
+  src: '/images/destinations/fukuoka/hero-v1.webp',
+  alt: '福岡の夜景と屋台の雰囲気をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '屋台・夜景・博多グルメ・川沿い',
+  reviewNote: 'ユーザー確認済み。高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-11',
+  rejectedReason: '',
+}
+
 // 旅先ごとの固定イメージ画像を追加したときは、この対応表へ登録する。
 // まず destination.id を優先し、既存データとの互換性のため city キーも残す。
 const DESTINATION_LOCAL_IMAGES = {
@@ -232,8 +288,11 @@ const DESTINATION_LOCAL_IMAGES = {
     scenery: '/images/destinations/hakone-scenery.jpg',
     food: '/images/destinations/hakone-food.jpg',
   },
+  '静岡県-熱海市': {
+    hero: ATAMI_CONFIRMED_HERO,
+  },
   熱海市: {
-    hero: '/images/destinations/atami/hero.svg',
+    hero: ATAMI_CONFIRMED_HERO,
     scenery: '/images/destinations/atami-scenery.jpg',
     food: '/images/destinations/atami-food.jpg',
   },
@@ -246,15 +305,25 @@ const DESTINATION_LOCAL_IMAGES = {
     food: '/images/destinations/kusatsu-food.jpg',
   },
   日光市: { hero: '/images/destinations/nikko-hero.jpg' },
+  '神奈川県-鎌倉市': {
+    hero: KAMAKURA_CONFIRMED_HERO,
+  },
   鎌倉市: {
-    hero: '/images/destinations/kamakura/hero.svg',
+    hero: KAMAKURA_CONFIRMED_HERO,
     scenery: '/images/destinations/kamakura-scenery.jpg',
     food: '/images/destinations/kamakura-food.jpg',
   },
   横浜市: { hero: '/images/destinations/yokohama-hero.jpg' },
-  松島町: { hero: '/images/destinations/matsushima-hero.jpg' }, 仙台市: { hero: '/images/destinations/sendai/hero.svg' },
+  松島町: { hero: '/images/destinations/matsushima-hero.jpg' },
+  '宮城県-仙台市': {
+    hero: SENDAI_CONFIRMED_HERO,
+  },
+  仙台市: { hero: SENDAI_CONFIRMED_HERO },
+  '福岡県-福岡市': {
+    hero: FUKUOKA_CONFIRMED_HERO,
+  },
   福岡市: {
-    hero: '/images/destinations/fukuoka/hero.svg',
+    hero: FUKUOKA_CONFIRMED_HERO,
     scenery: '/images/destinations/fukuoka-scenery.jpg',
     food: '/images/destinations/fukuoka-food.jpg',
   },
