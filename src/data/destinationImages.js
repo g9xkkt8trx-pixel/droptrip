@@ -22,6 +22,7 @@
   confirmedAt = '',
   rejectedReason = '',
   isPhoto = false,
+  hasEmbeddedText = false,
 }) => ({
   url,
   imageUrl: url,
@@ -55,6 +56,7 @@
   reviewNote,
   confirmedAt,
   rejectedReason,
+  hasEmbeddedText,
 })
 
 const COMMON_PATHS = {
@@ -202,6 +204,7 @@ const KAMAKURA_TEXT_HERO_REJECTED = {
   reviewNote: '画像内に説明文が入っているため、一般画面では非表示。文字なし高品質画像で再作成する。',
   confirmedAt: '',
   rejectedReason: '画像内テキストがあり、アプリ側UIと重複してトリミング時に切れる可能性がある。',
+  hasEmbeddedText: true,
 }
 
 const ATAMI_TEXT_HERO_REJECTED = {
@@ -216,6 +219,7 @@ const ATAMI_TEXT_HERO_REJECTED = {
   reviewNote: '画像内に説明文が入っているため、一般画面では非表示。文字なし高品質画像で再作成する。',
   confirmedAt: '',
   rejectedReason: '画像内テキストがあり、アプリ側UIと重複してトリミング時に切れる可能性がある。',
+  hasEmbeddedText: true,
 }
 
 const SENDAI_TEXT_HERO_REJECTED = {
@@ -230,6 +234,7 @@ const SENDAI_TEXT_HERO_REJECTED = {
   reviewNote: '画像内に説明文が入っているため、一般画面では非表示。文字なし高品質画像で再作成する。',
   confirmedAt: '',
   rejectedReason: '画像内テキストがあり、アプリ側UIと重複してトリミング時に切れる可能性がある。',
+  hasEmbeddedText: true,
 }
 
 const FUKUOKA_TEXT_HERO_REJECTED = {
@@ -244,6 +249,7 @@ const FUKUOKA_TEXT_HERO_REJECTED = {
   reviewNote: '画像内に説明文が入っているため、一般画面では非表示。文字なし高品質画像で再作成する。',
   confirmedAt: '',
   rejectedReason: '画像内テキストがあり、アプリ側UIと重複してトリミング時に切れる可能性がある。',
+  hasEmbeddedText: true,
 }
 
 // 旅先ごとの固定イメージ画像を追加したときは、この対応表へ登録する。
@@ -576,6 +582,7 @@ const createDestinationFixedImageEntry = (key, mappedImages = {}) => Object.from
         : isSimpleSvg
           ? '簡易SVGで旅先らしさと旅行アプリheroとしての魅力が不足。'
           : '',
+      hasEmbeddedText: typeof imageConfig === 'object' ? imageConfig?.hasEmbeddedText === true : false,
     }]
   }),
 )
@@ -783,6 +790,7 @@ const normalizeImageAsset = (image, imageType) => {
     reviewNote: image.reviewNote,
     confirmedAt: image.confirmedAt,
     rejectedReason: image.rejectedReason,
+    hasEmbeddedText: image.hasEmbeddedText === true,
   })
 }
 
@@ -819,6 +827,7 @@ export const getDestinationImage = (destination = {}, imageType = 'hero') => {
       confirmedAt: mappedAsset?.confirmedAt ?? '',
       rejectedReason: mappedAsset?.rejectedReason ?? '',
       isPhoto: mappedAsset?.isPhoto ?? false,
+      hasEmbeddedText: mappedAsset?.hasEmbeddedText === true,
     })
   }
   if (configuredUrl.startsWith('/images/destinations/') && isValidImageUrl(configured)) {
@@ -837,6 +846,7 @@ export const getDestinationImage = (destination = {}, imageType = 'hero') => {
       reviewNote: configured.reviewNote ?? '',
       confirmedAt: configured.confirmedAt ?? '',
       rejectedReason: configured.rejectedReason ?? '',
+      hasEmbeddedText: configured.hasEmbeddedText === true,
     })
   }
 

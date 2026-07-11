@@ -1430,6 +1430,7 @@ const getHeroDisplayCheck = (image) => {
   if (getImageMetaValue(image, 'isIllustration') !== true && getImageMetaValue(image, 'isPhoto') !== true) reasons.push('isIllustration/isPhotoなし')
   if (!getImageMetaValue(image, 'alt')) reasons.push('altなし')
   if (getImageMetaValue(image, 'isGeneric')) reasons.push('generic画像')
+  if (getImageMetaValue(image, 'hasEmbeddedText') === true) reasons.push('画像内テキストあり')
   return {
     shouldShowHero: reasons.length === 0,
     reason: reasons.length > 0 ? reasons.join(' / ') : '表示条件OK',
@@ -1928,22 +1929,11 @@ const createDestinationSearchFields = (destination = {}) => [
   { field: '市区町村', value: destination.city },
   { field: '都道府県', value: destination.prefecture },
   { field: '地域', value: destination.region },
-  { field: 'おすすめ文', value: destination.recommendation },
   { field: 'おすすめ文', value: destination.recommendText },
-  { field: '最寄り駅', value: destination.nearestStation },
-  { field: '最寄り駅表示', value: destination.nearestStationLabel },
   ...(destination.tags ?? []).map((tag) => ({ field: 'タグ', value: tag })),
   ...(destination.localFoodCandidates ?? []).map((food) => ({ field: 'グルメ候補', value: food })),
-  ...(destination.localFoodDetails ?? []).flatMap((food) => [
-    { field: 'グルメ名', value: food?.name },
-    { field: 'グルメ分類', value: food?.type },
-    { field: 'グルメ説明', value: food?.description },
-  ]),
-  ...(destination.touristSpots ?? []).flatMap((spot) => [
-    { field: 'スポット名', value: spot?.name },
-    { field: 'スポット分類', value: spot?.type },
-    { field: 'スポット説明', value: spot?.description },
-  ]),
+  ...(destination.localFoodDetails ?? []).map((food) => ({ field: 'グルメ名', value: food?.name })),
+  ...(destination.touristSpots ?? []).map((spot) => ({ field: 'スポット名', value: spot?.name })),
   ...(destination.trendHighlights ?? []).map((item) => ({ field: '映え・トレンド', value: item?.name })),
   ...(destination.nearbyDestinationHints ?? []).map((hint) => ({ field: '周辺候補', value: hint })),
 ].filter((item) => item.value)
@@ -1960,6 +1950,23 @@ const getDestinationSearchMatches = (destination = {}, keyword = '') => {
     .filter((item) => item.normalizedValue.includes(normalizedKeyword))
     .map(({ field, value }) => ({ field, value }))
 }
+
+const getDestinationDedupeKey = (destination = {}) => (
+  destination.id
+  || (destination.prefecture && destination.city ? `${destination.prefecture}-${destination.city}` : '')
+  || (destination.region && destination.name ? `${destination.region}-${destination.name}` : '')
+  || destination.name
+  || destination.city
+  || ''
+)
+
+const dedupeDestinations = (destinationList = []) => Array.from(
+  destinationList.reduce((uniqueMap, place) => {
+    const uniqueKey = getDestinationDedupeKey(place)
+    if (uniqueKey && !uniqueMap.has(uniqueKey)) uniqueMap.set(uniqueKey, place)
+    return uniqueMap
+  }, new Map()).values(),
+)
 
 const getTripEnjoymentItems = (destination = {}, foodItems = []) => {
   const tagItems = (destination.tags ?? []).slice(0, 4)
@@ -2809,16 +2816,25 @@ function App() {
     customRangeHours,
     customRangeKm,
   })
-  const destinationBrowserDestinations = Array.from(
-    destinations.reduce((uniqueMap, place) => {
-      const uniqueKey = place.id ?? `${place.prefecture}-${place.city}`
-      if (!uniqueMap.has(uniqueKey)) uniqueMap.set(uniqueKey, place)
-      return uniqueMap
-    }, new Map()).values(),
-  )
-  const filteredDestinations = destinationBrowserDestinations.filter((place) => {
-    const keyword = normalizeSearchText(destinationSearch).trim()
-    const matchesKeyword = !keyword || getDestinationSearchMatches(place, keyword).length > 0
+  const destinationBrowserDestinations = dedupeDestinations(destinations)
+  const destinationSearchKeyword = normalizeSearchText(destinationSearch).trim()
+  const exactDestinationNameSearch = destinationSearchKeyword
+    ? destinationBrowserDestinations.some((place) => (
+      normalizeSearchText(place.city) === destinationSearchKeyword
+      || normalizeSearchText(place.name) === destinationSearchKeyword
+      || normalizeSearchText(`${place.prefecture}${place.city}`) === destinationSearchKeyword
+      || normalizeSearchText(`${place.prefecture}-${place.city}`) === destinationSearchKeyword
+    ))
+    : false
+  const filteredDestinationCandidates = destinations.filter((place) => {
+    const keyword = destinationSearchKeyword
+    const matchesKeyword = !keyword
+      || (exactDestinationNameSearch
+        ? normalizeSearchText(place.city) === keyword
+          || normalizeSearchText(place.name) === keyword
+          || normalizeSearchText(`${place.prefecture}${place.city}`) === keyword
+          || normalizeSearchText(`${place.prefecture}-${place.city}`) === keyword
+        : getDestinationSearchMatches(place, keyword).length > 0)
     const matchesPrefecture = destinationPrefectureFilter === 'all' || place.prefecture === destinationPrefectureFilter
     const matchesTag = destinationTagFilter === 'all' || place.tags.includes(destinationTagFilter)
     const matchesPurpose = destinationPurposeFilter === 'all'
@@ -2840,10 +2856,21 @@ function App() {
       && matchesRange
       && matchesFavorite
   })
+  const filteredDestinations = dedupeDestinations(filteredDestinationCandidates)
   const destinationRangeLabel = movementRangeOptions.find((option) => option.value === destinationRangeFilter)?.label ?? 'おまかせ'
-  const destinationSearchKeyword = normalizeSearchText(destinationSearch).trim()
   const toyookaSearchDiagnostics = destinationSearchKeyword
     ? getDestinationSearchMatches(destinationBrowserDestinations.find((place) => place.city === '豊岡市'), destinationSearchKeyword)
+    : []
+  const filteredDestinationDuplicateCount = filteredDestinationCandidates.length - filteredDestinations.length
+  const destinationSearchMatchDiagnostics = destinationSearchKeyword
+    ? filteredDestinations.slice(0, 8).map((place) => {
+      const matches = getDestinationSearchMatches(place, destinationSearchKeyword)
+      const searchablePreview = createDestinationSearchFields(place)
+        .map((item) => item.value)
+        .join(' ')
+        .slice(0, 90)
+      return `${place.city}: ${matches.map((item) => item.field).join('・') || '一致なし'} / ${searchablePreview}`
+    })
     : []
   const activeDestinationFilters = [
     destinationSearch.trim() && `キーワード：${destinationSearch.trim()}`,
@@ -4552,7 +4579,7 @@ function App() {
             <section className="destination-browser-card" aria-labelledby="destination-browser-title">
               <div className="favorites-heading">
                 <div><p>SEARCH</p><h2 id="destination-browser-title">旅行先を絞り込む</h2></div>
-                <span>{destinationBrowserDestinations.length}件中 {filteredDestinations.length}件を表示中</span>
+                <span>{destinations.length}件中 {filteredDestinations.length}件を表示中</span>
               </div>
               <p className="destination-browser-description">
                 旅先名・都道府県・グルメ・スポット名で探せます。
@@ -5938,7 +5965,12 @@ function App() {
               <div><dt>general access CTA</dt><dd>Google Maps direct link</dd></div>
               <div><dt>destination list search fields</dt><dd>旅先名・都道府県・region・tags・グルメ・スポット・映え・周辺候補</dd></div>
               <div><dt>destination list search query</dt><dd>{destinationSearchKeyword || '未入力'}</dd></div>
+              <div><dt>destination list exact city mode</dt><dd>{exactDestinationNameSearch ? 'on' : 'off'}</dd></div>
+              <div><dt>destination list raw matches</dt><dd>{filteredDestinationCandidates.length}件</dd></div>
+              <div><dt>destination list deduped matches</dt><dd>{filteredDestinations.length}件（重複除去 {filteredDestinationDuplicateCount}件）</dd></div>
+              <div><dt>destination list fallback mixed</dt><dd>{destinationSearchKeyword && filteredDestinationCandidates.length === 0 && filteredDestinations.length === 0 ? 'なし（0件表示）' : 'なし'}</dd></div>
               <div><dt>豊岡市 search match</dt><dd>{destinationSearchKeyword ? (toyookaSearchDiagnostics.length > 0 ? toyookaSearchDiagnostics.map((item) => `${item.field}:${item.value}`).join(' / ') : '一致なし') : '検索語未入力'}</dd></div>
+              <div><dt>search matchedFields preview</dt><dd>{destinationSearchMatchDiagnostics.length > 0 ? destinationSearchMatchDiagnostics.join(' / ') : 'なし'}</dd></div>
               <div><dt>scroll to top button</dt><dd>enabled（scrollY 520px超で表示）</dd></div>
               <div><dt>food / spot Maps links</dt><dd>destination + item name query</dd></div>
               <div><dt>food detail header</dt><dd>専用ヘッダー表示（DRAW RESULT / 抽選結果は非表示）</dd></div>
