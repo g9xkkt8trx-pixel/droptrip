@@ -552,6 +552,66 @@ const GINZAN_ONSEN_CONFIRMED_HERO = {
   rejectedReason: '',
 }
 
+const NARA_CONFIRMED_HERO = {
+  src: '/images/destinations/nara/hero-v1.webp',
+  alt: '奈良公園の鹿と寺社の風景をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '奈良公園・鹿・寺社・古都・夕景',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-11',
+  rejectedReason: '',
+}
+
+const NIKKO_CONFIRMED_HERO = {
+  src: '/images/destinations/nikko/hero-v1.webp',
+  alt: '日光の社寺と自然をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '日光東照宮・社寺・森・歴史建築・自然',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-11',
+  rejectedReason: '',
+}
+
+const ISE_CONFIRMED_HERO = {
+  src: '/images/destinations/ise/hero-v1.webp',
+  alt: '伊勢の海辺と神宮周辺の雰囲気をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '伊勢神宮・海辺・鳥居・朝夕の光・神聖な雰囲気',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-11',
+  rejectedReason: '',
+}
+
+const YOKOHAMA_CONFIRMED_HERO = {
+  src: '/images/destinations/yokohama/hero-v1.webp',
+  alt: '横浜みなとみらいの夜景と港町をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: 'みなとみらい・港町・夜景・赤レンガ・都市景観',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-11',
+  rejectedReason: '',
+}
+
 // 旅先ごとの固定イメージ画像を追加したときは、この対応表へ登録する。
 // まず destination.id を優先し、既存データとの互換性のため city キーも残す。
 const DESTINATION_LOCAL_IMAGES = {
@@ -563,8 +623,11 @@ const DESTINATION_LOCAL_IMAGES = {
     scenery: '/images/destinations/kyoto-scenery.jpg',
     food: '/images/destinations/kyoto-food.jpg',
   },
+  '奈良県-奈良市': {
+    hero: NARA_CONFIRMED_HERO,
+  },
   奈良市: {
-    hero: '/images/destinations/nara-hero.jpg',
+    hero: NARA_CONFIRMED_HERO,
     scenery: '/images/destinations/nara-scenery.jpg',
     food: '/images/destinations/nara-food.jpg',
   },
@@ -612,7 +675,8 @@ const DESTINATION_LOCAL_IMAGES = {
     scenery: '/images/destinations/kusatsu-scenery.jpg',
     food: '/images/destinations/kusatsu-food.jpg',
   },
-  日光市: { hero: '/images/destinations/nikko-hero.jpg' },
+  '栃木県-日光市': { hero: NIKKO_CONFIRMED_HERO },
+  日光市: { hero: NIKKO_CONFIRMED_HERO },
   '神奈川県-鎌倉市': {
     hero: KAMAKURA_CONFIRMED_HERO,
   },
@@ -621,7 +685,8 @@ const DESTINATION_LOCAL_IMAGES = {
     scenery: '/images/destinations/kamakura-scenery.jpg',
     food: '/images/destinations/kamakura-food.jpg',
   },
-  横浜市: { hero: '/images/destinations/yokohama-hero.jpg' },
+  '神奈川県-横浜市': { hero: YOKOHAMA_CONFIRMED_HERO },
+  横浜市: { hero: YOKOHAMA_CONFIRMED_HERO },
   松島町: { hero: '/images/destinations/matsushima-hero.jpg' },
   '宮城県-仙台市': {
     hero: SENDAI_CONFIRMED_HERO,
@@ -652,7 +717,8 @@ const DESTINATION_LOCAL_IMAGES = {
   },
   '岐阜県-高山市': { hero: TAKAYAMA_CONFIRMED_HERO },
   高山市: { hero: TAKAYAMA_CONFIRMED_HERO },
-  伊勢市: { hero: '/images/destinations/ise-hero.jpg' },
+  '三重県-伊勢市': { hero: ISE_CONFIRMED_HERO },
+  伊勢市: { hero: ISE_CONFIRMED_HERO },
   白浜町: { hero: '/images/destinations/shirahama-hero.jpg' }, 軽井沢町: { hero: '/images/destinations/karuizawa-hero.jpg' },
   富良野市: { hero: '/images/destinations/furano-hero.jpg' }, 会津若松市: { hero: '/images/destinations/aizuwakamatsu-hero.jpg' },
   '広島県-尾道市': { hero: ONOMICHI_CONFIRMED_HERO },
