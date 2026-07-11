@@ -312,6 +312,66 @@ const KAWAGOE_CONFIRMED_HERO = {
   rejectedReason: '',
 }
 
+const ISHIGAKI_CONFIRMED_HERO = {
+  src: '/images/destinations/ishigaki/hero-v1.webp',
+  alt: '石垣島の青い海と南国の自然をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '青い海・白い砂浜・南国植物・島旅',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-11',
+  rejectedReason: '',
+}
+
+const MIYAKOJIMA_CONFIRMED_HERO = {
+  src: '/images/destinations/miyakojima/hero-v1.webp',
+  alt: '宮古島の透明な海と長い橋をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '宮古ブルー・橋・白砂・リゾート感',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-11',
+  rejectedReason: '',
+}
+
+const SAPPORO_CONFIRMED_HERO = {
+  src: '/images/destinations/sapporo/hero-v1.webp',
+  alt: '札幌の公園と都市景観をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '大通公園・札幌テレビ塔・花壇・都市と自然',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-11',
+  rejectedReason: '',
+}
+
+const HAKODATE_CONFIRMED_HERO = {
+  src: '/images/destinations/hakodate/hero-v1.webp',
+  alt: '函館山から見る港町の夜景をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '函館山夜景・港町・海辺・夕景',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-11',
+  rejectedReason: '',
+}
+
 // 旅先ごとの固定イメージ画像を追加したときは、この対応表へ登録する。
 // まず destination.id を優先し、既存データとの互換性のため city キーも残す。
 const DESTINATION_LOCAL_IMAGES = {
@@ -336,8 +396,10 @@ const DESTINATION_LOCAL_IMAGES = {
     scenery: '/images/destinations/otaru-scenery.jpg',
     food: '/images/destinations/otaru-food.jpg',
   },
-  札幌市: { hero: '/images/destinations/sapporo/hero.svg' },
-  函館市: { hero: '/images/destinations/hakodate/hero.svg' },
+  '北海道-札幌市': { hero: SAPPORO_CONFIRMED_HERO },
+  札幌市: { hero: SAPPORO_CONFIRMED_HERO },
+  '北海道-函館市': { hero: HAKODATE_CONFIRMED_HERO },
+  函館市: { hero: HAKODATE_CONFIRMED_HERO },
   '石川県-金沢市': {
     hero: KANAZAWA_CONFIRMED_HERO,
   },
@@ -396,8 +458,11 @@ const DESTINATION_LOCAL_IMAGES = {
   長崎市: { hero: '/images/destinations/nagasaki/hero.svg' },
   広島市: { hero: '/images/destinations/hiroshima/hero.svg' }, 廿日市市: { hero: '/images/destinations/miyajima/hero.svg' },
   那覇市: { hero: '/images/destinations/naha-hero.jpg' },
+  '沖縄県-石垣市': {
+    hero: ISHIGAKI_CONFIRMED_HERO,
+  },
   石垣市: {
-    hero: '/images/destinations/ishigaki/hero.svg',
+    hero: ISHIGAKI_CONFIRMED_HERO,
     scenery: '/images/destinations/ishigaki-scenery.jpg',
     food: '/images/destinations/ishigaki-food.jpg',
   },
@@ -418,7 +483,8 @@ const DESTINATION_LOCAL_IMAGES = {
   川越市: { hero: KAWAGOE_CONFIRMED_HERO },
   佐野市: { hero: '/images/destinations/sano/hero.svg' },
   上田市: { hero: '/images/destinations/ueda/hero.svg' },
-  宮古島市: { hero: '/images/destinations/miyakojima/hero.svg' },
+  '沖縄県-宮古島市': { hero: MIYAKOJIMA_CONFIRMED_HERO },
+  宮古島市: { hero: MIYAKOJIMA_CONFIRMED_HERO },
   由布市: { hero: '/images/destinations/yufuin/hero.svg' },
   松山市: { hero: '/images/destinations/dogo-onsen/hero.svg' },
   神戸市: { hero: '/images/destinations/arima-onsen/hero.svg' },
