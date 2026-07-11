@@ -55,16 +55,16 @@ rejected 条件:
 
 - 現在の登録旅先: 120件
 - 固定hero登録あり: 42件
-- 一般画面に表示するconfirmed hero: 22件
+- 一般画面に表示するconfirmed hero: 26件
 - needs_review hero: 10件
-- rejected hero: 10件
+- rejected hero: 6件
 - missing hero: 78件
 - 第1弾SVG作成済み: 16件（一般画面では非表示 / 佐野市先行作成1件を含む）
 - 第2弾SVG作成済み: 16件（一般画面では非表示）
 
 ## confirmed hero表示対象
 
-下呂市（`/images/destinations/gero-onsen/hero-v2.webp`）、京都市（`/images/destinations/kyoto/hero-v1.webp`）、箱根町（`/images/destinations/hakone/hero-v1.webp`）、小樽市（`/images/destinations/otaru/hero-v1.webp`）、草津町（`/images/destinations/kusatsu/hero-v1.webp`）、金沢市（`/images/destinations/kanazawa/hero-v1.webp`）、鎌倉市（`/images/destinations/kamakura/hero-v2.webp`）、熱海市（`/images/destinations/atami/hero-v2.webp`）、仙台市（`/images/destinations/sendai/hero-v2.webp`）、福岡市（`/images/destinations/fukuoka/hero-v2.webp`）、鳴門市（`/images/destinations/naruto/hero-v1.webp`）、別府市（`/images/destinations/beppu/hero-v1.webp`）、甲府市（`/images/destinations/kofu/hero-v1.webp`）、川越市（`/images/destinations/kawagoe/hero-v1.webp`）、石垣市（`/images/destinations/ishigaki/hero-v1.webp`）、宮古島市（`/images/destinations/miyakojima/hero-v1.webp`）、札幌市（`/images/destinations/sapporo/hero-v1.webp`）、函館市（`/images/destinations/hakodate/hero-v1.webp`）、長崎市（`/images/destinations/nagasaki/hero-v1.webp`）、広島市（`/images/destinations/hiroshima/hero-v1.webp`）、廿日市市（宮島: `/images/destinations/miyajima/hero-v1.webp`）、高山市（`/images/destinations/takayama/hero-v1.webp`）。簡易SVGや画像内文字入りheroは一般画面に表示しません。confirmed画像はGit管理に入れてVercelへ反映し、原因切り分け用の直書き表示ではなく `destinationImages` の正式登録から表示します。
+下呂市（`/images/destinations/gero-onsen/hero-v2.webp`）、京都市（`/images/destinations/kyoto/hero-v1.webp`）、箱根町（`/images/destinations/hakone/hero-v1.webp`）、小樽市（`/images/destinations/otaru/hero-v1.webp`）、草津町（`/images/destinations/kusatsu/hero-v1.webp`）、金沢市（`/images/destinations/kanazawa/hero-v1.webp`）、鎌倉市（`/images/destinations/kamakura/hero-v2.webp`）、熱海市（`/images/destinations/atami/hero-v2.webp`）、仙台市（`/images/destinations/sendai/hero-v2.webp`）、福岡市（`/images/destinations/fukuoka/hero-v2.webp`）、鳴門市（`/images/destinations/naruto/hero-v1.webp`）、別府市（`/images/destinations/beppu/hero-v1.webp`）、甲府市（`/images/destinations/kofu/hero-v1.webp`）、川越市（`/images/destinations/kawagoe/hero-v1.webp`）、石垣市（`/images/destinations/ishigaki/hero-v1.webp`）、宮古島市（`/images/destinations/miyakojima/hero-v1.webp`）、札幌市（`/images/destinations/sapporo/hero-v1.webp`）、函館市（`/images/destinations/hakodate/hero-v1.webp`）、長崎市（`/images/destinations/nagasaki/hero-v1.webp`）、広島市（`/images/destinations/hiroshima/hero-v1.webp`）、廿日市市（宮島: `/images/destinations/miyajima/hero-v1.webp`）、高山市（`/images/destinations/takayama/hero-v1.webp`）、尾道市（`/images/destinations/onomichi/hero-v1.webp`）、倉敷市（`/images/destinations/kurashiki/hero-v1.webp`）、松江市（`/images/destinations/matsue/hero-v1.webp`）、由布市（湯布院: `/images/destinations/yufuin/hero-v1.webp`）。簡易SVGや画像内文字入りheroは一般画面に表示しません。confirmed画像はGit管理に入れてVercelへ反映し、原因切り分け用の直書き表示ではなく `destinationImages` の正式登録から表示します。
 
 鎌倉市・熱海市・仙台市・福岡市の `hero-v1.webp` は画像内に説明文が入っているため `rejected` とし、一般画面では非表示にします。文字なしの `hero-v2.webp` をユーザー確認済みのconfirmed heroとして登録します。
 
@@ -130,7 +130,7 @@ rejected 条件:
 | 福岡県-福岡市 | 福岡市 | 福岡県 | 屋台・夜景・博多グルメ・川沿い | confirmed | /images/destinations/fukuoka/hero-v2.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 旧hero-v1.webpは画像内テキスト入り、旧hero.svgは簡易SVGのため未使用 / rejected扱い。一般画面では使わない。 | 屋台、夜景、博多グルメ、川沿いを含む福岡らしい夜のビジュアル。現地写真ではなく上質な旅行イメージビジュアル。 |
 | 長崎県-長崎市 | 長崎市 | 長崎県 | 港町・坂の街・夜景・異国情緒 | confirmed | /images/destinations/nagasaki/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 旧hero.svgは簡易SVGのため未使用 / rejected扱い。一般画面では使わない。 | 港町、坂の街、夜景、異国情緒を含む長崎らしいビジュアル。現地写真ではなく上質な旅行イメージビジュアル。 |
 | 大分県-別府市 | 別府市 | 大分県 | 湯けむり・温泉街・地獄めぐり・山並み | confirmed | /images/destinations/beppu/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 旧hero.svgは簡易SVGのため未使用 / rejected扱い。一般画面では使わない。 | 湯けむり、温泉街、地獄めぐり、山並みを含む別府らしいビジュアル。現地写真ではなく上質な旅行イメージビジュアル。 |
-| 大分県-由布市 | 由布市 | 大分県 | 由布岳・温泉街・金鱗湖・ゆったり散策 | rejected | /images/destinations/yufuin/hero.svg | - | ai_generated | 作成済みだが一般画面非表示。高品質画像で再作成する。 | 簡易SVGのため一般画面非表示。旅先固有要素と旅行アプリheroとしての魅力を高品質画像で再作成する。 | 由布岳・温泉街・金鱗湖・ゆったり散策をもとに、汎用背景に見えない高品質hero画像へ作り直す。 |
+| 大分県-由布市 | 由布市 | 大分県 | 由布岳・金鱗湖・湯けむり・温泉街・朝夕の光 | confirmed | /images/destinations/yufuin/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 旧hero.svgは簡易SVGのため未使用 / rejected扱い。一般画面では使わない。 | 由布岳、金鱗湖、湯けむり、温泉街、朝夕の光を含む湯布院らしいビジュアル。現地写真ではなく上質な旅行イメージビジュアル。 |
 | 熊本県-熊本市 | 熊本市 | 熊本県 | 名城と熊本の郷土料理を満喫・山・グルメ | missing | /images/destinations/destination-029/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | 名城と熊本の郷土料理を満喫・山・グルメをもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |
 | 鹿児島県-鹿児島市 | 鹿児島市 | 鹿児島県 | 桜島の雄大な景色と薩摩の味を楽しむ・温泉・海 | missing | /images/destinations/destination-030/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | 桜島の雄大な景色と薩摩の味を楽しむ・温泉・海をもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |
 | 北海道-札幌市 | 札幌市 | 北海道 | 大通公園・札幌テレビ塔・花壇・都市と自然 | confirmed | /images/destinations/sapporo/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 旧hero.svgは簡易SVGのため未使用 / rejected扱い。一般画面では使わない。 | 大通公園、札幌テレビ塔、花壇、都市と自然を含む札幌らしいビジュアル。現地写真ではなく上質な旅行イメージビジュアル。 |
@@ -144,7 +144,7 @@ rejected 条件:
 | 岐阜県-白川村 | 白川村 | 岐阜県 | 世界遺産の合掌造り集落と山里の景色を楽しむ・山・グルメ | missing | /images/destinations/destination-039/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | 世界遺産の合掌造り集落と山里の景色を楽しむ・山・グルメをもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |
 | 広島県-広島市 | 広島市 | 広島県 | 川沿い・平和記念公園・都市景観・橋 | confirmed | /images/destinations/hiroshima/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 旧hero.svgは簡易SVGのため未使用 / rejected扱い。一般画面では使わない。 | 川沿い、平和記念公園、都市景観、橋を含む広島らしいビジュアル。現地写真ではなく上質な旅行イメージビジュアル。 |
 | 広島県-廿日市市 | 廿日市市 | 広島県 | 海上鳥居・瀬戸内海・厳島神社・島旅 | confirmed | /images/destinations/miyajima/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 旧hero.svgは簡易SVGのため未使用 / rejected扱い。一般画面では使わない。 | 海上鳥居、瀬戸内海、厳島神社、島旅を含む宮島らしいビジュアル。現地写真ではなく上質な旅行イメージビジュアル。 |
-| 岡山県-倉敷市 | 倉敷市 | 岡山県 | 美観地区・白壁の町並み・柳並木・川舟の雰囲気 | rejected | /images/destinations/kurashiki/hero.svg | - | ai_generated | 作成済みだが一般画面非表示。高品質画像で再作成する。 | 簡易SVGのため一般画面非表示。旅先固有要素と旅行アプリheroとしての魅力を高品質画像で再作成する。 | 美観地区・白壁の町並み・柳並木・川舟の雰囲気をもとに、汎用背景に見えない高品質hero画像へ作り直す。 |
+| 岡山県-倉敷市 | 倉敷市 | 岡山県 | 美観地区・白壁の町並み・柳並木・川舟 | confirmed | /images/destinations/kurashiki/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 旧hero.svgは簡易SVGのため未使用 / rejected扱い。一般画面では使わない。 | 美観地区、白壁の町並み、柳並木、川舟を含む倉敷らしいビジュアル。現地写真ではなく上質な旅行イメージビジュアル。 |
 | 鳥取県-鳥取市 | 鳥取市 | 鳥取県 | 雄大な砂丘と日本海の味覚を満喫・海・山 | missing | /images/destinations/destination-043/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | 雄大な砂丘と日本海の味覚を満喫・海・山をもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |
 | 香川県-高松市 | 高松市 | 香川県 | 瀬戸内の景色と本場の讃岐うどんを楽しむ・海・グルメ | missing | /images/destinations/destination-044/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | 瀬戸内の景色と本場の讃岐うどんを楽しむ・海・グルメをもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |
 | 愛媛県-松山市 | 松山市 | 愛媛県 | 道後温泉本館・温泉街・レトロ建築・夜の灯り | rejected | /images/destinations/dogo-onsen/hero.svg | - | ai_generated | 作成済みだが一般画面非表示。高品質画像で再作成する。 | 簡易SVGのため一般画面非表示。旅先固有要素と旅行アプリheroとしての魅力を高品質画像で再作成する。 | 道後温泉本館・温泉街・レトロ建築・夜の灯りをもとに、汎用背景に見えない高品質hero画像へ作り直す。 |
@@ -169,7 +169,7 @@ rejected 条件:
 | 三重県-鳥羽市 | 鳥羽市 | 三重県 | 駅から海辺の観光地への移動時間を加算・春,夏,秋・海・温泉 | missing | /images/destinations/destination-064/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | 駅から海辺の観光地への移動時間を加算・春,夏,秋・海・温泉をもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |
 | 滋賀県-大津市 | 大津市 | 滋賀県 | 駅から琵琶湖畔への移動時間を加算・春,夏,秋・海・グルメ | missing | /images/destinations/destination-065/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | 駅から琵琶湖畔への移動時間を加算・春,夏,秋・海・グルメをもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |
 | 滋賀県-高島市 | 高島市 | 滋賀県 | 最寄り駅からバス・車移動が必要・春,夏,秋・山・カップル向け | missing | /images/destinations/destination-066/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | 最寄り駅からバス・車移動が必要・春,夏,秋・山・カップル向けをもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |
-| 島根県-松江市 | 松江市 | 島根県 | 松江城・宍道湖・水辺の街・夕景 | rejected | /images/destinations/matsue/hero.svg | - | ai_generated | 作成済みだが一般画面非表示。高品質画像で再作成する。 | 簡易SVGのため一般画面非表示。旅先固有要素と旅行アプリheroとしての魅力を高品質画像で再作成する。 | 松江城・宍道湖・水辺の街・夕景をもとに、汎用背景に見えない高品質hero画像へ作り直す。 |
+| 島根県-松江市 | 松江市 | 島根県 | 松江城・宍道湖・水辺の街・城下町 | confirmed | /images/destinations/matsue/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 旧hero.svgは簡易SVGのため未使用 / rejected扱い。一般画面では使わない。 | 松江城、宍道湖、水辺の街、城下町を含む松江らしいビジュアル。現地写真ではなく上質な旅行イメージビジュアル。 |
 | 島根県-出雲市 | 出雲市 | 島根県 | 駅から出雲大社への移動時間を加算・春,秋・海・グルメ | missing | /images/destinations/destination-068/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | 駅から出雲大社への移動時間を加算・春,秋・海・グルメをもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |
 | 山口県-下関市 | 下関市 | 山口県 | 駅から唐戸エリアへの移動時間を加算・春,夏,秋・海・グルメ | missing | /images/destinations/destination-069/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | 駅から唐戸エリアへの移動時間を加算・春,夏,秋・海・グルメをもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |
 | 山口県-萩市 | 萩市 | 山口県 | 駅から城下町への移動時間を加算・春,秋・海・グルメ | missing | /images/destinations/destination-070/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | 駅から城下町への移動時間を加算・春,秋・海・グルメをもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |
@@ -190,7 +190,7 @@ rejected 条件:
 | 東京都-渋谷区 | 渋谷区 | 東京都 | 駅周辺・春,秋,冬・グルメ・カップル向け | missing | /images/destinations/destination-085/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | 駅周辺・春,秋,冬・グルメ・カップル向けをもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |
 | 神奈川県-小田原市 | 小田原市 | 神奈川県 | 駅から城址公園への移動時間を加算・春,夏,秋・海・グルメ | missing | /images/destinations/destination-086/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | 駅から城址公園への移動時間を加算・春,夏,秋・海・グルメをもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |
 | 京都府-宇治市 | 宇治市 | 京都府 | 駅から平等院周辺への移動時間を加算・春,夏,秋・山・グルメ | missing | /images/destinations/destination-087/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | 駅から平等院周辺への移動時間を加算・春,夏,秋・山・グルメをもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |
-| 広島県-尾道市 | 尾道市 | 広島県 | 坂道・瀬戸内海・しまなみ海道・レトロな街並み | rejected | /images/destinations/onomichi/hero.svg | - | ai_generated | 作成済みだが一般画面非表示。高品質画像で再作成する。 | 簡易SVGのため一般画面非表示。旅先固有要素と旅行アプリheroとしての魅力を高品質画像で再作成する。 | 坂道・瀬戸内海・しまなみ海道・レトロな街並みをもとに、汎用背景に見えない高品質hero画像へ作り直す。 |
+| 広島県-尾道市 | 尾道市 | 広島県 | 坂道・瀬戸内海・港町・夕景・レトロな街並み | confirmed | /images/destinations/onomichi/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 旧hero.svgは簡易SVGのため未使用 / rejected扱い。一般画面では使わない。 | 坂道、瀬戸内海、港町、夕景、レトロな街並みを含む尾道らしいビジュアル。現地写真ではなく上質な旅行イメージビジュアル。 |
 | 鹿児島県-指宿市 | 指宿市 | 鹿児島県 | 駅から温泉・海辺エリアへの移動時間を加算・秋,冬・温泉・海 | missing | /images/destinations/destination-089/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | 駅から温泉・海辺エリアへの移動時間を加算・秋,冬・温泉・海をもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |
 | 岩手県-平泉町 | 平泉町 | 岩手県 | 駅から世界遺産エリアへの移動時間を加算・春,夏,秋・山・グルメ | missing | /images/destinations/destination-090/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | 駅から世界遺産エリアへの移動時間を加算・春,夏,秋・山・グルメをもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |
 | 栃木県-那須町 | 那須町 | 栃木県 | 高原エリアはバス・車移動を想定・春,夏,秋・山・温泉 | missing | /images/destinations/destination-091/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | 高原エリアはバス・車移動を想定・春,夏,秋・山・温泉をもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |

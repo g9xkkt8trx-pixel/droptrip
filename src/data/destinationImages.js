@@ -432,6 +432,66 @@ const TAKAYAMA_CONFIRMED_HERO = {
   rejectedReason: '',
 }
 
+const ONOMICHI_CONFIRMED_HERO = {
+  src: '/images/destinations/onomichi/hero-v1.webp',
+  alt: '尾道の坂道と瀬戸内海の街並みをイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '坂道・瀬戸内海・港町・夕景・レトロな街並み',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-11',
+  rejectedReason: '',
+}
+
+const KURASHIKI_CONFIRMED_HERO = {
+  src: '/images/destinations/kurashiki/hero-v1.webp',
+  alt: '倉敷美観地区の白壁の町並みと川沿いをイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '美観地区・白壁の町並み・柳並木・川舟',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-11',
+  rejectedReason: '',
+}
+
+const MATSUE_CONFIRMED_HERO = {
+  src: '/images/destinations/matsue/hero-v1.webp',
+  alt: '松江城と宍道湖の水辺をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '松江城・宍道湖・水辺の街・城下町',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-11',
+  rejectedReason: '',
+}
+
+const YUFUIN_CONFIRMED_HERO = {
+  src: '/images/destinations/yufuin/hero-v1.webp',
+  alt: '由布岳と金鱗湖、湯布院の温泉街をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '由布岳・金鱗湖・湯けむり・温泉街・朝夕の光',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-11',
+  rejectedReason: '',
+}
+
 // 旅先ごとの固定イメージ画像を追加したときは、この対応表へ登録する。
 // まず destination.id を優先し、既存データとの互換性のため city キーも残す。
 const DESTINATION_LOCAL_IMAGES = {
@@ -535,8 +595,12 @@ const DESTINATION_LOCAL_IMAGES = {
   伊勢市: { hero: '/images/destinations/ise-hero.jpg' },
   白浜町: { hero: '/images/destinations/shirahama-hero.jpg' }, 軽井沢町: { hero: '/images/destinations/karuizawa-hero.jpg' },
   富良野市: { hero: '/images/destinations/furano-hero.jpg' }, 会津若松市: { hero: '/images/destinations/aizuwakamatsu-hero.jpg' },
-  尾道市: { hero: '/images/destinations/onomichi/hero.svg' }, 倉敷市: { hero: '/images/destinations/kurashiki/hero.svg' },
-  松江市: { hero: '/images/destinations/matsue/hero.svg' },
+  '広島県-尾道市': { hero: ONOMICHI_CONFIRMED_HERO },
+  尾道市: { hero: ONOMICHI_CONFIRMED_HERO },
+  '岡山県-倉敷市': { hero: KURASHIKI_CONFIRMED_HERO },
+  倉敷市: { hero: KURASHIKI_CONFIRMED_HERO },
+  '島根県-松江市': { hero: MATSUE_CONFIRMED_HERO },
+  松江市: { hero: MATSUE_CONFIRMED_HERO },
   '大分県-別府市': { hero: BEPPU_CONFIRMED_HERO },
   別府市: { hero: BEPPU_CONFIRMED_HERO },
   '岐阜県-下呂市': { hero: GERO_ONSEN_CONFIRMED_HERO },
@@ -551,7 +615,8 @@ const DESTINATION_LOCAL_IMAGES = {
   上田市: { hero: '/images/destinations/ueda/hero.svg' },
   '沖縄県-宮古島市': { hero: MIYAKOJIMA_CONFIRMED_HERO },
   宮古島市: { hero: MIYAKOJIMA_CONFIRMED_HERO },
-  由布市: { hero: '/images/destinations/yufuin/hero.svg' },
+  '大分県-由布市': { hero: YUFUIN_CONFIRMED_HERO },
+  由布市: { hero: YUFUIN_CONFIRMED_HERO },
   松山市: { hero: '/images/destinations/dogo-onsen/hero.svg' },
   神戸市: { hero: '/images/destinations/arima-onsen/hero.svg' },
   豊岡市: { hero: '/images/destinations/kinosaki-onsen/hero.svg' },
