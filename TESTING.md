@@ -52,7 +52,7 @@
 - [ ] 京都市のconfirmed heroは `/images/destinations/kyoto/hero-v1.webp` を参照し、旧 `hero.svg` を参照していない
 - [ ] 箱根町・小樽市・草津町・金沢市のconfirmed heroは各 `hero-v1.webp` を参照し、旧 `hero.svg` を参照していない
 - [ ] 画像内に旅先名・説明文・キャッチコピーが入ったhero画像は一般画面に表示されない
-- [ ] 鎌倉市・熱海市・仙台市・福岡市の文字入り `hero-v1.webp` は `rejected` として一般画面に表示されない
+- [ ] 鎌倉市・熱海市・仙台市・福岡市のconfirmed heroは各 `hero-v2.webp` を参照し、文字入りの旧 `hero-v1.webp` と旧 `hero.svg` を参照していない
 - [ ] confirmed hero画像ファイルはGit管理に入っており、Vercel配信後もPC・スマホの両方で表示される
 - [ ] 一般結果画面に `GERO HERO DEBUG` などの一時デバッグ表示や直書きhero画像が残っていない
 - [ ] 第2弾SVG内に旅先名などの大きな表示文字がなく、現地写真と誤認する文言が出ていない
