@@ -252,6 +252,66 @@ const FUKUOKA_CONFIRMED_HERO = {
   rejectedReason: '',
 }
 
+const NARUTO_CONFIRMED_HERO = {
+  src: '/images/destinations/naruto/hero-v1.webp',
+  alt: '鳴門海峡と渦潮、橋をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '鳴門海峡・渦潮・橋・海',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-11',
+  rejectedReason: '',
+}
+
+const BEPPU_CONFIRMED_HERO = {
+  src: '/images/destinations/beppu/hero-v1.webp',
+  alt: '別府の湯けむりと温泉街をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '湯けむり・温泉街・地獄めぐり・山並み',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-11',
+  rejectedReason: '',
+}
+
+const KOFU_CONFIRMED_HERO = {
+  src: '/images/destinations/kofu/hero-v1.webp',
+  alt: '甲府の城跡と山並みをイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '甲府城跡・山並み・都市景観・自然',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-11',
+  rejectedReason: '',
+}
+
+const KAWAGOE_CONFIRMED_HERO = {
+  src: '/images/destinations/kawagoe/hero-v1.webp',
+  alt: '川越の蔵造りの町並みと時の鐘をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '蔵造り・時の鐘・小江戸・レトロ街歩き',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-11',
+  rejectedReason: '',
+}
+
 // 旅先ごとの固定イメージ画像を追加したときは、この対応表へ登録する。
 // まず destination.id を優先し、既存データとの互換性のため city キーも残す。
 const DESTINATION_LOCAL_IMAGES = {
@@ -345,12 +405,17 @@ const DESTINATION_LOCAL_IMAGES = {
   白浜町: { hero: '/images/destinations/shirahama-hero.jpg' }, 軽井沢町: { hero: '/images/destinations/karuizawa-hero.jpg' },
   富良野市: { hero: '/images/destinations/furano-hero.jpg' }, 会津若松市: { hero: '/images/destinations/aizuwakamatsu-hero.jpg' },
   尾道市: { hero: '/images/destinations/onomichi/hero.svg' }, 倉敷市: { hero: '/images/destinations/kurashiki/hero.svg' },
-  松江市: { hero: '/images/destinations/matsue/hero.svg' }, 別府市: { hero: '/images/destinations/beppu/hero.svg' },
+  松江市: { hero: '/images/destinations/matsue/hero.svg' },
+  '大分県-別府市': { hero: BEPPU_CONFIRMED_HERO },
+  別府市: { hero: BEPPU_CONFIRMED_HERO },
   '岐阜県-下呂市': { hero: GERO_ONSEN_CONFIRMED_HERO },
   下呂市: { hero: GERO_ONSEN_CONFIRMED_HERO },
-  鳴門市: { hero: '/images/destinations/naruto/hero.svg' },
-  甲府市: { hero: '/images/destinations/kofu/hero.svg' },
-  川越市: { hero: '/images/destinations/kawagoe/hero.svg' },
+  '徳島県-鳴門市': { hero: NARUTO_CONFIRMED_HERO },
+  鳴門市: { hero: NARUTO_CONFIRMED_HERO },
+  '山梨県-甲府市': { hero: KOFU_CONFIRMED_HERO },
+  甲府市: { hero: KOFU_CONFIRMED_HERO },
+  '埼玉県-川越市': { hero: KAWAGOE_CONFIRMED_HERO },
+  川越市: { hero: KAWAGOE_CONFIRMED_HERO },
   佐野市: { hero: '/images/destinations/sano/hero.svg' },
   上田市: { hero: '/images/destinations/ueda/hero.svg' },
   宮古島市: { hero: '/images/destinations/miyakojima/hero.svg' },
