@@ -50,16 +50,16 @@ rejected 条件:
 
 - 現在の登録旅先: 120件
 - 固定hero登録あり: 42件
-- 一般画面に表示するconfirmed hero: 1件
+- 一般画面に表示するconfirmed hero: 2件
 - needs_review hero: 10件
-- rejected hero: 31件
+- rejected hero: 30件
 - missing hero: 78件
 - 第1弾SVG作成済み: 16件（一般画面では非表示 / 佐野市先行作成1件を含む）
 - 第2弾SVG作成済み: 16件（一般画面では非表示）
 
 ## confirmed hero表示対象
 
-下呂市（`/images/destinations/gero-onsen/hero-v2.webp`）。簡易SVGは一般画面に表示しません。confirmed画像はGit管理に入れてVercelへ反映し、原因切り分け用の直書き表示ではなく `destinationImages` の正式登録から表示します。
+下呂市（`/images/destinations/gero-onsen/hero-v2.webp`）、京都市（`/images/destinations/kyoto/hero-v1.webp`）。簡易SVGは一般画面に表示しません。confirmed画像はGit管理に入れてVercelへ反映し、原因切り分け用の直書き表示ではなく `destinationImages` の正式登録から表示します。
 
 広島市の現行SVGも `rejected` とし、一般画面では非表示にします。次回作成テーマは、原爆ドーム、平和記念公園、川沿い、路面電車、橋、都市観光感です。
 
@@ -114,7 +114,7 @@ rejected 条件:
 | 長野県-松本市 | 松本市 | 長野県 | 国宝の城と北アルプスの空気を楽しむ・温泉・山 | missing | /images/destinations/destination-016/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | 国宝の城と北アルプスの空気を楽しむ・温泉・山をもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |
 | 山梨県-富士河口湖町 | 富士河口湖町 | 山梨県 | 富士山と湖の絶景に包まれる・温泉・山 | missing | /images/destinations/destination-017/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | 富士山と湖の絶景に包まれる・温泉・山をもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |
 | 静岡県-伊豆市 | 伊豆市 | 静岡県 | 温泉郷と伊豆の海山の恵みを味わう・温泉・海 | missing | /images/destinations/destination-018/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | 温泉郷と伊豆の海山の恵みを味わう・温泉・海をもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |
-| 京都府-京都市 | 京都市 | 京都府 | 寺社・石畳・町家・和の雰囲気 | rejected | /images/destinations/kyoto/hero.svg | - | ai_generated | 作成済みだが一般画面非表示。高品質画像で再作成する。 | 簡易SVGのため一般画面非表示。旅先固有要素と旅行アプリheroとしての魅力を高品質画像で再作成する。 | 寺社・石畳・町家・和の雰囲気をもとに、汎用背景に見えない高品質hero画像へ作り直す。 |
+| 京都府-京都市 | 京都市 | 京都府 | 寺社・石畳・町家・夕景・京都らしい街並み | confirmed | /images/destinations/kyoto/hero-v1.webp | - | ai_generated | ユーザー確認済み。高品質AI生成hero画像としてconfirmed登録。 | 旧hero.svgは簡易SVGのため未使用 / rejected扱い。一般画面では使わない。 | 寺社、石畳、町家、やわらかい夕景を含む京都らしい街並み。現地写真ではなく上質な旅行イメージビジュアル。 |
 | 大阪府-大阪市 | 大阪市 | 大阪府 | 活気ある街で食い倒れと夜景を楽しむ・グルメ・カップル向け | missing | /images/destinations/destination-020/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | 活気ある街で食い倒れと夜景を楽しむ・グルメ・カップル向けをもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |
 | 兵庫県-神戸市 | 神戸市 | 兵庫県 | 有馬温泉の温泉街・坂道・金泉銀泉の雰囲気 | rejected | /images/destinations/arima-onsen/hero.svg | - | ai_generated | 作成済みだが一般画面非表示。高品質画像で再作成する。 | 簡易SVGのため一般画面非表示。旅先固有要素と旅行アプリheroとしての魅力を高品質画像で再作成する。 | 有馬温泉の温泉街・坂道・金泉銀泉の雰囲気をもとに、汎用背景に見えない高品質hero画像へ作り直す。 |
 | 奈良県-奈良市 | 奈良市 | 奈良県 | 古寺と鹿に出会う穏やかな古都旅・山・グルメ | needs_review | /images/destinations/nara-hero.jpg | - | unknown | 通常。既存ローカル画像を固定hero候補として管理中。品質確認が完了するまで一般画面では非表示。WebP化と権利確認を継続。 | - | 古寺と鹿に出会う穏やかな古都旅・山・グルメをもとに、汎用背景に見えない高品質hero画像へ作り直す。 |

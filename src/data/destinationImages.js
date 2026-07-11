@@ -120,11 +120,28 @@ const GERO_ONSEN_CONFIRMED_HERO = {
   rejectedReason: '',
 }
 
+const KYOTO_CONFIRMED_HERO = {
+  src: '/images/destinations/kyoto/hero-v1.webp',
+  alt: '京都の寺社と町家の街並みをイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '寺社・石畳・町家・夕景・京都らしい街並み',
+  reviewNote: 'ユーザー確認済み。高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-11',
+  rejectedReason: '',
+}
+
 // 旅先ごとの固定イメージ画像を追加したときは、この対応表へ登録する。
 // まず destination.id を優先し、既存データとの互換性のため city キーも残す。
 const DESTINATION_LOCAL_IMAGES = {
+  '京都府-京都市': {
+    hero: KYOTO_CONFIRMED_HERO,
+  },
   京都市: {
-    hero: '/images/destinations/kyoto/hero.svg',
+    hero: KYOTO_CONFIRMED_HERO,
     scenery: '/images/destinations/kyoto-scenery.jpg',
     food: '/images/destinations/kyoto-food.jpg',
   },
