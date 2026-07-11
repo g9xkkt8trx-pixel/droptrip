@@ -12,6 +12,7 @@ DROPTRIP のβ版リリース履歴を管理するためのメモです。
 - hero画像に `candidateSrc`、`sourceType`、`reviewNote`、`confirmedAt`、`rejectedReason` を持てるようにし、候補画像を開発者ページで確認してから手動で `confirmed` にする運用基盤を追加しました。
 - 開発者ページにhero画像レビュー台帳を追加し、旅先ごとの `src` / `candidateSrc` / `alt` / `theme` / `sourceType` / `reviewNote` / `rejectedReason` と小さな画像プレビューを確認できるようにしました。
 - 下呂市の `hero-v2.webp` を高品質AI生成hero画像の第1号として `confirmed` 登録し、一般結果画面で表示対象にしました。旧 `hero.svg` は簡易SVGのため一般画面では使いません。
+- 下呂市hero画像のPC・スマホ表示確認後、原因切り分け用の直書きimg・赤文字デバッグ・下呂専用強制返却を削除し、正式な `destinationImages` 経由のconfirmed hero表示に戻しました。画像ファイルはGit管理に入れてVercelへ反映する必要があります。
 - スマホでconfirmed heroが潰れないよう、結果画面hero画像のCSSを固定比率の高さ確保に調整しました。
 - スマホ実機キャッシュ対策として下呂市heroを `hero-v2.webp` に変更し、confirmed heroは `loading="eager"` / `fetchPriority="high"` で読み込むようにしました。JPG fallbackはローカル環境でWebP変換ツールが使えなかったため未作成です。
 - 開発者ページの画像診断に、第1弾・第2弾それぞれのhero登録状況、メタ情報、読み込み失敗を確認できる項目を追加しました。

@@ -763,29 +763,6 @@ h1 {
   line-height: 1.4;
 }
 
-.debug-gero-hero {
-  display: block;
-  width: 100%;
-  margin: 0 0 18px;
-}
-
-.debug-gero-hero .destination-hero-image {
-  display: block;
-  width: 100%;
-  max-width: 100%;
-  aspect-ratio: 16 / 9;
-  height: auto;
-  object-fit: cover;
-  border-radius: 18px;
-}
-
-.destination-hero-caption {
-  margin-top: 6px;
-  font-size: 11px;
-  color: #8a7f76;
-  text-align: right;
-}
-
 .result-card > .image-credit {
   display: block;
   margin: -10px 0 12px;
@@ -6781,19 +6758,6 @@ h1 {
   .result-card { margin-top: 22px; padding: 20px 16px 18px; }
   .result-hero-image { height: clamp(180px, 52vw, 210px); max-height: 210px; border-radius: 16px; }
   .result-hero-figure { margin-bottom: 14px; }
-  .debug-gero-hero {
-    display: block;
-    width: 100%;
-    margin: 0 0 16px;
-  }
-  .debug-gero-hero .destination-hero-image {
-    display: block;
-    width: 100%;
-    max-width: 100%;
-    aspect-ratio: 16 / 9;
-    height: auto;
-    object-fit: cover;
-  }
   .result-city { font-size: 1.65rem; }
   .result-recommendation { font-size: 0.78rem; line-height: 1.75; }
   .result-hero-meta span { font-size: 0.58rem; }

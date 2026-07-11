@@ -5,6 +5,7 @@
   credit = '',
   license = '',
   status = 'needs_review',
+  imageType = type,
   isLocal,
   isGeneric,
   isDestinationSpecific,
@@ -25,7 +26,7 @@
   url,
   imageUrl: url,
   type,
-  imageType: type,
+  imageType,
   source,
   imageSource: source,
   credit,
@@ -117,32 +118,6 @@ const GERO_ONSEN_CONFIRMED_HERO = {
   reviewNote: 'ユーザー確認済み。高品質AI生成hero画像として第1号confirmed登録。',
   confirmedAt: '2026-07-10',
   rejectedReason: '',
-}
-
-export const GERO_ONSEN_FORCE_HERO = {
-  ...createImageAsset({
-    url: '/images/destinations/gero-onsen/hero-v2.webp',
-    type: 'destination_fixed',
-    source: 'destination_fixed',
-    credit: '旅先イメージ',
-    license: 'DROPTRIP生成素材・本プロジェクト内で利用可能',
-    status: 'confirmed',
-    isLocal: true,
-    isGeneric: false,
-    isDestinationSpecific: true,
-    isIllustration: true,
-    isPhoto: false,
-    assetType: 'destination_fixed',
-    alt: '下呂温泉街と川沿いの散策をイメージしたビジュアル',
-    sourceType: 'ai_generated',
-    note: '川沿いの温泉街・湯けむり・夕景・旅館街に沿った旅先固定のイメージビジュアルです。',
-    reviewNote: 'ユーザー確認済み。高品質AI生成hero画像として第1号confirmed登録。',
-    confirmedAt: '2026-07-10',
-    rejectedReason: '',
-  }),
-  src: '/images/destinations/gero-onsen/hero-v2.webp',
-  imageUrl: '/images/destinations/gero-onsen/hero-v2.webp',
-  imageType: 'hero',
 }
 
 // 旅先ごとの固定イメージ画像を追加したときは、この対応表へ登録する。
@@ -662,30 +637,6 @@ const normalizeImageAsset = (image, imageType) => {
  * 結果画面heroでは旅先固定画像だけを返し、カテゴリ・共通画像への代替は行わない。
  */
 export const getDestinationImage = (destination = {}, imageType = 'hero') => {
-  const destinationName = destination?.name ?? destination?.city ?? ''
-  const destinationCity = destination?.city ?? ''
-  const destinationId = destination?.id ?? ''
-  const prefectureCityKey = destination?.prefecture && destinationCity
-    ? `${destination.prefecture}-${destinationCity}`
-    : ''
-  if (
-    imageType === 'hero'
-    && (
-      destinationName === '下呂市'
-      || destinationCity === '下呂市'
-      || destinationId === '下呂市'
-      || destinationId === 'gero-onsen'
-      || destinationId === '岐阜県-下呂市'
-      || prefectureCityKey === '岐阜県-下呂市'
-    )
-  ) {
-    return {
-      ...GERO_ONSEN_FORCE_HERO,
-      src: GERO_ONSEN_FORCE_HERO.url,
-      imageUrl: GERO_ONSEN_FORCE_HERO.url,
-    }
-  }
-
   const field = `${imageType}Image`
   const configured = normalizeImageAsset(destination[field], imageType)
   const configuredUrl = getImageUrl(configured)
@@ -697,6 +648,8 @@ export const getDestinationImage = (destination = {}, imageType = 'hero') => {
     const theme = mappedAsset?.theme ?? DESTINATION_IMAGE_THEMES[destination.city]?.[imageType] ?? ''
     const status = mappedAsset?.status ?? 'needs_review'
     return createLocalAsset(mappedUrl, imageType, 'destination_fixed', '旅先イメージ', status, {
+      type: mappedAsset?.type ?? 'destination_fixed',
+      imageType,
       isFoodSpecific: imageType === 'food',
       isLocalFood: imageType === 'food',
       alt: mappedAsset?.alt || (imageType === 'hero'

@@ -2006,7 +2006,7 @@ const getFixedHeroImageCities = (destinationList = []) => destinationList
   .filter((place) => isFixedHeroImage(place.heroImage))
   .map((place) => place.city)
 
-const getGeroHeroForceCheck = (destinationList = []) => {
+const getGeroHeroDisplaySummary = (destinationList = []) => {
   const gero = destinationList.find((place) => place.id === '岐阜県-下呂市' || place.city === '下呂市')
   if (!gero) return '下呂市なし'
   const check = getHeroDisplayCheck(gero.heroImage)
@@ -2870,8 +2870,6 @@ function App() {
     ? getResultReasonItems(destination, planContext, currentTripSchedule, seasonCompatibility)
     : []
   const currentBudget = destination ? getBudgetForSchedule(destination, currentTripSchedule) : '時期により変動'
-  const resultCity = destination?.city || destination?.name || ''
-  const isGeroResult = resultCity === '下呂市'
   const longTripPacingItems = getLongTripPacingItems(currentTripSchedule, Boolean(planContext?.tripSuggestions?.some((item) => !item.isStayFocus)))
   const resultFeedbackConditionText = destination && planContext ? [
     `旅先：${destination.prefecture} ${destination.city}`,
@@ -4266,27 +4264,7 @@ function App() {
             {resultDetailView === 'overview' && (
               <>
             <section className="result-card result-proposal-hero" aria-label="旅先の提案">
-              {isGeroResult && (
-                <p style={{ fontSize: 12, color: 'red', margin: '0 0 8px' }}>
-                  GERO HERO DEBUG: img直書き表示中
-                </p>
-              )}
-              {isGeroResult && (
-                <figure className="destination-hero debug-gero-hero">
-                  <img
-                    src="/images/destinations/gero-onsen/hero-v2.webp"
-                    alt="下呂温泉街と川沿いの散策をイメージしたビジュアル"
-                    className="destination-hero-image"
-                    loading="eager"
-                    fetchPriority="high"
-                    decoding="async"
-                  />
-                  <figcaption className="destination-hero-caption">
-                    画像：旅先イメージ（AI生成）
-                  </figcaption>
-                </figure>
-              )}
-              {!isGeroResult && isFixedHeroImage(destination.heroImage) && (
+              {isFixedHeroImage(destination.heroImage) && (
                 <figure className="result-hero-figure">
                   <img
                     key={`${destination.id}-hero`}
@@ -5462,7 +5440,7 @@ function App() {
               <div><dt>result journey image shortage</dt><dd>{formatShortageList(getResultJourneyImageShortageCities(destinations))}</dd></div>
               <div><dt>固定hero登録あり</dt><dd>{formatShortageList(getRegisteredFixedHeroImageCities(destinations))}</dd></div>
               <div><dt>一般表示hero（confirmed）</dt><dd>{formatShortageList(getFixedHeroImageCities(destinations))}</dd></div>
-              <div><dt>下呂市hero force check</dt><dd>{getGeroHeroForceCheck(destinations)}</dd></div>
+              <div><dt>下呂市hero表示確認</dt><dd>{getGeroHeroDisplaySummary(destinations)}</dd></div>
               <div><dt>一般表示heroなし</dt><dd>{formatShortageList(getMissingFixedHeroImageCities(destinations))}</dd></div>
               <div><dt>甲府市 一般表示hero</dt><dd>{getFixedHeroImageCities(destinations).includes('甲府市') ? '表示対象' : '非表示'}</dd></div>
               <div><dt>第1弾16旅先 hero未登録</dt><dd>{formatShortageList(getHeroWaveMissingCities(destinations, firstHeroWaveDestinations))}</dd></div>

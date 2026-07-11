@@ -59,7 +59,7 @@ rejected 条件:
 
 ## confirmed hero表示対象
 
-下呂市（`/images/destinations/gero-onsen/hero-v2.webp`）。簡易SVGは一般画面に表示しません。
+下呂市（`/images/destinations/gero-onsen/hero-v2.webp`）。簡易SVGは一般画面に表示しません。confirmed画像はGit管理に入れてVercelへ反映し、原因切り分け用の直書き表示ではなく `destinationImages` の正式登録から表示します。
 
 広島市の現行SVGも `rejected` とし、一般画面では非表示にします。次回作成テーマは、原爆ドーム、平和記念公園、川沿い、路面電車、橋、都市観光感です。
 
