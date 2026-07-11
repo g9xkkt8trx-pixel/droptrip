@@ -8,7 +8,7 @@ DROPTRIP のβ版リリース履歴を管理するためのメモです。
 - 第2弾として、石垣市、宮古島市、札幌市、函館市、長崎市、広島市、宮島、高山市、尾道市、倉敷市、松江市、湯布院、道後温泉、有馬温泉、城崎温泉、銀山温泉向けの軽量SVG固定heroビジュアルを追加しました。
 - 追加済みの簡易SVG heroは、旅行アプリのheroとしては品質不足のため `rejected` とし、一般画面では表示しない運用へ変更しました。
 - 低品質な抽象hero画像を一般画面に出さない品質ゲートを追加し、結果画面heroは `status: confirmed` の固定画像だけを表示するようにしました。
-- 広島市heroも簡易SVGのため `rejected` とし、一般画面では非表示にしました。次回は原爆ドーム、平和記念公園、川沿い、路面電車、橋、都市観光感を高品質画像で作り直します。
+- 広島市heroは簡易SVGを `rejected` とし、文字なしの `hero-v1.webp` を高品質AI生成hero画像として `confirmed` 登録しました。
 - hero画像に `candidateSrc`、`sourceType`、`reviewNote`、`confirmedAt`、`rejectedReason` を持てるようにし、候補画像を開発者ページで確認してから手動で `confirmed` にする運用基盤を追加しました。
 - 開発者ページにhero画像レビュー台帳を追加し、旅先ごとの `src` / `candidateSrc` / `alt` / `theme` / `sourceType` / `reviewNote` / `rejectedReason` と小さな画像プレビューを確認できるようにしました。
 - 下呂市の `hero-v2.webp` を高品質AI生成hero画像の第1号として `confirmed` 登録し、一般結果画面で表示対象にしました。旧 `hero.svg` は簡易SVGのため一般画面では使いません。
@@ -17,6 +17,7 @@ DROPTRIP のβ版リリース履歴を管理するためのメモです。
 - 鎌倉市・熱海市・仙台市・福岡市の文字なし `hero-v2.webp` を高品質AI生成hero画像として `confirmed` 登録し、文字入りの旧 `hero-v1.webp` と旧 `hero.svg` は一般画面で使わないようにしました。
 - 鳴門市・別府市・甲府市・川越市の文字なし `hero-v1.webp` を高品質AI生成hero画像として `confirmed` 登録し、旧 `hero.svg` は一般画面で使わないようにしました。
 - 石垣市・宮古島市・札幌市・函館市の文字なし `hero-v1.webp` を高品質AI生成hero画像として `confirmed` 登録し、旧 `hero.svg` は一般画面で使わないようにしました。
+- 長崎市・広島市・宮島（廿日市市）・高山市の文字なし `hero-v1.webp` を高品質AI生成hero画像として `confirmed` 登録し、旧 `hero.svg` は一般画面で使わないようにしました。
 - 旅先一覧検索をフィールド別の一致判定に整理し、映え・トレンド名も検索対象に追加しました。検索中は検索結果だけを表示し、表示直前に同一旅先を重複除去することで豊岡市の不正な複数表示を防ぎます。
 - 下呂市hero画像のPC・スマホ表示確認後、原因切り分け用の直書きimg・赤文字デバッグ・下呂専用強制返却を削除し、正式な `destinationImages` 経由のconfirmed hero表示に戻しました。画像ファイルはGit管理に入れてVercelへ反映する必要があります。
 - スマホでconfirmed heroが潰れないよう、結果画面hero画像のCSSを固定比率の高さ確保に調整しました。

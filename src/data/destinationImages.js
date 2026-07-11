@@ -372,6 +372,66 @@ const HAKODATE_CONFIRMED_HERO = {
   rejectedReason: '',
 }
 
+const NAGASAKI_CONFIRMED_HERO = {
+  src: '/images/destinations/nagasaki/hero-v1.webp',
+  alt: '長崎の港町と夜景をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '港町・坂の街・夜景・異国情緒',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-11',
+  rejectedReason: '',
+}
+
+const HIROSHIMA_CONFIRMED_HERO = {
+  src: '/images/destinations/hiroshima/hero-v1.webp',
+  alt: '広島の川沿いと平和記念公園周辺をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '川沿い・平和記念公園・都市景観・橋',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-11',
+  rejectedReason: '',
+}
+
+const MIYAJIMA_CONFIRMED_HERO = {
+  src: '/images/destinations/miyajima/hero-v1.webp',
+  alt: '宮島の海上鳥居と瀬戸内海をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '海上鳥居・瀬戸内海・厳島神社・島旅',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-11',
+  rejectedReason: '',
+}
+
+const TAKAYAMA_CONFIRMED_HERO = {
+  src: '/images/destinations/takayama/hero-v1.webp',
+  alt: '高山の古い町並みと飛騨の山並みをイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '古い町並み・飛騨高山・水路・山並み',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-11',
+  rejectedReason: '',
+}
+
 // 旅先ごとの固定イメージ画像を追加したときは、この対応表へ登録する。
 // まず destination.id を優先し、既存データとの互換性のため city キーも残す。
 const DESTINATION_LOCAL_IMAGES = {
@@ -455,8 +515,12 @@ const DESTINATION_LOCAL_IMAGES = {
     scenery: '/images/destinations/fukuoka-scenery.jpg',
     food: '/images/destinations/fukuoka-food.jpg',
   },
-  長崎市: { hero: '/images/destinations/nagasaki/hero.svg' },
-  広島市: { hero: '/images/destinations/hiroshima/hero.svg' }, 廿日市市: { hero: '/images/destinations/miyajima/hero.svg' },
+  '長崎県-長崎市': { hero: NAGASAKI_CONFIRMED_HERO },
+  長崎市: { hero: NAGASAKI_CONFIRMED_HERO },
+  '広島県-広島市': { hero: HIROSHIMA_CONFIRMED_HERO },
+  広島市: { hero: HIROSHIMA_CONFIRMED_HERO },
+  '広島県-廿日市市': { hero: MIYAJIMA_CONFIRMED_HERO },
+  廿日市市: { hero: MIYAJIMA_CONFIRMED_HERO },
   那覇市: { hero: '/images/destinations/naha-hero.jpg' },
   '沖縄県-石垣市': {
     hero: ISHIGAKI_CONFIRMED_HERO,
@@ -466,7 +530,9 @@ const DESTINATION_LOCAL_IMAGES = {
     scenery: '/images/destinations/ishigaki-scenery.jpg',
     food: '/images/destinations/ishigaki-food.jpg',
   },
-  高山市: { hero: '/images/destinations/takayama/hero.svg' }, 伊勢市: { hero: '/images/destinations/ise-hero.jpg' },
+  '岐阜県-高山市': { hero: TAKAYAMA_CONFIRMED_HERO },
+  高山市: { hero: TAKAYAMA_CONFIRMED_HERO },
+  伊勢市: { hero: '/images/destinations/ise-hero.jpg' },
   白浜町: { hero: '/images/destinations/shirahama-hero.jpg' }, 軽井沢町: { hero: '/images/destinations/karuizawa-hero.jpg' },
   富良野市: { hero: '/images/destinations/furano-hero.jpg' }, 会津若松市: { hero: '/images/destinations/aizuwakamatsu-hero.jpg' },
   尾道市: { hero: '/images/destinations/onomichi/hero.svg' }, 倉敷市: { hero: '/images/destinations/kurashiki/hero.svg' },
