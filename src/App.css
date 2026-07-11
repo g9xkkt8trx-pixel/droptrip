@@ -741,13 +741,49 @@ h1 {
 
 .result-hero-image {
   width: 100%;
+  max-width: 100%;
   max-height: 250px;
   aspect-ratio: 16 / 9;
-  height: auto;
+  height: clamp(170px, 32vw, 250px);
   display: block;
-  margin: 0 0 16px;
+  margin: 0;
   object-fit: cover;
   border-radius: 20px;
+}
+
+.result-hero-figure {
+  margin: 0 0 16px;
+}
+
+.result-hero-figure figcaption {
+  margin-top: 6px;
+  color: #8b7b70;
+  font-size: 0.62rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.debug-gero-hero {
+  display: block;
+  width: 100%;
+  margin: 0 0 18px;
+}
+
+.debug-gero-hero .destination-hero-image {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  aspect-ratio: 16 / 9;
+  height: auto;
+  object-fit: cover;
+  border-radius: 18px;
+}
+
+.destination-hero-caption {
+  margin-top: 6px;
+  font-size: 11px;
+  color: #8a7f76;
+  text-align: right;
 }
 
 .result-card > .image-credit {
@@ -5256,6 +5292,137 @@ h1 {
   font-weight: 800;
 }
 
+.hero-review-criteria {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.hero-review-criteria > div {
+  padding: 9px;
+  background: #fffdf8;
+  border: 1px solid #eee3cd;
+  border-radius: 10px;
+}
+
+.hero-review-criteria strong {
+  display: block;
+  color: #6e5140;
+  font-size: 0.66rem;
+  margin-bottom: 4px;
+}
+
+.hero-review-criteria p {
+  margin: 0;
+  color: #6f736f;
+  font-size: 0.6rem;
+  line-height: 1.6;
+}
+
+.hero-review-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.hero-review-card {
+  padding: 10px;
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid #e4ebe8;
+  border-radius: 11px;
+}
+
+.hero-review-card-confirmed { border-color: #a8d7c3; }
+.hero-review-card-needs_review { border-color: #ead39e; }
+.hero-review-card-rejected { border-color: #e7b2a8; }
+.hero-review-card-missing { border-color: #d7dfdc; }
+
+.hero-review-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.hero-review-card-header strong {
+  display: block;
+  color: #31564e;
+  font-size: 0.72rem;
+}
+
+.hero-review-card-header span {
+  display: block;
+  margin-top: 2px;
+  color: #8b9692;
+  font-size: 0.56rem;
+  overflow-wrap: anywhere;
+}
+
+.hero-review-card-header em {
+  flex: 0 0 auto;
+  padding: 4px 7px;
+  color: #4f6b64;
+  background: #edf5f2;
+  border-radius: 999px;
+  font-size: 0.56rem;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.hero-review-card dl {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+}
+
+.hero-review-card dl > div {
+  display: grid;
+  gap: 2px;
+}
+
+.hero-review-card dt {
+  color: #81908a;
+  font-size: 0.54rem;
+  font-weight: 800;
+}
+
+.hero-review-card dd {
+  margin: 0;
+  color: #4f5f5a;
+  font-size: 0.59rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.hero-review-previews {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+  margin-top: 9px;
+}
+
+.hero-review-previews figure {
+  margin: 0;
+}
+
+.hero-review-previews img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 8px;
+  background: #f2f5f3;
+}
+
+.hero-review-previews figcaption {
+  margin-top: 4px;
+  color: #7d8984;
+  font-size: 0.55rem;
+  font-weight: 700;
+}
+
 .image-reuse-grid {
   display: flex;
   flex-wrap: wrap;
@@ -6612,7 +6779,21 @@ h1 {
   .movement-strict-toggle { min-height: 44px; }
 
   .result-card { margin-top: 22px; padding: 20px 16px 18px; }
-  .result-hero-image { margin-bottom: 14px; max-height: 210px; border-radius: 16px; }
+  .result-hero-image { height: clamp(180px, 52vw, 210px); max-height: 210px; border-radius: 16px; }
+  .result-hero-figure { margin-bottom: 14px; }
+  .debug-gero-hero {
+    display: block;
+    width: 100%;
+    margin: 0 0 16px;
+  }
+  .debug-gero-hero .destination-hero-image {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    aspect-ratio: 16 / 9;
+    height: auto;
+    object-fit: cover;
+  }
   .result-city { font-size: 1.65rem; }
   .result-recommendation { font-size: 0.78rem; line-height: 1.75; }
   .result-hero-meta span { font-size: 0.58rem; }

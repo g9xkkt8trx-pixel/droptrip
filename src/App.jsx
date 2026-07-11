@@ -16,10 +16,7 @@ import {
 } from './services/premium'
 import destinations from './data/destinations.js'
 import {
-  DEFAULT_TRAVEL_IMAGE,
   destinationImageMap,
-  getDestinationImageCandidates,
-  getImageCredit,
   getImageUrl,
   isValidImageUrl,
 } from './data/destinationImages'
@@ -1420,19 +1417,35 @@ const getImageCategoryFromUrl = (image) => (
   getImageUrl(image).match(/\/images\/categories\/([a-z]+)-\d+\.jpg$/)?.[1] ?? ''
 )
 
-const isStrongResultImage = (image) => {
-  if (!isValidImageUrl(image)) return false
+const getHeroDisplayCheck = (image) => {
+  const reasons = []
   const status = getImageMetaValue(image, 'status')
   const source = getImageMetaValue(image, 'source')
-  return Boolean(getImageMetaValue(image, 'isDestinationSpecific'))
-    && source === 'destination_fixed'
-    && status === 'confirmed'
-    && (getImageMetaValue(image, 'isIllustration') === true || getImageMetaValue(image, 'isPhoto') === true)
-    && Boolean(getImageMetaValue(image, 'alt'))
-    && !getImageMetaValue(image, 'isGeneric')
+  const assetType = getImageMetaValue(image, 'assetType')
+  const type = getImageMetaValue(image, 'type')
+  if (!isValidImageUrl(image)) reasons.push('srcなし')
+  if (!getImageMetaValue(image, 'isDestinationSpecific')) reasons.push('旅先固定画像ではない')
+  if (source !== 'destination_fixed' && assetType !== 'destination_fixed' && type !== 'destination_fixed') reasons.push('destination_fixedではない')
+  if (status !== 'confirmed') reasons.push(`status=${status || '未設定'}`)
+  if (getImageMetaValue(image, 'isIllustration') !== true && getImageMetaValue(image, 'isPhoto') !== true) reasons.push('isIllustration/isPhotoなし')
+  if (!getImageMetaValue(image, 'alt')) reasons.push('altなし')
+  if (getImageMetaValue(image, 'isGeneric')) reasons.push('generic画像')
+  return {
+    shouldShowHero: reasons.length === 0,
+    reason: reasons.length > 0 ? reasons.join(' / ') : '表示条件OK',
+  }
 }
 
-const isFixedHeroImage = (image) => isStrongResultImage(image) && getImageMetaValue(image, 'type') === 'hero'
+const isStrongResultImage = (image) => {
+  if (!isValidImageUrl(image)) return false
+  return getHeroDisplayCheck(image).shouldShowHero
+}
+
+const isFixedHeroImage = (image) => isStrongResultImage(image) && (
+  getImageMetaValue(image, 'imageType') === 'hero'
+  || getImageMetaValue(image, 'type') === 'hero'
+  || getImageMetaValue(image, 'type') === 'destination_fixed'
+)
 
 const getResultJourneyImages = (destination = {}) => [
   { key: 'hero', label: '旅先の雰囲気', alt: `${destination.city}の旅先イメージ`, image: destination.heroImage },
@@ -1993,6 +2006,13 @@ const getFixedHeroImageCities = (destinationList = []) => destinationList
   .filter((place) => isFixedHeroImage(place.heroImage))
   .map((place) => place.city)
 
+const getGeroHeroForceCheck = (destinationList = []) => {
+  const gero = destinationList.find((place) => place.id === '岐阜県-下呂市' || place.city === '下呂市')
+  if (!gero) return '下呂市なし'
+  const check = getHeroDisplayCheck(gero.heroImage)
+  return `${check.shouldShowHero ? 'true' : 'false'} / ${getImageUrl(gero.heroImage) || 'srcなし'} / ${check.reason}`
+}
+
 const getMissingFixedHeroImageCities = (destinationList = []) => destinationList
   .filter((place) => !isFixedHeroImage(place.heroImage))
   .map((place) => place.city)
@@ -2034,7 +2054,22 @@ const getHeroMediaKindMissingCities = (destinationList = []) => destinationList
   .map((place) => place.city)
 
 const getHeroTypeIssueCities = (destinationList = []) => destinationList
-  .filter((place) => getImageMetaValue(place.heroImage, 'source') === 'destination_fixed' && Boolean(getImageUrl(place.heroImage)) && getImageMetaValue(place.heroImage, 'type') !== 'hero')
+  .filter((place) => getImageMetaValue(place.heroImage, 'source') === 'destination_fixed'
+    && Boolean(getImageUrl(place.heroImage))
+    && getImageMetaValue(place.heroImage, 'type') !== 'hero'
+    && getImageMetaValue(place.heroImage, 'imageType') !== 'hero')
+  .map((place) => place.city)
+
+const getHeroCandidateSrcCities = (destinationList = []) => destinationList
+  .filter((place) => getImageMetaValue(place.heroImage, 'source') === 'destination_fixed' && Boolean(getImageMetaValue(place.heroImage, 'candidateSrc')))
+  .map((place) => place.city)
+
+const getHeroStatusUnsetCities = (destinationList = []) => destinationList
+  .filter((place) => getImageMetaValue(place.heroImage, 'source') === 'destination_fixed' && Boolean(getImageUrl(place.heroImage)) && !getImageMetaValue(place.heroImage, 'status'))
+  .map((place) => place.city)
+
+const getHeroSourceTypeMissingCities = (destinationList = []) => destinationList
+  .filter((place) => getImageMetaValue(place.heroImage, 'source') === 'destination_fixed' && Boolean(getImageUrl(place.heroImage)) && !getImageMetaValue(place.heroImage, 'sourceType'))
   .map((place) => place.city)
 
 const getHeroNeedsReviewCities = (destinationList = []) => destinationList
@@ -2563,52 +2598,6 @@ function HistoryItems({ entries, favoriteCities, onShow, onFavorite, onDelete })
   )
 }
 
-function SafeImage({
-  destination,
-  imageType = 'hero',
-  src,
-  fallbackSrc = DEFAULT_TRAVEL_IMAGE,
-  genericFallbackSrc = DEFAULT_TRAVEL_IMAGE,
-  alt,
-  className = '',
-  loading = 'lazy',
-  showCredit = false,
-  onLoadFailure,
-}) {
-  const [imageIndex, setImageIndex] = useState(0)
-  const candidates = destination
-    ? getDestinationImageCandidates(destination, imageType)
-    : [src, fallbackSrc, genericFallbackSrc]
-      .filter(isValidImageUrl)
-      .filter((image, index, images) => images.findIndex((candidate) => getImageUrl(candidate) === getImageUrl(image)) === index)
-  const resolvedImage = candidates[imageIndex]
-  const resolvedSrc = getImageUrl(resolvedImage)
-  const credit = getImageCredit(resolvedImage)
-
-  if (!isValidImageUrl(resolvedSrc)) {
-    return null
-  }
-
-  return (
-    <>
-      <img
-        className={className}
-        src={resolvedSrc}
-        alt={alt}
-        loading={loading}
-        decoding="async"
-        onError={() => {
-          const nextImage = candidates[imageIndex + 1]
-          const nextSource = nextImage?.source ?? nextImage?.imageSource
-          onLoadFailure?.(nextSource === 'fallback' ? 'tag' : 'generic')
-          setImageIndex((current) => current + 1)
-        }}
-      />
-      {showCredit && credit && credit !== 'DROPTRIP' && <small className="image-credit">画像：{credit}</small>}
-    </>
-  )
-}
-
 function DeveloperImagePreviewImage({ item, image }) {
   const [failed, setFailed] = useState(false)
 
@@ -2881,6 +2870,8 @@ function App() {
     ? getResultReasonItems(destination, planContext, currentTripSchedule, seasonCompatibility)
     : []
   const currentBudget = destination ? getBudgetForSchedule(destination, currentTripSchedule) : '時期により変動'
+  const resultCity = destination?.city || destination?.name || ''
+  const isGeroResult = resultCity === '下呂市'
   const longTripPacingItems = getLongTripPacingItems(currentTripSchedule, Boolean(planContext?.tripSuggestions?.some((item) => !item.isStayFocus)))
   const resultFeedbackConditionText = destination && planContext ? [
     `旅先：${destination.prefecture} ${destination.city}`,
@@ -4275,19 +4266,40 @@ function App() {
             {resultDetailView === 'overview' && (
               <>
             <section className="result-card result-proposal-hero" aria-label="旅先の提案">
-              {isFixedHeroImage(destination.heroImage) && (
-                <SafeImage
-                  key={`${destination.id}-hero`}
-                  src={destination.heroImage}
-                  fallbackSrc=""
-                  genericFallbackSrc=""
-                  imageType="hero"
-                  className="result-hero-image"
-                  alt={getImageMetaValue(destination.heroImage, 'alt', `${destination.city}をイメージしたビジュアル`)}
-                  loading="lazy"
-                  showCredit
-                  onLoadFailure={(fallbackType) => reportImageFailure(destination.id, 'hero', fallbackType)}
-                />
+              {isGeroResult && (
+                <p style={{ fontSize: 12, color: 'red', margin: '0 0 8px' }}>
+                  GERO HERO DEBUG: img直書き表示中
+                </p>
+              )}
+              {isGeroResult && (
+                <figure className="destination-hero debug-gero-hero">
+                  <img
+                    src="/images/destinations/gero-onsen/hero-v2.webp"
+                    alt="下呂温泉街と川沿いの散策をイメージしたビジュアル"
+                    className="destination-hero-image"
+                    loading="eager"
+                    fetchPriority="high"
+                    decoding="async"
+                  />
+                  <figcaption className="destination-hero-caption">
+                    画像：旅先イメージ（AI生成）
+                  </figcaption>
+                </figure>
+              )}
+              {!isGeroResult && isFixedHeroImage(destination.heroImage) && (
+                <figure className="result-hero-figure">
+                  <img
+                    key={`${destination.id}-hero`}
+                    src={getImageUrl(destination.heroImage)}
+                    className="result-hero-image"
+                    alt={getImageMetaValue(destination.heroImage, 'alt', `${destination.city}をイメージしたビジュアル`)}
+                    loading="eager"
+                    fetchPriority="high"
+                    decoding="async"
+                    onError={() => reportImageFailure(destination.id, 'hero', 'confirmed')}
+                  />
+                  <figcaption>{getImageMetaValue(destination.heroImage, 'sourceType') === 'ai_generated' ? '画像：旅先イメージ（AI生成）' : '画像：旅先イメージ'}</figcaption>
+                </figure>
               )}
               <div className="result-hero-copy">
                 <p className="result-label">今回の旅先は</p>
@@ -5292,6 +5304,8 @@ function App() {
             <div><span>hero needs_review</span><strong>{getHeroNeedsReviewCities(destinations).length}件</strong></div>
             <div><span>hero rejected</span><strong>{getHeroRejectedCities(destinations).length}件</strong></div>
             <div><span>hero missing</span><strong>{getHeroMissingStatusCities(destinations).length}件</strong></div>
+            <div><span>candidateSrcあり</span><strong>{getHeroCandidateSrcCities(destinations).length}件</strong></div>
+            <div><span>status未設定</span><strong>{getHeroStatusUnsetCities(destinations).length}件</strong></div>
             <div><span>第1弾SVG登録</span><strong>{getHeroWaveReadiness(destinations, firstHeroWaveDestinations)}</strong></div>
             <div><span>第2弾SVG登録</span><strong>{getHeroWaveReadiness(destinations, secondHeroWaveDestinations)}</strong></div>
             <div><span>優先旅先 固定hero</span><strong>{getPriorityFixedHeroReadiness(destinations)}</strong></div>
@@ -5299,6 +5313,73 @@ function App() {
             <div><span>映え・トレンド整備率</span><strong>{getTrendReadiness(destinations)}</strong></div>
             <div><span>trendHighlights未整備</span><strong>{getTrendHighlightsMissingCities(destinations).length}件</strong></div>
           </div>
+
+          <details className="image-reuse-details hero-review-details">
+            <summary>hero画像レビュー台帳を見る</summary>
+            <div className="hero-review-criteria">
+              <div>
+                <strong>confirmed条件</strong>
+                <p>旅先固有要素が2つ以上あり、スマホでも魅力が伝わり、汎用背景に見えず、権利と誤認表現に問題がない画像だけ。</p>
+              </div>
+              <div>
+                <strong>rejected条件</strong>
+                <p>抽象的すぎる、簡易図形に見える、どこでも使えそう、旅先らしさや旅行したくなる感じが弱い画像。</p>
+              </div>
+            </div>
+            <div className="hero-review-list">
+              {destinations.map((place, index) => {
+                const hero = place.heroImage ?? {}
+                const src = getImageUrl(hero)
+                const candidateSrc = getImageMetaValue(hero, 'candidateSrc')
+                const status = getImageMetaValue(hero, 'status', 'missing')
+                const heroDisplayCheck = getHeroDisplayCheck(hero)
+                return (
+                  <article className={`hero-review-card hero-review-card-${status}`} key={`hero-review-${place.id}-${index}`}>
+                    <div className="hero-review-card-header">
+                      <div>
+                        <strong>{place.prefecture} {place.city}</strong>
+                        <span>{place.id}</span>
+                      </div>
+                      <em>{status}</em>
+                    </div>
+                    <dl>
+                      <div><dt>src</dt><dd>{src || '未設定'}</dd></div>
+                      <div><dt>hero.url</dt><dd>{hero?.url || '未設定'}</dd></div>
+                      <div><dt>hero.imageUrl</dt><dd>{hero?.imageUrl || '未設定'}</dd></div>
+                      <div><dt>heroSrc</dt><dd>{getImageUrl(hero) || '未設定'}</dd></div>
+                      <div><dt>candidateSrc</dt><dd>{candidateSrc || '未設定'}</dd></div>
+                      <div><dt>shouldShowHero</dt><dd>{heroDisplayCheck.shouldShowHero ? 'true' : 'false'}</dd></div>
+                      <div><dt>非表示理由</dt><dd>{heroDisplayCheck.reason}</dd></div>
+                      <div><dt>hero.type</dt><dd>{getImageMetaValue(hero, 'type') || '未設定'}</dd></div>
+                      <div><dt>hero.source / assetType</dt><dd>{getImageMetaValue(hero, 'source') || '未設定'} / {getImageMetaValue(hero, 'assetType') || '未設定'}</dd></div>
+                      <div><dt>alt</dt><dd>{getImageMetaValue(hero, 'alt') || '未設定'}</dd></div>
+                      <div><dt>theme</dt><dd>{getImageMetaValue(hero, 'theme') || '未設定'}</dd></div>
+                      <div><dt>sourceType</dt><dd>{getImageMetaValue(hero, 'sourceType') || '未設定'}</dd></div>
+                      <div><dt>isIllustration / isPhoto</dt><dd>{String(getImageMetaValue(hero, 'isIllustration') === true)} / {String(getImageMetaValue(hero, 'isPhoto') === true)}</dd></div>
+                      <div><dt>reviewNote</dt><dd>{getImageMetaValue(hero, 'reviewNote') || '未設定'}</dd></div>
+                      <div><dt>rejectedReason</dt><dd>{getImageMetaValue(hero, 'rejectedReason') || '未設定'}</dd></div>
+                    </dl>
+                    {(src || candidateSrc) && (
+                      <div className="hero-review-previews">
+                        {src && (
+                          <figure>
+                            <img src={src} alt={`${place.city} hero src preview`} loading="lazy" />
+                            <figcaption><a href={src} target="_blank" rel="noopener noreferrer">srcを直接開く</a></figcaption>
+                          </figure>
+                        )}
+                        {candidateSrc && (
+                          <figure>
+                            <img src={candidateSrc} alt={`${place.city} candidate hero preview`} loading="lazy" />
+                            <figcaption><a href={candidateSrc} target="_blank" rel="noopener noreferrer">candidateSrcを直接開く</a></figcaption>
+                          </figure>
+                        )}
+                      </div>
+                    )}
+                  </article>
+                )
+              })}
+            </div>
+          </details>
 
           <div className="quality-image-status" aria-label="旅行先メタデータの整備状態">
             <div><span>旅行先件数</span><strong>{destinationQualityReport.metadataStatus.destinationTotal}件</strong></div>
@@ -5381,6 +5462,7 @@ function App() {
               <div><dt>result journey image shortage</dt><dd>{formatShortageList(getResultJourneyImageShortageCities(destinations))}</dd></div>
               <div><dt>固定hero登録あり</dt><dd>{formatShortageList(getRegisteredFixedHeroImageCities(destinations))}</dd></div>
               <div><dt>一般表示hero（confirmed）</dt><dd>{formatShortageList(getFixedHeroImageCities(destinations))}</dd></div>
+              <div><dt>下呂市hero force check</dt><dd>{getGeroHeroForceCheck(destinations)}</dd></div>
               <div><dt>一般表示heroなし</dt><dd>{formatShortageList(getMissingFixedHeroImageCities(destinations))}</dd></div>
               <div><dt>甲府市 一般表示hero</dt><dd>{getFixedHeroImageCities(destinations).includes('甲府市') ? '表示対象' : '非表示'}</dd></div>
               <div><dt>第1弾16旅先 hero未登録</dt><dd>{formatShortageList(getHeroWaveMissingCities(destinations, firstHeroWaveDestinations))}</dd></div>
@@ -5395,6 +5477,9 @@ function App() {
               <div><dt>hero alt不足</dt><dd>{formatShortageList(getHeroAltMissingCities(destinations))}</dd></div>
               <div><dt>hero isIllustration/isPhoto不足</dt><dd>{formatShortageList(getHeroMediaKindMissingCities(destinations))}</dd></div>
               <div><dt>hero type不一致</dt><dd>{formatShortageList(getHeroTypeIssueCities(destinations))}</dd></div>
+              <div><dt>hero sourceType不足</dt><dd>{formatShortageList(getHeroSourceTypeMissingCities(destinations))}</dd></div>
+              <div><dt>hero status未設定</dt><dd>{formatShortageList(getHeroStatusUnsetCities(destinations))}</dd></div>
+              <div><dt>hero candidateSrcあり</dt><dd>{formatShortageList(getHeroCandidateSrcCities(destinations))}</dd></div>
               <div><dt>hero needs_review</dt><dd>{formatShortageList(getHeroNeedsReviewCities(destinations))}</dd></div>
               <div><dt>hero rejected</dt><dd>{formatShortageList(getHeroRejectedCities(destinations))}</dd></div>
               <div><dt>hero missing</dt><dd>{formatShortageList(getHeroMissingStatusCities(destinations))}</dd></div>

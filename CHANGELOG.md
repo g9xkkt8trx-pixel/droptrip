@@ -1,4 +1,4 @@
-# CHANGELOG
+﻿# CHANGELOG
 
 DROPTRIP のβ版リリース履歴を管理するためのメモです。
 
@@ -9,6 +9,11 @@ DROPTRIP のβ版リリース履歴を管理するためのメモです。
 - 追加済みの簡易SVG heroは、旅行アプリのheroとしては品質不足のため `rejected` とし、一般画面では表示しない運用へ変更しました。
 - 低品質な抽象hero画像を一般画面に出さない品質ゲートを追加し、結果画面heroは `status: confirmed` の固定画像だけを表示するようにしました。
 - 広島市heroも簡易SVGのため `rejected` とし、一般画面では非表示にしました。次回は原爆ドーム、平和記念公園、川沿い、路面電車、橋、都市観光感を高品質画像で作り直します。
+- hero画像に `candidateSrc`、`sourceType`、`reviewNote`、`confirmedAt`、`rejectedReason` を持てるようにし、候補画像を開発者ページで確認してから手動で `confirmed` にする運用基盤を追加しました。
+- 開発者ページにhero画像レビュー台帳を追加し、旅先ごとの `src` / `candidateSrc` / `alt` / `theme` / `sourceType` / `reviewNote` / `rejectedReason` と小さな画像プレビューを確認できるようにしました。
+- 下呂市の `hero-v2.webp` を高品質AI生成hero画像の第1号として `confirmed` 登録し、一般結果画面で表示対象にしました。旧 `hero.svg` は簡易SVGのため一般画面では使いません。
+- スマホでconfirmed heroが潰れないよう、結果画面hero画像のCSSを固定比率の高さ確保に調整しました。
+- スマホ実機キャッシュ対策として下呂市heroを `hero-v2.webp` に変更し、confirmed heroは `loading="eager"` / `fetchPriority="high"` で読み込むようにしました。JPG fallbackはローカル環境でWebP変換ツールが使えなかったため未作成です。
 - 開発者ページの画像診断に、第1弾・第2弾それぞれのhero登録状況、メタ情報、読み込み失敗を確認できる項目を追加しました。
 - 第1弾SVG heroの品質確認を行い、画像内の表示テキストを外してモチーフ中心にし、結果画面では角丸・16:9・遅延読み込みで表示するよう微調整しました。
 - 旅先画像方針を `destination.id` に紐づく専用hero画像へ統一し、一般結果画面ではカテゴリ代替・汎用画像・ランダム画像をheroとして表示しない仕様に整理しました。
@@ -170,3 +175,5 @@ DROPTRIP のβ版リリース履歴を管理するためのメモです。
 - Model courses now require concrete tourist spot and local food data before appearing on the general result screen.
 - Trip image sections now show only stronger destination-specific images; fallback/category images stay modest or are omitted from the inspiration section.
 - Added concrete Osaka City spots and local food metadata for result-screen display.
+
+

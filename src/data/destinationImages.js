@@ -1,4 +1,4 @@
-export const createImageAsset = ({
+﻿export const createImageAsset = ({
   url = '',
   type = 'hero',
   source = '',
@@ -15,6 +15,12 @@ export const createImageAsset = ({
   assetType = '',
   foodTheme = '',
   note = '',
+  candidateSrc = '',
+  sourceType = 'unknown',
+  reviewNote = '',
+  confirmedAt = '',
+  rejectedReason = '',
+  isPhoto = false,
 }) => ({
   url,
   imageUrl: url,
@@ -36,12 +42,18 @@ export const createImageAsset = ({
     ? isDestinationSpecific
     : source === 'curated' || url.startsWith('/images/destinations/'),
   isIllustration,
+  isPhoto,
   alt,
   assetType,
   isFoodSpecific,
   isLocalFood,
   foodTheme,
   note,
+  candidateSrc,
+  sourceType,
+  reviewNote,
+  confirmedAt,
+  rejectedReason,
 })
 
 const COMMON_PATHS = {
@@ -92,6 +104,46 @@ Object.values(CATEGORY_PATHS).forEach((paths) => {
 Object.entries(CATEGORY_ALIASES).forEach(([aliasKey, targetKey]) => {
   CATEGORY_PATHS[aliasKey] = CATEGORY_PATHS[targetKey] ?? CATEGORY_PATHS.nature
 })
+
+const GERO_ONSEN_CONFIRMED_HERO = {
+  src: '/images/destinations/gero-onsen/hero-v2.webp',
+  alt: '下呂温泉街と川沿いの散策をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '川沿いの温泉街・湯けむり・夕景・旅館街',
+  reviewNote: 'ユーザー確認済み。高品質AI生成hero画像として第1号confirmed登録。',
+  confirmedAt: '2026-07-10',
+  rejectedReason: '',
+}
+
+export const GERO_ONSEN_FORCE_HERO = {
+  ...createImageAsset({
+    url: '/images/destinations/gero-onsen/hero-v2.webp',
+    type: 'destination_fixed',
+    source: 'destination_fixed',
+    credit: '旅先イメージ',
+    license: 'DROPTRIP生成素材・本プロジェクト内で利用可能',
+    status: 'confirmed',
+    isLocal: true,
+    isGeneric: false,
+    isDestinationSpecific: true,
+    isIllustration: true,
+    isPhoto: false,
+    assetType: 'destination_fixed',
+    alt: '下呂温泉街と川沿いの散策をイメージしたビジュアル',
+    sourceType: 'ai_generated',
+    note: '川沿いの温泉街・湯けむり・夕景・旅館街に沿った旅先固定のイメージビジュアルです。',
+    reviewNote: 'ユーザー確認済み。高品質AI生成hero画像として第1号confirmed登録。',
+    confirmedAt: '2026-07-10',
+    rejectedReason: '',
+  }),
+  src: '/images/destinations/gero-onsen/hero-v2.webp',
+  imageUrl: '/images/destinations/gero-onsen/hero-v2.webp',
+  imageType: 'hero',
+}
 
 // 旅先ごとの固定イメージ画像を追加したときは、この対応表へ登録する。
 // まず destination.id を優先し、既存データとの互換性のため city キーも残す。
@@ -159,7 +211,8 @@ const DESTINATION_LOCAL_IMAGES = {
   富良野市: { hero: '/images/destinations/furano-hero.jpg' }, 会津若松市: { hero: '/images/destinations/aizuwakamatsu-hero.jpg' },
   尾道市: { hero: '/images/destinations/onomichi/hero.svg' }, 倉敷市: { hero: '/images/destinations/kurashiki/hero.svg' },
   松江市: { hero: '/images/destinations/matsue/hero.svg' }, 別府市: { hero: '/images/destinations/beppu/hero.svg' },
-  下呂市: { hero: '/images/destinations/gero-onsen/hero.svg' },
+  '岐阜県-下呂市': { hero: GERO_ONSEN_CONFIRMED_HERO },
+  下呂市: { hero: GERO_ONSEN_CONFIRMED_HERO },
   鳴門市: { hero: '/images/destinations/naruto/hero.svg' },
   甲府市: { hero: '/images/destinations/kofu/hero.svg' },
   川越市: { hero: '/images/destinations/kawagoe/hero.svg' },
@@ -219,7 +272,7 @@ const DESTINATION_IMAGE_ID_ALIASES = {
 }
 
 Object.entries(DESTINATION_IMAGE_ID_ALIASES).forEach(([id, city]) => {
-  if (DESTINATION_LOCAL_IMAGES[city]) DESTINATION_LOCAL_IMAGES[id] = DESTINATION_LOCAL_IMAGES[city]
+  if (DESTINATION_LOCAL_IMAGES[city] && !DESTINATION_LOCAL_IMAGES[id]) DESTINATION_LOCAL_IMAGES[id] = DESTINATION_LOCAL_IMAGES[city]
 })
 
 const getDestinationImageMapKey = (destination = {}) => (
@@ -357,20 +410,43 @@ const getHeroImageQualityStatus = (city, imageType, src = '') => {
 }
 
 const createDestinationFixedImageEntry = (key, mappedImages = {}) => Object.fromEntries(
-  Object.entries(mappedImages).map(([imageType, src]) => {
+  Object.entries(mappedImages).map(([imageType, imageConfig]) => {
     const city = DESTINATION_IMAGE_ID_ALIASES[key] ?? key
-    const theme = DESTINATION_IMAGE_THEMES[city]?.[imageType] ?? ''
-    const status = getHeroImageQualityStatus(city, imageType, src)
+    const src = typeof imageConfig === 'string' ? imageConfig : imageConfig?.src ?? imageConfig?.url ?? ''
+    const theme = typeof imageConfig === 'object' && imageConfig?.theme
+      ? imageConfig.theme
+      : DESTINATION_IMAGE_THEMES[city]?.[imageType] ?? ''
+    const explicitStatus = typeof imageConfig === 'object' && imageConfig?.status
+      ? imageConfig.status
+      : ''
+    const status = explicitStatus || getHeroImageQualityStatus(city, imageType, src)
+    const isSimpleSvg = imageType === 'hero' && src.endsWith('.svg')
     return [imageType, {
       src,
       url: src,
-      alt: imageType === 'hero'
-        ? `${city}をイメージしたビジュアル`
-        : `${city}の${imageType === 'scenery' ? '景色' : 'ご当地グルメ'}をイメージしたビジュアル`,
-      type: 'destination_fixed',
+      candidateSrc: typeof imageConfig === 'object' ? imageConfig?.candidateSrc ?? '' : '',
+      alt: typeof imageConfig === 'object' && imageConfig?.alt
+        ? imageConfig.alt
+        : imageType === 'hero'
+          ? `${city}をイメージしたビジュアル`
+          : `${city}の${imageType === 'scenery' ? '景色' : 'ご当地グルメ'}をイメージしたビジュアル`,
+      type: typeof imageConfig === 'object' ? imageConfig?.type ?? 'destination_fixed' : 'destination_fixed',
       status,
-      isIllustration: true,
+      isIllustration: typeof imageConfig === 'object' ? imageConfig?.isIllustration ?? true : true,
+      isPhoto: typeof imageConfig === 'object' ? imageConfig?.isPhoto ?? false : false,
+      sourceType: typeof imageConfig === 'object' ? imageConfig?.sourceType ?? (isSimpleSvg ? 'ai_generated' : 'unknown') : (isSimpleSvg ? 'ai_generated' : 'unknown'),
       theme,
+      reviewNote: typeof imageConfig === 'object'
+        ? imageConfig?.reviewNote ?? ''
+        : isSimpleSvg
+          ? '簡易SVGのため一般画面では非表示。高品質画像で再作成する。'
+          : '権利・品質・旅先らしさを確認中。',
+      confirmedAt: typeof imageConfig === 'object' ? imageConfig?.confirmedAt ?? '' : '',
+      rejectedReason: typeof imageConfig === 'object'
+        ? imageConfig?.rejectedReason ?? ''
+        : isSimpleSvg
+          ? '簡易SVGで旅先らしさと旅行アプリheroとしての魅力が不足。'
+          : '',
     }]
   }),
 )
@@ -566,12 +642,18 @@ const normalizeImageAsset = (image, imageType) => {
     isGeneric: image.isGeneric,
     isDestinationSpecific: image.isDestinationSpecific,
     isIllustration: image.isIllustration,
+    isPhoto: image.isPhoto,
     alt: image.alt,
     assetType: image.assetType,
     isFoodSpecific: image.isFoodSpecific,
     isLocalFood: image.isLocalFood,
     foodTheme: image.foodTheme,
     note: image.note,
+    candidateSrc: image.candidateSrc,
+    sourceType: image.sourceType,
+    reviewNote: image.reviewNote,
+    confirmedAt: image.confirmedAt,
+    rejectedReason: image.rejectedReason,
   })
 }
 
@@ -580,6 +662,30 @@ const normalizeImageAsset = (image, imageType) => {
  * 結果画面heroでは旅先固定画像だけを返し、カテゴリ・共通画像への代替は行わない。
  */
 export const getDestinationImage = (destination = {}, imageType = 'hero') => {
+  const destinationName = destination?.name ?? destination?.city ?? ''
+  const destinationCity = destination?.city ?? ''
+  const destinationId = destination?.id ?? ''
+  const prefectureCityKey = destination?.prefecture && destinationCity
+    ? `${destination.prefecture}-${destinationCity}`
+    : ''
+  if (
+    imageType === 'hero'
+    && (
+      destinationName === '下呂市'
+      || destinationCity === '下呂市'
+      || destinationId === '下呂市'
+      || destinationId === 'gero-onsen'
+      || destinationId === '岐阜県-下呂市'
+      || prefectureCityKey === '岐阜県-下呂市'
+    )
+  ) {
+    return {
+      ...GERO_ONSEN_FORCE_HERO,
+      src: GERO_ONSEN_FORCE_HERO.url,
+      imageUrl: GERO_ONSEN_FORCE_HERO.url,
+    }
+  }
+
   const field = `${imageType}Image`
   const configured = normalizeImageAsset(destination[field], imageType)
   const configuredUrl = getImageUrl(configured)
@@ -600,6 +706,12 @@ export const getDestinationImage = (destination = {}, imageType = 'hero') => {
       note: theme
         ? `${theme}に沿った旅先固定のイメージビジュアルです。`
         : '旅先固定のイメージビジュアルです。',
+      candidateSrc: mappedAsset?.candidateSrc ?? '',
+      sourceType: mappedAsset?.sourceType ?? 'unknown',
+      reviewNote: mappedAsset?.reviewNote ?? '',
+      confirmedAt: mappedAsset?.confirmedAt ?? '',
+      rejectedReason: mappedAsset?.rejectedReason ?? '',
+      isPhoto: mappedAsset?.isPhoto ?? false,
     })
   }
   if (configuredUrl.startsWith('/images/destinations/') && isValidImageUrl(configured)) {
@@ -610,8 +722,14 @@ export const getDestinationImage = (destination = {}, imageType = 'hero') => {
       isDestinationSpecific: true,
       isGeneric: false,
       isIllustration: true,
+      isPhoto: configured.isPhoto ?? false,
       assetType: 'destination_fixed',
       alt: configured.alt || `${destination.city}をイメージしたビジュアル`,
+      candidateSrc: configured.candidateSrc ?? '',
+      sourceType: configured.sourceType ?? 'unknown',
+      reviewNote: configured.reviewNote ?? '',
+      confirmedAt: configured.confirmedAt ?? '',
+      rejectedReason: configured.rejectedReason ?? '',
     })
   }
 
@@ -632,7 +750,7 @@ export const getDestinationImage = (destination = {}, imageType = 'hero') => {
 export const getDestinationImageCandidates = (destination = {}, imageType = 'hero') => {
   const primary = getDestinationImage(destination, imageType)
   return [primary]
-    .filter(isValidImageUrl)
+    .filter((image) => isValidImageUrl(getImageUrl(image)))
     .filter((image, index, images) => images.findIndex((candidate) => getImageUrl(candidate) === getImageUrl(image)) === index)
 }
 
@@ -655,3 +773,4 @@ export const getDestinationImages = (prefecture, city, tags = [], details = {}) 
     imageLocationLabel: city ? `${prefecture} ${city}の旅先イメージ` : '',
   }
 }
+

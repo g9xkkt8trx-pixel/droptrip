@@ -1,4 +1,4 @@
-# DROPTRIP
+﻿# DROPTRIP
 
 「運命の旅行先を決めよう」をテーマにした、スマートフォン向けの旅行先決定アプリです。
 
@@ -161,6 +161,20 @@ OPENAI_PLAN_MODEL=gpt-4.1-mini
 - グルメ画像は料理名と一致するものだけ使い、料理専用画像がない場合は画像なしにします。
 
 画面側は `getDestinationImage(destination, imageType)` に画像解決を統一しています。結果画面hero用途では `destinationImageMap[destination.id].hero` のうち、`confirmed` の固定画像だけを表示し、カテゴリfallbackや共通fallbackは返しません。
+
+### hero画像レビュー運用
+
+高品質hero画像は、外部取得や自動連携ではなく手動で1枚ずつ追加・確認します。
+
+1. 画像ファイルを `public/images/destinations/{destinationId}/` に置く
+2. `destinationImages` に `candidateSrc` として登録する
+3. 開発者ページの「hero画像レビュー台帳」で `src` / `candidateSrc` / `alt` / `theme` / `sourceType` / `reviewNote` を確認する
+4. 問題なければ人間が `status: "confirmed"` に変更し、正式な `src` を登録する
+5. 一般結果画面には `confirmed` の `src` だけが表示される
+
+`candidateSrc`、`needs_review`、`rejected`、`missing` は一般画面には表示しません。Codexによる簡易SVGの量産は行わず、低品質画像を出すくらいなら画像なしを優先します。
+
+現在の confirmed 第1号は下呂市の `/images/destinations/gero-onsen/hero-v2.webp` です。旧 `hero.svg` は簡易SVGのため一般画面では使いません。
 
 現地写真・旅先イメージ画像の追加候補は [IMAGE_TODO.md](./IMAGE_TODO.md) で管理します。現在登録されている全旅先について、固定hero画像の有無、必要テーマ、想定ファイル、確認状態を追跡しています。
 
@@ -330,3 +344,4 @@ v0.1.0-beta の主な機能は次のとおりです。
 - Local food descriptions avoid repeating generic template phrases and instead mention food character, timing, nearby areas, and trip fit.
 - localFoodDetails can include bestTiming, bestAreaHints, and goodFor so result cards and AI plans can suggest when and where the food fits naturally.
 - When exact restaurant names are ever added, they should include source, checkedAt, and status metadata and remain unconfirmed unless manually reviewed.
+
