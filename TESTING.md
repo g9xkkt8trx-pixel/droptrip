@@ -59,6 +59,7 @@
 - [ ] 尾道市・倉敷市・松江市・由布市（湯布院）のconfirmed heroは各 `hero-v1.webp` を参照し、旧 `hero.svg` を参照していない
 - [ ] 松山市（道後温泉）・神戸市（有馬温泉）・豊岡市（城崎温泉）・尾花沢市（銀山温泉）のconfirmed heroは各 `hero-v1.webp` を参照し、旧 `hero.svg` を参照していない
 - [ ] 奈良市・日光市・伊勢市・横浜市のconfirmed heroは各 `hero-v1.webp` を参照し、旧ローカル候補画像や旧 `hero.svg` を参照していない
+- [ ] 宇都宮市・会津若松市・白川村・富良野市のconfirmed heroは各 `hero-v1.webp` を参照し、旧ローカル候補画像や旧 `hero.svg` を参照していない
 - [ ] confirmed hero画像ファイルはGit管理に入っており、Vercel配信後もPC・スマホの両方で表示される
 - [ ] 一般結果画面に `GERO HERO DEBUG` などの一時デバッグ表示や直書きhero画像が残っていない
 - [ ] 第2弾SVG内に旅先名などの大きな表示文字がなく、現地写真と誤認する文言が出ていない

@@ -612,6 +612,66 @@ const YOKOHAMA_CONFIRMED_HERO = {
   rejectedReason: '',
 }
 
+const UTSUNOMIYA_CONFIRMED_HERO = {
+  src: '/images/destinations/utsunomiya/hero-v1.webp',
+  alt: '宇都宮の街並みと夜の川沿いをイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '街並み・川沿い・夕景・都市散策・グルメの街',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-11',
+  rejectedReason: '',
+}
+
+const AIZUWAKAMATSU_CONFIRMED_HERO = {
+  src: '/images/destinations/aizuwakamatsu/hero-v1.webp',
+  alt: '会津若松の城下町と鶴ヶ城をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '鶴ヶ城・城下町・桜・山並み・歴史散策',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-11',
+  rejectedReason: '',
+}
+
+const SHIRAKAWA_CONFIRMED_HERO = {
+  src: '/images/destinations/shirakawa/hero-v1.webp',
+  alt: '白川郷の合掌造り集落と山里の風景をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '合掌造り・山里・水辺・世界遺産・日本の原風景',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-11',
+  rejectedReason: '',
+}
+
+const FURANO_CONFIRMED_HERO = {
+  src: '/images/destinations/furano/hero-v1.webp',
+  alt: '富良野の花畑と北海道らしい丘陵風景をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: 'ラベンダー畑・花畑・丘陵・北海道らしい自然',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-11',
+  rejectedReason: '',
+}
+
 // 旅先ごとの固定イメージ画像を追加したときは、この対応表へ登録する。
 // まず destination.id を優先し、既存データとの互換性のため city キーも残す。
 const DESTINATION_LOCAL_IMAGES = {
@@ -720,7 +780,10 @@ const DESTINATION_LOCAL_IMAGES = {
   '三重県-伊勢市': { hero: ISE_CONFIRMED_HERO },
   伊勢市: { hero: ISE_CONFIRMED_HERO },
   白浜町: { hero: '/images/destinations/shirahama-hero.jpg' }, 軽井沢町: { hero: '/images/destinations/karuizawa-hero.jpg' },
-  富良野市: { hero: '/images/destinations/furano-hero.jpg' }, 会津若松市: { hero: '/images/destinations/aizuwakamatsu-hero.jpg' },
+  '北海道-富良野市': { hero: FURANO_CONFIRMED_HERO },
+  富良野市: { hero: FURANO_CONFIRMED_HERO },
+  '福島県-会津若松市': { hero: AIZUWAKAMATSU_CONFIRMED_HERO },
+  会津若松市: { hero: AIZUWAKAMATSU_CONFIRMED_HERO },
   '広島県-尾道市': { hero: ONOMICHI_CONFIRMED_HERO },
   尾道市: { hero: ONOMICHI_CONFIRMED_HERO },
   '岡山県-倉敷市': { hero: KURASHIKI_CONFIRMED_HERO },
@@ -737,6 +800,10 @@ const DESTINATION_LOCAL_IMAGES = {
   甲府市: { hero: KOFU_CONFIRMED_HERO },
   '埼玉県-川越市': { hero: KAWAGOE_CONFIRMED_HERO },
   川越市: { hero: KAWAGOE_CONFIRMED_HERO },
+  '栃木県-宇都宮市': { hero: UTSUNOMIYA_CONFIRMED_HERO },
+  宇都宮市: { hero: UTSUNOMIYA_CONFIRMED_HERO },
+  '岐阜県-白川村': { hero: SHIRAKAWA_CONFIRMED_HERO },
+  白川村: { hero: SHIRAKAWA_CONFIRMED_HERO },
   佐野市: { hero: '/images/destinations/sano/hero.svg' },
   上田市: { hero: '/images/destinations/ueda/hero.svg' },
   '沖縄県-宮古島市': { hero: MIYAKOJIMA_CONFIRMED_HERO },
@@ -788,6 +855,8 @@ const DESTINATION_IMAGE_ID_ALIASES = {
   '徳島県-鳴門市': '鳴門市',
   '山梨県-甲府市': '甲府市',
   '埼玉県-川越市': '川越市',
+  '栃木県-宇都宮市': '宇都宮市',
+  '岐阜県-白川村': '白川村',
   '栃木県-佐野市': '佐野市',
   '長野県-上田市': '上田市',
   '沖縄県-宮古島市': '宮古島市',
