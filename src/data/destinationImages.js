@@ -492,6 +492,66 @@ const YUFUIN_CONFIRMED_HERO = {
   rejectedReason: '',
 }
 
+const DOGO_ONSEN_CONFIRMED_HERO = {
+  src: '/images/destinations/dogo-onsen/hero-v1.webp',
+  alt: '道後温泉の歴史ある温泉街と夕景をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '道後温泉本館・温泉街・レトロ建築・夕景',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-11',
+  rejectedReason: '',
+}
+
+const ARIMA_ONSEN_CONFIRMED_HERO = {
+  src: '/images/destinations/arima-onsen/hero-v1.webp',
+  alt: '有馬温泉の川沿い温泉街と夜の灯りをイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '温泉街・川沿い・夜景・山あいの温泉地',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-11',
+  rejectedReason: '',
+}
+
+const KINOSAKI_ONSEN_CONFIRMED_HERO = {
+  src: '/images/destinations/kinosaki-onsen/hero-v1.webp',
+  alt: '城崎温泉の柳並木と外湯めぐりの街並みをイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '柳並木・外湯めぐり・川沿い温泉街・夜の灯り',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-11',
+  rejectedReason: '',
+}
+
+const GINZAN_ONSEN_CONFIRMED_HERO = {
+  src: '/images/destinations/ginzan-onsen/hero-v1.webp',
+  alt: '銀山温泉の雪景色と木造旅館街をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '雪景色・木造旅館街・ガス灯・大正ロマン',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-11',
+  rejectedReason: '',
+}
+
 // 旅先ごとの固定イメージ画像を追加したときは、この対応表へ登録する。
 // まず destination.id を優先し、既存データとの互換性のため city キーも残す。
 const DESTINATION_LOCAL_IMAGES = {
@@ -617,10 +677,14 @@ const DESTINATION_LOCAL_IMAGES = {
   宮古島市: { hero: MIYAKOJIMA_CONFIRMED_HERO },
   '大分県-由布市': { hero: YUFUIN_CONFIRMED_HERO },
   由布市: { hero: YUFUIN_CONFIRMED_HERO },
-  松山市: { hero: '/images/destinations/dogo-onsen/hero.svg' },
-  神戸市: { hero: '/images/destinations/arima-onsen/hero.svg' },
-  豊岡市: { hero: '/images/destinations/kinosaki-onsen/hero.svg' },
-  尾花沢市: { hero: '/images/destinations/ginzan-onsen/hero.svg' },
+  '愛媛県-松山市': { hero: DOGO_ONSEN_CONFIRMED_HERO },
+  松山市: { hero: DOGO_ONSEN_CONFIRMED_HERO },
+  '兵庫県-神戸市': { hero: ARIMA_ONSEN_CONFIRMED_HERO },
+  神戸市: { hero: ARIMA_ONSEN_CONFIRMED_HERO },
+  '兵庫県-豊岡市': { hero: KINOSAKI_ONSEN_CONFIRMED_HERO },
+  豊岡市: { hero: KINOSAKI_ONSEN_CONFIRMED_HERO },
+  '山形県-尾花沢市': { hero: GINZAN_ONSEN_CONFIRMED_HERO },
+  尾花沢市: { hero: GINZAN_ONSEN_CONFIRMED_HERO },
 }
 
 const DESTINATION_IMAGE_ID_ALIASES = {
