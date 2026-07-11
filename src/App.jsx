@@ -1923,21 +1923,43 @@ const getResultReasonItems = (destination = {}, context = {}, schedule = resolve
   return [...new Set(items.filter(Boolean))].slice(0, 3)
 }
 
-const getDestinationSearchText = (destination = {}) => normalizeSearchText([
-  destination.name,
-  destination.city,
-  destination.prefecture,
-  destination.region,
-  destination.recommendation,
-  destination.recommendText,
-  destination.nearestStation,
-  destination.nearestStationLabel,
-  ...(destination.tags ?? []),
-  ...(destination.localFoodCandidates ?? []),
-  ...(destination.localFoodDetails ?? []).flatMap((food) => [food?.name, food?.type, food?.description]),
-  ...(destination.touristSpots ?? []).flatMap((spot) => [spot?.name, spot?.type, spot?.description]),
-  ...(destination.nearbyDestinationHints ?? []),
-].filter(Boolean).join(' '))
+const createDestinationSearchFields = (destination = {}) => [
+  { field: '旅先名', value: destination.name },
+  { field: '市区町村', value: destination.city },
+  { field: '都道府県', value: destination.prefecture },
+  { field: '地域', value: destination.region },
+  { field: 'おすすめ文', value: destination.recommendation },
+  { field: 'おすすめ文', value: destination.recommendText },
+  { field: '最寄り駅', value: destination.nearestStation },
+  { field: '最寄り駅表示', value: destination.nearestStationLabel },
+  ...(destination.tags ?? []).map((tag) => ({ field: 'タグ', value: tag })),
+  ...(destination.localFoodCandidates ?? []).map((food) => ({ field: 'グルメ候補', value: food })),
+  ...(destination.localFoodDetails ?? []).flatMap((food) => [
+    { field: 'グルメ名', value: food?.name },
+    { field: 'グルメ分類', value: food?.type },
+    { field: 'グルメ説明', value: food?.description },
+  ]),
+  ...(destination.touristSpots ?? []).flatMap((spot) => [
+    { field: 'スポット名', value: spot?.name },
+    { field: 'スポット分類', value: spot?.type },
+    { field: 'スポット説明', value: spot?.description },
+  ]),
+  ...(destination.trendHighlights ?? []).map((item) => ({ field: '映え・トレンド', value: item?.name })),
+  ...(destination.nearbyDestinationHints ?? []).map((hint) => ({ field: '周辺候補', value: hint })),
+].filter((item) => item.value)
+
+const getDestinationSearchMatches = (destination = {}, keyword = '') => {
+  const normalizedKeyword = normalizeSearchText(keyword).trim()
+  if (!normalizedKeyword) return []
+
+  return createDestinationSearchFields(destination)
+    .map((item) => ({
+      ...item,
+      normalizedValue: normalizeSearchText(item.value),
+    }))
+    .filter((item) => item.normalizedValue.includes(normalizedKeyword))
+    .map(({ field, value }) => ({ field, value }))
+}
 
 const getTripEnjoymentItems = (destination = {}, foodItems = []) => {
   const tagItems = (destination.tags ?? []).slice(0, 4)
@@ -2787,9 +2809,16 @@ function App() {
     customRangeHours,
     customRangeKm,
   })
-  const filteredDestinations = destinations.filter((place) => {
-    const keyword = normalizeSearchText(destinationSearch)
-    const matchesKeyword = !keyword || getDestinationSearchText(place).includes(keyword)
+  const destinationBrowserDestinations = Array.from(
+    destinations.reduce((uniqueMap, place) => {
+      const uniqueKey = place.id ?? `${place.prefecture}-${place.city}`
+      if (!uniqueMap.has(uniqueKey)) uniqueMap.set(uniqueKey, place)
+      return uniqueMap
+    }, new Map()).values(),
+  )
+  const filteredDestinations = destinationBrowserDestinations.filter((place) => {
+    const keyword = normalizeSearchText(destinationSearch).trim()
+    const matchesKeyword = !keyword || getDestinationSearchMatches(place, keyword).length > 0
     const matchesPrefecture = destinationPrefectureFilter === 'all' || place.prefecture === destinationPrefectureFilter
     const matchesTag = destinationTagFilter === 'all' || place.tags.includes(destinationTagFilter)
     const matchesPurpose = destinationPurposeFilter === 'all'
@@ -2812,6 +2841,10 @@ function App() {
       && matchesFavorite
   })
   const destinationRangeLabel = movementRangeOptions.find((option) => option.value === destinationRangeFilter)?.label ?? 'おまかせ'
+  const destinationSearchKeyword = normalizeSearchText(destinationSearch).trim()
+  const toyookaSearchDiagnostics = destinationSearchKeyword
+    ? getDestinationSearchMatches(destinationBrowserDestinations.find((place) => place.city === '豊岡市'), destinationSearchKeyword)
+    : []
   const activeDestinationFilters = [
     destinationSearch.trim() && `キーワード：${destinationSearch.trim()}`,
     destinationPrefectureFilter !== 'all' && `都道府県：${destinationPrefectureFilter}`,
@@ -4519,7 +4552,7 @@ function App() {
             <section className="destination-browser-card" aria-labelledby="destination-browser-title">
               <div className="favorites-heading">
                 <div><p>SEARCH</p><h2 id="destination-browser-title">旅行先を絞り込む</h2></div>
-                <span>{destinations.length}件中 {filteredDestinations.length}件を表示中</span>
+                <span>{destinationBrowserDestinations.length}件中 {filteredDestinations.length}件を表示中</span>
               </div>
               <p className="destination-browser-description">
                 旅先名・都道府県・グルメ・スポット名で探せます。
@@ -5903,7 +5936,9 @@ function App() {
               <div><dt>general match display</dt><dd>適合度チップ1か所のみ</dd></div>
               <div><dt>general hidden cards</dt><dd>DESTINY MATCH / モデルコース / 交通手段比較 / 行けそう度 / 予算目安は非表示</dd></div>
               <div><dt>general access CTA</dt><dd>Google Maps direct link</dd></div>
-              <div><dt>destination list search fields</dt><dd>旅先名・都道府県・region・tags・グルメ・スポット・周辺候補</dd></div>
+              <div><dt>destination list search fields</dt><dd>旅先名・都道府県・region・tags・グルメ・スポット・映え・周辺候補</dd></div>
+              <div><dt>destination list search query</dt><dd>{destinationSearchKeyword || '未入力'}</dd></div>
+              <div><dt>豊岡市 search match</dt><dd>{destinationSearchKeyword ? (toyookaSearchDiagnostics.length > 0 ? toyookaSearchDiagnostics.map((item) => `${item.field}:${item.value}`).join(' / ') : '一致なし') : '検索語未入力'}</dd></div>
               <div><dt>scroll to top button</dt><dd>enabled（scrollY 520px超で表示）</dd></div>
               <div><dt>food / spot Maps links</dt><dd>destination + item name query</dd></div>
               <div><dt>food detail header</dt><dd>専用ヘッダー表示（DRAW RESULT / 抽選結果は非表示）</dd></div>

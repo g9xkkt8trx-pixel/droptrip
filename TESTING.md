@@ -9,6 +9,7 @@
 - [ ] アクセス確認からGoogle Mapsで経路を開ける
 - [ ] 旅行先一覧が使える
 - [ ] 旅行先一覧で旅先名・都道府県・グルメ・スポット名を検索できる
+- [ ] 旅行先一覧検索で、検索語と関係ない豊岡市が固定表示されず、同じ旅先が重複表示されない
 - [ ] お気に入り登録ができる
 - [ ] 比較に追加できる
 - [ ] 抽選履歴が保存される
@@ -49,7 +50,8 @@
 - [ ] 下呂市のconfirmed heroは `/images/destinations/gero-onsen/hero-v2.webp` を参照し、旧 `hero.svg` を参照していない
 - [ ] 京都市のconfirmed heroは `/images/destinations/kyoto/hero-v1.webp` を参照し、旧 `hero.svg` を参照していない
 - [ ] 箱根町・小樽市・草津町・金沢市のconfirmed heroは各 `hero-v1.webp` を参照し、旧 `hero.svg` を参照していない
-- [ ] 鎌倉市・熱海市・仙台市・福岡市のconfirmed heroは各 `hero-v1.webp` を参照し、旧 `hero.svg` を参照していない
+- [ ] 画像内に旅先名・説明文・キャッチコピーが入ったhero画像は一般画面に表示されない
+- [ ] 鎌倉市・熱海市・仙台市・福岡市の文字入り `hero-v1.webp` は `rejected` として一般画面に表示されない
 - [ ] confirmed hero画像ファイルはGit管理に入っており、Vercel配信後もPC・スマホの両方で表示される
 - [ ] 一般結果画面に `GERO HERO DEBUG` などの一時デバッグ表示や直書きhero画像が残っていない
 - [ ] 第2弾SVG内に旅先名などの大きな表示文字がなく、現地写真と誤認する文言が出ていない
