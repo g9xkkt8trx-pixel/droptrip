@@ -672,6 +672,66 @@ const FURANO_CONFIRMED_HERO = {
   rejectedReason: '',
 }
 
+const NASU_CONFIRMED_HERO = {
+  src: '/images/destinations/nasu/hero-v1.webp',
+  alt: '那須の高原と山並みをイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '高原・山並み・牧場・自然散策・リゾート',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-12',
+  rejectedReason: '',
+}
+
+const OKUTAMA_CONFIRMED_HERO = {
+  src: '/images/destinations/okutama/hero-v1.webp',
+  alt: '奥多摩の渓谷と清流をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '渓谷・清流・森林・橋・自然散策',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-12',
+  rejectedReason: '',
+}
+
+const IBUSUKI_CONFIRMED_HERO = {
+  src: '/images/destinations/ibusuki/hero-v1.webp',
+  alt: '指宿の砂むし温泉と海辺をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '砂むし温泉・海辺・南国・開聞岳・温泉旅',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-12',
+  rejectedReason: '',
+}
+
+const KAGOSHIMA_CONFIRMED_HERO = {
+  src: '/images/destinations/kagoshima/hero-v1.webp',
+  alt: '鹿児島の街並みと桜島をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '桜島・港町・市街地・夕景・火山のある景色',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-12',
+  rejectedReason: '',
+}
+
 // 旅先ごとの固定イメージ画像を追加したときは、この対応表へ登録する。
 // まず destination.id を優先し、既存データとの互換性のため city キーも残す。
 const DESTINATION_LOCAL_IMAGES = {
@@ -804,6 +864,14 @@ const DESTINATION_LOCAL_IMAGES = {
   宇都宮市: { hero: UTSUNOMIYA_CONFIRMED_HERO },
   '岐阜県-白川村': { hero: SHIRAKAWA_CONFIRMED_HERO },
   白川村: { hero: SHIRAKAWA_CONFIRMED_HERO },
+  '栃木県-那須町': { hero: NASU_CONFIRMED_HERO },
+  那須町: { hero: NASU_CONFIRMED_HERO },
+  '東京都-奥多摩町': { hero: OKUTAMA_CONFIRMED_HERO },
+  奥多摩町: { hero: OKUTAMA_CONFIRMED_HERO },
+  '鹿児島県-指宿市': { hero: IBUSUKI_CONFIRMED_HERO },
+  指宿市: { hero: IBUSUKI_CONFIRMED_HERO },
+  '鹿児島県-鹿児島市': { hero: KAGOSHIMA_CONFIRMED_HERO },
+  鹿児島市: { hero: KAGOSHIMA_CONFIRMED_HERO },
   佐野市: { hero: '/images/destinations/sano/hero.svg' },
   上田市: { hero: '/images/destinations/ueda/hero.svg' },
   '沖縄県-宮古島市': { hero: MIYAKOJIMA_CONFIRMED_HERO },
@@ -857,6 +925,10 @@ const DESTINATION_IMAGE_ID_ALIASES = {
   '埼玉県-川越市': '川越市',
   '栃木県-宇都宮市': '宇都宮市',
   '岐阜県-白川村': '白川村',
+  '栃木県-那須町': '那須町',
+  '東京都-奥多摩町': '奥多摩町',
+  '鹿児島県-指宿市': '指宿市',
+  '鹿児島県-鹿児島市': '鹿児島市',
   '栃木県-佐野市': '佐野市',
   '長野県-上田市': '上田市',
   '沖縄県-宮古島市': '宮古島市',
