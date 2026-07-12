@@ -61,6 +61,7 @@
 - [ ] 奈良市・日光市・伊勢市・横浜市のconfirmed heroは各 `hero-v1.webp` を参照し、旧ローカル候補画像や旧 `hero.svg` を参照していない
 - [ ] 宇都宮市・会津若松市・白川村・富良野市のconfirmed heroは各 `hero-v1.webp` を参照し、旧ローカル候補画像や旧 `hero.svg` を参照していない
 - [ ] 那須町・奥多摩町・指宿市・鹿児島市のconfirmed heroは各 `hero-v1.webp` を参照し、旧ローカル候補画像や旧 `hero.svg` を参照していない
+- [ ] 軽井沢町・上田市・松本市・諏訪市・水戸市・大洗町・日立市・土浦市のconfirmed heroは各 `hero-v1.webp` を参照し、旧ローカル候補画像や旧 `hero.svg` を参照していない
 - [ ] confirmed hero画像ファイルはGit管理に入っており、Vercel配信後もPC・スマホの両方で表示される
 - [ ] 一般結果画面に `GERO HERO DEBUG` などの一時デバッグ表示や直書きhero画像が残っていない
 - [ ] 第2弾SVG内に旅先名などの大きな表示文字がなく、現地写真と誤認する文言が出ていない
