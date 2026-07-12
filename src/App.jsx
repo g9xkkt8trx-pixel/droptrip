@@ -1736,7 +1736,11 @@ const createAiDestinationPayload = (destination = {}, context = {}, featuredSpot
   })),
 })
 
-const normalizeSearchText = (value) => String(value ?? '').toLowerCase()
+const normalizeSearchText = (value) => String(value ?? '')
+  .normalize('NFKC')
+  .toLowerCase()
+  .trim()
+  .replace(/\s+/g, '')
 
 const getTravelPurposeMatch = (destination = {}, selectedTravelPurposes = []) => {
   if (!Array.isArray(selectedTravelPurposes) || selectedTravelPurposes.length === 0) {
@@ -1924,12 +1928,30 @@ const getResultReasonItems = (destination = {}, context = {}, schedule = resolve
   return [...new Set(items.filter(Boolean))].slice(0, 3)
 }
 
+const destinationSearchAliasMap = {
+  台東区: ['浅草', '上野', '浅草寺', '東京都台東区'],
+  墨田区: ['スカイツリー', '東京スカイツリー', '隅田川', '東京都墨田区'],
+  千代田区: ['東京駅', '皇居', '丸の内', '東京都千代田区'],
+  新宿区: ['新宿', '新宿御苑', '都庁', '東京都新宿区'],
+  渋谷区: ['渋谷', 'スクランブル交差点', '原宿', '表参道', '東京都渋谷区'],
+  江東区: ['豊洲', 'お台場', '湾岸', '東京都江東区'],
+  浦安市: ['舞浜', 'ベイエリア', '千葉県浦安市'],
+  藤沢市: ['江の島', '湘南', '片瀬江ノ島', '神奈川県藤沢市'],
+}
+
 const createDestinationSearchFields = (destination = {}) => [
+  { field: '旅先ID', value: destination.id },
   { field: '旅先名', value: destination.name },
   { field: '市区町村', value: destination.city },
   { field: '都道府県', value: destination.prefecture },
+  { field: '都道府県-市区町村', value: destination.prefecture && destination.city ? `${destination.prefecture}-${destination.city}` : '' },
+  { field: '都道府県市区町村', value: destination.prefecture && destination.city ? `${destination.prefecture}${destination.city}` : '' },
   { field: '地域', value: destination.region },
   { field: 'おすすめ文', value: destination.recommendText },
+  { field: 'おすすめ文', value: destination.recommendation },
+  { field: 'ハイライト', value: destination.highlight },
+  { field: 'ハイライト', value: destination.highlights },
+  ...(destinationSearchAliasMap[destination.city] ?? []).map((alias) => ({ field: '別名', value: alias })),
   ...(destination.tags ?? []).map((tag) => ({ field: 'タグ', value: tag })),
   ...(destination.localFoodCandidates ?? []).map((food) => ({ field: 'グルメ候補', value: food })),
   ...(destination.localFoodDetails ?? []).map((food) => ({ field: 'グルメ名', value: food?.name })),
@@ -1947,16 +1969,19 @@ const getDestinationSearchMatches = (destination = {}, keyword = '') => {
       ...item,
       normalizedValue: normalizeSearchText(item.value),
     }))
-    .filter((item) => item.normalizedValue.includes(normalizedKeyword))
+    .filter((item) => {
+      if (!item.normalizedValue.includes(normalizedKeyword)) return false
+      if (normalizedKeyword === '京都' && item.normalizedValue.startsWith('東京都')) return false
+      return true
+    })
     .map(({ field, value }) => ({ field, value }))
 }
 
 const getDestinationDedupeKey = (destination = {}) => (
   destination.id
   || (destination.prefecture && destination.city ? `${destination.prefecture}-${destination.city}` : '')
-  || (destination.region && destination.name ? `${destination.region}-${destination.name}` : '')
-  || destination.name
   || destination.city
+  || destination.name
   || ''
 )
 
@@ -2826,7 +2851,7 @@ function App() {
       || normalizeSearchText(`${place.prefecture}-${place.city}`) === destinationSearchKeyword
     ))
     : false
-  const filteredDestinationCandidates = destinations.filter((place) => {
+  const filteredDestinationCandidates = destinationBrowserDestinations.filter((place) => {
     const keyword = destinationSearchKeyword
     const matchesKeyword = !keyword
       || (exactDestinationNameSearch
@@ -5963,10 +5988,12 @@ function App() {
               <div><dt>general match display</dt><dd>適合度チップ1か所のみ</dd></div>
               <div><dt>general hidden cards</dt><dd>DESTINY MATCH / モデルコース / 交通手段比較 / 行けそう度 / 予算目安は非表示</dd></div>
               <div><dt>general access CTA</dt><dd>Google Maps direct link</dd></div>
-              <div><dt>destination list search fields</dt><dd>旅先名・都道府県・region・tags・グルメ・スポット・映え・周辺候補</dd></div>
-              <div><dt>destination list search query</dt><dd>{destinationSearchKeyword || '未入力'}</dd></div>
+              <div><dt>destination list search fields</dt><dd>id・旅先名・city・都道府県-city・region・tags・別名・グルメ・スポット・映え・周辺候補</dd></div>
+              <div><dt>destination list search query</dt><dd>{destinationSearch.trim() || '未入力'}</dd></div>
+              <div><dt>destination list normalized query</dt><dd>{destinationSearchKeyword || '未入力'}</dd></div>
+              <div><dt>destination list target count</dt><dd>{destinationBrowserDestinations.length}件</dd></div>
               <div><dt>destination list exact city mode</dt><dd>{exactDestinationNameSearch ? 'on' : 'off'}</dd></div>
-              <div><dt>destination list raw matches</dt><dd>{filteredDestinationCandidates.length}件</dd></div>
+              <div><dt>destination list raw matches</dt><dd>{filteredDestinationCandidates.length}件（重複除去前）</dd></div>
               <div><dt>destination list deduped matches</dt><dd>{filteredDestinations.length}件（重複除去 {filteredDestinationDuplicateCount}件）</dd></div>
               <div><dt>destination list fallback mixed</dt><dd>{destinationSearchKeyword && filteredDestinationCandidates.length === 0 && filteredDestinations.length === 0 ? 'なし（0件表示）' : 'なし'}</dd></div>
               <div><dt>豊岡市 search match</dt><dd>{destinationSearchKeyword ? (toyookaSearchDiagnostics.length > 0 ? toyookaSearchDiagnostics.map((item) => `${item.field}:${item.value}`).join(' / ') : '一致なし') : '検索語未入力'}</dd></div>
