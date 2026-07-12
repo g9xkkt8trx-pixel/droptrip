@@ -507,21 +507,6 @@ const DOGO_ONSEN_CONFIRMED_HERO = {
   rejectedReason: '',
 }
 
-const ARIMA_ONSEN_CONFIRMED_HERO = {
-  src: '/images/destinations/arima-onsen/hero-v1.webp',
-  alt: '有馬温泉の川沿い温泉街と夜の灯りをイメージしたビジュアル',
-  type: 'destination_fixed',
-  status: 'confirmed',
-  isIllustration: true,
-  isPhoto: false,
-  sourceType: 'ai_generated',
-  theme: '温泉街・川沿い・夜景・山あいの温泉地',
-  hasEmbeddedText: false,
-  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
-  confirmedAt: '2026-07-11',
-  rejectedReason: '',
-}
-
 const KINOSAKI_ONSEN_CONFIRMED_HERO = {
   src: '/images/destinations/kinosaki-onsen/hero-v1.webp',
   alt: '城崎温泉の柳並木と外湯めぐりの街並みをイメージしたビジュアル',
@@ -1092,6 +1077,126 @@ const IKAHO_ONSEN_CONFIRMED_HERO = {
   rejectedReason: '',
 }
 
+const OSAKA_CONFIRMED_HERO = {
+  src: '/images/destinations/osaka/hero-v1.webp',
+  alt: '大阪の都市夜景と水辺の街並みをイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '都市夜景・水辺・繁華街・大阪らしい活気',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-12',
+  rejectedReason: '',
+}
+
+const KOBE_CONFIRMED_HERO = {
+  src: '/images/destinations/kobe/hero-v1.webp',
+  alt: '神戸の港町と夜景をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '港町・神戸ポートタワー・海辺・夕景・夜景',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-12',
+  rejectedReason: '',
+}
+
+const HIMEJI_CONFIRMED_HERO = {
+  src: '/images/destinations/himeji/hero-v1.webp',
+  alt: '姫路城と桜の風景をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '姫路城・白鷺城・桜・歴史散策',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-12',
+  rejectedReason: '',
+}
+
+const WAKAYAMA_CONFIRMED_HERO = {
+  src: '/images/destinations/wakayama/hero-v1.webp',
+  alt: '和歌山城と海辺の景色をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '和歌山城・海辺・城下町・紀州の風景',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-12',
+  rejectedReason: '',
+}
+
+const GIFU_CONFIRMED_HERO = {
+  src: '/images/destinations/gifu/hero-v1.webp',
+  alt: '岐阜の金華山と長良川をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '金華山・岐阜城・長良川・自然と街並み',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-12',
+  rejectedReason: '',
+}
+
+const NAGOYA_CONFIRMED_HERO = {
+  src: '/images/destinations/nagoya/hero-v1.webp',
+  alt: '名古屋の都市景観と緑をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '都市景観・高層ビル・緑・名古屋らしい街並み',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-12',
+  rejectedReason: '',
+}
+
+const FUKUI_CONFIRMED_HERO = {
+  src: '/images/destinations/fukui/hero-v1.webp',
+  alt: '福井の海辺と自然をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '海岸・自然・越前方面の景色・北陸の旅',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-12',
+  rejectedReason: '',
+}
+
+const TSURUGA_CONFIRMED_HERO = {
+  src: '/images/destinations/tsuruga/hero-v1.webp',
+  alt: '敦賀の港町と山並みをイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '港町・敦賀湾・山並み・北陸の海辺',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-12',
+  rejectedReason: '',
+}
+
 // 旅先ごとの固定イメージ画像を追加したときは、この対応表へ登録する。
 // まず destination.id を優先し、既存データとの互換性のため city キーも残す。
 const DESTINATION_LOCAL_IMAGES = {
@@ -1200,6 +1305,22 @@ const DESTINATION_LOCAL_IMAGES = {
   '三重県-伊勢市': { hero: ISE_CONFIRMED_HERO },
   伊勢市: { hero: ISE_CONFIRMED_HERO },
   白浜町: { hero: '/images/destinations/shirahama-hero.jpg' },
+  '大阪府-大阪市': { hero: OSAKA_CONFIRMED_HERO },
+  大阪市: { hero: OSAKA_CONFIRMED_HERO },
+  '兵庫県-神戸市': { hero: KOBE_CONFIRMED_HERO },
+  神戸市: { hero: KOBE_CONFIRMED_HERO },
+  '兵庫県-姫路市': { hero: HIMEJI_CONFIRMED_HERO },
+  姫路市: { hero: HIMEJI_CONFIRMED_HERO },
+  '和歌山県-和歌山市': { hero: WAKAYAMA_CONFIRMED_HERO },
+  和歌山市: { hero: WAKAYAMA_CONFIRMED_HERO },
+  '岐阜県-岐阜市': { hero: GIFU_CONFIRMED_HERO },
+  岐阜市: { hero: GIFU_CONFIRMED_HERO },
+  '愛知県-名古屋市': { hero: NAGOYA_CONFIRMED_HERO },
+  名古屋市: { hero: NAGOYA_CONFIRMED_HERO },
+  '福井県-福井市': { hero: FUKUI_CONFIRMED_HERO },
+  福井市: { hero: FUKUI_CONFIRMED_HERO },
+  '福井県-敦賀市': { hero: TSURUGA_CONFIRMED_HERO },
+  敦賀市: { hero: TSURUGA_CONFIRMED_HERO },
   '長野県-軽井沢町': { hero: KARUIZAWA_CONFIRMED_HERO },
   軽井沢町: { hero: KARUIZAWA_CONFIRMED_HERO },
   '長野県-松本市': { hero: MATSUMOTO_CONFIRMED_HERO },
@@ -1287,8 +1408,6 @@ const DESTINATION_LOCAL_IMAGES = {
   由布市: { hero: YUFUIN_CONFIRMED_HERO },
   '愛媛県-松山市': { hero: DOGO_ONSEN_CONFIRMED_HERO },
   松山市: { hero: DOGO_ONSEN_CONFIRMED_HERO },
-  '兵庫県-神戸市': { hero: ARIMA_ONSEN_CONFIRMED_HERO },
-  神戸市: { hero: ARIMA_ONSEN_CONFIRMED_HERO },
   '兵庫県-豊岡市': { hero: KINOSAKI_ONSEN_CONFIRMED_HERO },
   豊岡市: { hero: KINOSAKI_ONSEN_CONFIRMED_HERO },
   '山形県-尾花沢市': { hero: GINZAN_ONSEN_CONFIRMED_HERO },
@@ -1319,6 +1438,14 @@ const DESTINATION_IMAGE_ID_ALIASES = {
   '岐阜県-高山市': '高山市',
   '三重県-伊勢市': '伊勢市',
   '和歌山県-白浜町': '白浜町',
+  '大阪府-大阪市': '大阪市',
+  '兵庫県-神戸市': '神戸市',
+  '兵庫県-姫路市': '姫路市',
+  '和歌山県-和歌山市': '和歌山市',
+  '岐阜県-岐阜市': '岐阜市',
+  '愛知県-名古屋市': '名古屋市',
+  '福井県-福井市': '福井市',
+  '福井県-敦賀市': '敦賀市',
   '長野県-軽井沢町': '軽井沢町',
   '長野県-松本市': '松本市',
   '北海道-富良野市': '富良野市',
@@ -1363,7 +1490,6 @@ const DESTINATION_IMAGE_ID_ALIASES = {
   '沖縄県-宮古島市': '宮古島市',
   '大分県-由布市': '由布市',
   '愛媛県-松山市': '松山市',
-  '兵庫県-神戸市': '神戸市',
   '兵庫県-豊岡市': '豊岡市',
   '山形県-尾花沢市': '尾花沢市',
 }

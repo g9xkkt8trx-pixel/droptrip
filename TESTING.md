@@ -57,13 +57,14 @@
 - [ ] 石垣市・宮古島市・札幌市・函館市のconfirmed heroは各 `hero-v1.webp` を参照し、旧 `hero.svg` を参照していない
 - [ ] 長崎市・広島市・廿日市市（宮島）・高山市のconfirmed heroは各 `hero-v1.webp` を参照し、旧 `hero.svg` を参照していない
 - [ ] 尾道市・倉敷市・松江市・由布市（湯布院）のconfirmed heroは各 `hero-v1.webp` を参照し、旧 `hero.svg` を参照していない
-- [ ] 松山市（道後温泉）・神戸市（有馬温泉）・豊岡市（城崎温泉）・尾花沢市（銀山温泉）のconfirmed heroは各 `hero-v1.webp` を参照し、旧 `hero.svg` を参照していない
+- [ ] 松山市（道後温泉）・豊岡市（城崎温泉）・尾花沢市（銀山温泉）のconfirmed heroは各 `hero-v1.webp` を参照し、旧 `hero.svg` を参照していない
 - [ ] 奈良市・日光市・伊勢市・横浜市のconfirmed heroは各 `hero-v1.webp` を参照し、旧ローカル候補画像や旧 `hero.svg` を参照していない
 - [ ] 宇都宮市・会津若松市・白川村・富良野市のconfirmed heroは各 `hero-v1.webp` を参照し、旧ローカル候補画像や旧 `hero.svg` を参照していない
 - [ ] 那須町・奥多摩町・指宿市・鹿児島市のconfirmed heroは各 `hero-v1.webp` を参照し、旧ローカル候補画像や旧 `hero.svg` を参照していない
 - [ ] 軽井沢町・上田市・松本市・諏訪市・水戸市・大洗町・日立市・土浦市のconfirmed heroは各 `hero-v1.webp` を参照し、旧ローカル候補画像や旧 `hero.svg` を参照していない
 - [ ] 鳥取市・出雲市・高松市・高知市・熊本市・阿蘇市・宮崎市・日南市のconfirmed heroは各 `hero-v1.webp` を参照し、旧ローカル候補画像や旧 `hero.svg` を参照していない
 - [ ] 青森市・弘前市・盛岡市・秋田市・山形市・米沢市・福島市・渋川市（伊香保温泉）のconfirmed heroは各 `hero-v1.webp` を参照し、旧ローカル候補画像や旧 `hero.svg` を参照していない
+- [ ] 大阪市・神戸市・姫路市・和歌山市・岐阜市・名古屋市・福井市・敦賀市のconfirmed heroは各 `hero-v1.webp` を参照し、旧ローカル候補画像や旧 `hero.svg` を参照していない
 - [ ] confirmed hero画像ファイルはGit管理に入っており、Vercel配信後もPC・スマホの両方で表示される
 - [ ] 一般結果画面に `GERO HERO DEBUG` などの一時デバッグ表示や直書きhero画像が残っていない
 - [ ] 第2弾SVG内に旅先名などの大きな表示文字がなく、現地写真と誤認する文言が出ていない
