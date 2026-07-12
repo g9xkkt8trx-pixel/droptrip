@@ -1197,6 +1197,126 @@ const TSURUGA_CONFIRMED_HERO = {
   rejectedReason: '',
 }
 
+const CHIBA_CONFIRMED_HERO = {
+  src: '/images/destinations/chiba/hero-v1.webp',
+  alt: '千葉の海辺と都市景観をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '海辺・都市景観・ベイエリア・公園・港町',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-12',
+  rejectedReason: '',
+}
+
+const TATEYAMA_CONFIRMED_HERO = {
+  src: '/images/destinations/tateyama/hero-v1.webp',
+  alt: '館山の海岸と南房総の風景をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '海岸・南房総・青い海・南国感・リゾート',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-12',
+  rejectedReason: '',
+}
+
+const CHOSHI_CONFIRMED_HERO = {
+  src: '/images/destinations/choshi/hero-v1.webp',
+  alt: '銚子の灯台と太平洋の夕景をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '犬吠埼・灯台・太平洋・海岸・夕景',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-12',
+  rejectedReason: '',
+}
+
+const NARITA_CONFIRMED_HERO = {
+  src: '/images/destinations/narita/hero-v1.webp',
+  alt: '成田山新勝寺と参道の雰囲気をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '成田山新勝寺・参道・寺社・歴史散策',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-12',
+  rejectedReason: '',
+}
+
+const SHIZUOKA_CONFIRMED_HERO = {
+  src: '/images/destinations/shizuoka/hero-v1.webp',
+  alt: '静岡の街並みと富士山をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '富士山・市街地・緑・駿河湾方面の景色',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-12',
+  rejectedReason: '',
+}
+
+const HAMAMATSU_CONFIRMED_HERO = {
+  src: '/images/destinations/hamamatsu/hero-v1.webp',
+  alt: '浜松の湖畔と鳥居のある水辺をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '浜名湖・湖畔・鳥居・水辺・自然散策',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-12',
+  rejectedReason: '',
+}
+
+const IZU_CONFIRMED_HERO = {
+  src: '/images/destinations/izu/hero-v1.webp',
+  alt: '伊豆の温泉街と渓流、山あいの景色をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '温泉街・渓流・山あい・旅館街・夕景',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-12',
+  rejectedReason: '',
+}
+
+const NUMAZU_CONFIRMED_HERO = {
+  src: '/images/destinations/numazu/hero-v1.webp',
+  alt: '沼津港と富士山、海辺の景色をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '沼津港・富士山・海辺・港町・駿河湾',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-12',
+  rejectedReason: '',
+}
+
 // 旅先ごとの固定イメージ画像を追加したときは、この対応表へ登録する。
 // まず destination.id を優先し、既存データとの互換性のため city キーも残す。
 const DESTINATION_LOCAL_IMAGES = {
@@ -1272,6 +1392,14 @@ const DESTINATION_LOCAL_IMAGES = {
   },
   '神奈川県-横浜市': { hero: YOKOHAMA_CONFIRMED_HERO },
   横浜市: { hero: YOKOHAMA_CONFIRMED_HERO },
+  '千葉県-千葉市': { hero: CHIBA_CONFIRMED_HERO },
+  千葉市: { hero: CHIBA_CONFIRMED_HERO },
+  '千葉県-館山市': { hero: TATEYAMA_CONFIRMED_HERO },
+  館山市: { hero: TATEYAMA_CONFIRMED_HERO },
+  '千葉県-銚子市': { hero: CHOSHI_CONFIRMED_HERO },
+  銚子市: { hero: CHOSHI_CONFIRMED_HERO },
+  '千葉県-成田市': { hero: NARITA_CONFIRMED_HERO },
+  成田市: { hero: NARITA_CONFIRMED_HERO },
   松島町: { hero: '/images/destinations/matsushima-hero.jpg' },
   '宮城県-仙台市': {
     hero: SENDAI_CONFIRMED_HERO,
@@ -1321,6 +1449,14 @@ const DESTINATION_LOCAL_IMAGES = {
   福井市: { hero: FUKUI_CONFIRMED_HERO },
   '福井県-敦賀市': { hero: TSURUGA_CONFIRMED_HERO },
   敦賀市: { hero: TSURUGA_CONFIRMED_HERO },
+  '静岡県-静岡市': { hero: SHIZUOKA_CONFIRMED_HERO },
+  静岡市: { hero: SHIZUOKA_CONFIRMED_HERO },
+  '静岡県-浜松市': { hero: HAMAMATSU_CONFIRMED_HERO },
+  浜松市: { hero: HAMAMATSU_CONFIRMED_HERO },
+  '静岡県-伊豆市': { hero: IZU_CONFIRMED_HERO },
+  伊豆市: { hero: IZU_CONFIRMED_HERO },
+  '静岡県-沼津市': { hero: NUMAZU_CONFIRMED_HERO },
+  沼津市: { hero: NUMAZU_CONFIRMED_HERO },
   '長野県-軽井沢町': { hero: KARUIZAWA_CONFIRMED_HERO },
   軽井沢町: { hero: KARUIZAWA_CONFIRMED_HERO },
   '長野県-松本市': { hero: MATSUMOTO_CONFIRMED_HERO },
@@ -1427,6 +1563,10 @@ const DESTINATION_IMAGE_ID_ALIASES = {
   '栃木県-日光市': '日光市',
   '神奈川県-鎌倉市': '鎌倉市',
   '神奈川県-横浜市': '横浜市',
+  '千葉県-千葉市': '千葉市',
+  '千葉県-館山市': '館山市',
+  '千葉県-銚子市': '銚子市',
+  '千葉県-成田市': '成田市',
   '宮城県-松島町': '松島町',
   '宮城県-仙台市': '仙台市',
   '福岡県-福岡市': '福岡市',
@@ -1446,6 +1586,10 @@ const DESTINATION_IMAGE_ID_ALIASES = {
   '愛知県-名古屋市': '名古屋市',
   '福井県-福井市': '福井市',
   '福井県-敦賀市': '敦賀市',
+  '静岡県-静岡市': '静岡市',
+  '静岡県-浜松市': '浜松市',
+  '静岡県-伊豆市': '伊豆市',
+  '静岡県-沼津市': '沼津市',
   '長野県-軽井沢町': '軽井沢町',
   '長野県-松本市': '松本市',
   '北海道-富良野市': '富良野市',
