@@ -54,18 +54,20 @@ rejected 条件:
 ## 現在の整備状況
 
 - 現在の登録旅先: 120件
-- 固定hero登録あり: 85件
-- 一般画面に表示するconfirmed hero: 81件
+- 固定hero登録あり: 93件
+- 一般画面に表示するconfirmed hero: 89件
 - needs_review hero: 3件
 - rejected hero: 1件
-- missing hero: 43件
-- 先行confirmed登録: 宇都宮市・諏訪市・日立市・土浦市・出雲市・阿蘇市・日南市・米沢市・福島市・渋川市・姫路市・岐阜市・千葉市・銚子市・成田市・沼津市 16件（現行の抽選用旅先データでは未登録。追加時に都道府県-市区町村キーで表示可能）
+- missing hero: 35件
+- 先行confirmed登録: 宇都宮市・諏訪市・日立市・土浦市・出雲市・阿蘇市・日南市・米沢市・福島市・渋川市・姫路市・岐阜市・千葉市・銚子市・成田市・沼津市・山中湖村・佐野市・佐渡市・小布施町 20件（現行の抽選用旅先データでは未登録。追加時に都道府県-市区町村キーで表示可能）
 - 第1弾SVG作成済み: 16件（一般画面では非表示 / 佐野市先行作成1件を含む）
 - 第2弾SVG作成済み: 16件（一般画面では非表示）
 
 ## confirmed hero表示対象
 
 下呂市（`/images/destinations/gero-onsen/hero-v2.webp`）、京都市（`/images/destinations/kyoto/hero-v1.webp`）、箱根町（`/images/destinations/hakone/hero-v1.webp`）、小樽市（`/images/destinations/otaru/hero-v1.webp`）、草津町（`/images/destinations/kusatsu/hero-v1.webp`）、金沢市（`/images/destinations/kanazawa/hero-v1.webp`）、鎌倉市（`/images/destinations/kamakura/hero-v2.webp`）、熱海市（`/images/destinations/atami/hero-v2.webp`）、仙台市（`/images/destinations/sendai/hero-v2.webp`）、福岡市（`/images/destinations/fukuoka/hero-v2.webp`）、鳴門市（`/images/destinations/naruto/hero-v1.webp`）、別府市（`/images/destinations/beppu/hero-v1.webp`）、甲府市（`/images/destinations/kofu/hero-v1.webp`）、川越市（`/images/destinations/kawagoe/hero-v1.webp`）、石垣市（`/images/destinations/ishigaki/hero-v1.webp`）、宮古島市（`/images/destinations/miyakojima/hero-v1.webp`）、札幌市（`/images/destinations/sapporo/hero-v1.webp`）、函館市（`/images/destinations/hakodate/hero-v1.webp`）、長崎市（`/images/destinations/nagasaki/hero-v1.webp`）、広島市（`/images/destinations/hiroshima/hero-v1.webp`）、廿日市市（宮島: `/images/destinations/miyajima/hero-v1.webp`）、高山市（`/images/destinations/takayama/hero-v1.webp`）、尾道市（`/images/destinations/onomichi/hero-v1.webp`）、倉敷市（`/images/destinations/kurashiki/hero-v1.webp`）、松江市（`/images/destinations/matsue/hero-v1.webp`）、由布市（湯布院: `/images/destinations/yufuin/hero-v1.webp`）、松山市（道後温泉: `/images/destinations/dogo-onsen/hero-v1.webp`）、神戸市（`/images/destinations/kobe/hero-v1.webp`）、豊岡市（城崎温泉: `/images/destinations/kinosaki-onsen/hero-v1.webp`）、尾花沢市（銀山温泉: `/images/destinations/ginzan-onsen/hero-v1.webp`）、奈良市（`/images/destinations/nara/hero-v1.webp`）、日光市（`/images/destinations/nikko/hero-v1.webp`）、伊勢市（`/images/destinations/ise/hero-v1.webp`）、横浜市（`/images/destinations/yokohama/hero-v1.webp`）、宇都宮市（`/images/destinations/utsunomiya/hero-v1.webp`）、会津若松市（`/images/destinations/aizuwakamatsu/hero-v1.webp`）、白川村（`/images/destinations/shirakawa/hero-v1.webp`）、富良野市（`/images/destinations/furano/hero-v1.webp`）、那須町（`/images/destinations/nasu/hero-v1.webp`）、奥多摩町（`/images/destinations/okutama/hero-v1.webp`）、指宿市（`/images/destinations/ibusuki/hero-v1.webp`）、鹿児島市（`/images/destinations/kagoshima/hero-v1.webp`）、軽井沢町（`/images/destinations/karuizawa/hero-v1.webp`）、上田市（`/images/destinations/ueda/hero-v1.webp`）、松本市（`/images/destinations/matsumoto/hero-v1.webp`）、諏訪市（`/images/destinations/suwa/hero-v1.webp`）、水戸市（`/images/destinations/mito/hero-v1.webp`）、大洗町（`/images/destinations/oarai/hero-v1.webp`）、日立市（`/images/destinations/hitachi/hero-v1.webp`）、土浦市（`/images/destinations/tsuchiura/hero-v1.webp`）、鳥取市（`/images/destinations/tottori/hero-v1.webp`）、出雲市（`/images/destinations/izumo/hero-v1.webp`）、高松市（`/images/destinations/takamatsu/hero-v1.webp`）、高知市（`/images/destinations/kochi/hero-v1.webp`）、熊本市（`/images/destinations/kumamoto/hero-v1.webp`）、阿蘇市（`/images/destinations/aso/hero-v1.webp`）、宮崎市（`/images/destinations/miyazaki/hero-v1.webp`）、日南市（`/images/destinations/nichinan/hero-v1.webp`）、青森市（`/images/destinations/aomori/hero-v1.webp`）、弘前市（`/images/destinations/hirosaki/hero-v1.webp`）、盛岡市（`/images/destinations/morioka/hero-v1.webp`）、秋田市（`/images/destinations/akita/hero-v1.webp`）、山形市（`/images/destinations/yamagata/hero-v1.webp`）、米沢市（`/images/destinations/yonezawa/hero-v1.webp`）、福島市（`/images/destinations/fukushima/hero-v1.webp`）、渋川市（伊香保温泉: `/images/destinations/ikaho-onsen/hero-v1.webp`）、大阪市（`/images/destinations/osaka/hero-v1.webp`）、姫路市（`/images/destinations/himeji/hero-v1.webp`）、和歌山市（`/images/destinations/wakayama/hero-v1.webp`）、岐阜市（`/images/destinations/gifu/hero-v1.webp`）、名古屋市（`/images/destinations/nagoya/hero-v1.webp`）、福井市（`/images/destinations/fukui/hero-v1.webp`）、敦賀市（`/images/destinations/tsuruga/hero-v1.webp`）、千葉市（`/images/destinations/chiba/hero-v1.webp`）、館山市（`/images/destinations/tateyama/hero-v1.webp`）、銚子市（`/images/destinations/choshi/hero-v1.webp`）、成田市（`/images/destinations/narita/hero-v1.webp`）、静岡市（`/images/destinations/shizuoka/hero-v1.webp`）、浜松市（`/images/destinations/hamamatsu/hero-v1.webp`）、伊豆市（`/images/destinations/izu/hero-v1.webp`）、沼津市（`/images/destinations/numazu/hero-v1.webp`）。簡易SVGや画像内文字入りheroは一般画面に表示しません。confirmed画像はGit管理に入れてVercelへ反映し、原因切り分け用の直書き表示ではなく `destinationImages` の正式登録から表示します。
+
+富士河口湖町（`/images/destinations/fujikawaguchiko/hero-v1.webp`）、山中湖村（`/images/destinations/yamanakako/hero-v1.webp`）、小田原市（`/images/destinations/odawara/hero-v1.webp`）、佐野市（`/images/destinations/sano/hero-v1.webp`）、新潟市（`/images/destinations/niigata/hero-v1.webp`）、佐渡市（`/images/destinations/sado/hero-v1.webp`）、長野市（`/images/destinations/nagano/hero-v1.webp`）、小布施町（`/images/destinations/obuse/hero-v1.webp`）も文字なし高品質AI生成hero画像としてconfirmed登録します。佐野市の旧 `hero.svg` は一般画面では使いません。
 
 鎌倉市・熱海市・仙台市・福岡市の `hero-v1.webp` は画像内に説明文が入っているため `rejected` とし、一般画面では非表示にします。文字なしの `hero-v2.webp` をユーザー確認済みのconfirmed heroとして登録します。
 
@@ -122,7 +124,8 @@ rejected 条件:
 | 岐阜県-高山市 | 高山市 | 岐阜県 | 古い町並み・飛騨高山・水路・山並み | confirmed | /images/destinations/takayama/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 旧hero.svgは簡易SVGのため未使用 / rejected扱い。一般画面では使わない。 | 古い町並み、飛騨高山、水路、山並みを含む高山らしいビジュアル。現地写真ではなく上質な旅行イメージビジュアル。 |
 | 岐阜県-岐阜市 | 岐阜市 | 岐阜県 | 金華山・岐阜城・長良川・自然と街並み | confirmed | /images/destinations/gifu/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。現行の抽選用旅先データでは未登録の先行画像。 | 2026-07-12 | 一般画面表示OK。現地写真と誤認させない。 |
 | 長野県-松本市 | 松本市 | 長野県 | 松本城・北アルプス・城下町・水辺 | confirmed | /images/destinations/matsumoto/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 旧hero.svgがある場合も一般画面では使わない。 | 松本城、北アルプス、城下町、水辺を含む松本らしいビジュアル。現地写真ではなく上質な旅行イメージビジュアル。 |
-| 山梨県-富士河口湖町 | 富士河口湖町 | 山梨県 | 富士山と湖の絶景に包まれる・温泉・山 | missing | /images/destinations/destination-017/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | 富士山と湖の絶景に包まれる・温泉・山をもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |
+| 山梨県-富士河口湖町 | 富士河口湖町 | 山梨県 | 河口湖・富士山・紅葉・湖畔・自然景観 | confirmed | /images/destinations/fujikawaguchiko/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 2026-07-12 | 一般画面表示OK。現地写真と誤認させない。 |
+| 山梨県-山中湖村 | 山中湖村 | 山梨県 | 山中湖・富士山・湖畔・遊歩道・自然散策 | confirmed | /images/destinations/yamanakako/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。現行の抽選用旅先データでは未登録の先行画像。 | 2026-07-12 | 一般画面表示OK。現地写真と誤認させない。 |
 | 静岡県-伊豆市 | 伊豆市 | 静岡県 | 温泉街・渓流・山あい・旅館街・夕景 | confirmed | /images/destinations/izu/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 2026-07-12 | 一般画面表示OK。現地写真と誤認させない。 |
 | 京都府-京都市 | 京都市 | 京都府 | 寺社・石畳・町家・夕景・京都らしい街並み | confirmed | /images/destinations/kyoto/hero-v1.webp | - | ai_generated | ユーザー確認済み。高品質AI生成hero画像としてconfirmed登録。 | 旧hero.svgは簡易SVGのため未使用 / rejected扱い。一般画面では使わない。 | 寺社、石畳、町家、やわらかい夕景を含む京都らしい街並み。現地写真ではなく上質な旅行イメージビジュアル。 |
 | 大阪府-大阪市 | 大阪市 | 大阪府 | 都市夜景・水辺・繁華街・大阪らしい活気 | confirmed | /images/destinations/osaka/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 2026-07-12 | 一般画面表示OK。現地写真と誤認させない。 |
@@ -165,7 +168,8 @@ rejected 条件:
 | 茨城県-大洗町 | 大洗町 | 茨城県 | 海辺・鳥居・磯・港町・太平洋 | confirmed | /images/destinations/oarai/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 旧hero.svgがある場合も一般画面では使わない。 | 海辺、鳥居、磯、港町、太平洋を含む大洗らしいビジュアル。現地写真ではなく上質な旅行イメージビジュアル。 |
 | 茨城県-日立市 | 日立市 | 茨城県 | 海岸・灯台・太平洋・崖上の景色 | confirmed | /images/destinations/hitachi/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。現行の抽選用旅先データでは未登録の先行画像。 | 旧hero.svgがある場合も一般画面では使わない。 | 海岸、灯台、太平洋、崖上の景色を含む日立らしいビジュアル。現地写真ではなく上質な旅行イメージビジュアル。 |
 | 茨城県-土浦市 | 土浦市 | 茨城県 | 霞ヶ浦・湖畔・夕景・橋・水辺の街 | confirmed | /images/destinations/tsuchiura/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。現行の抽選用旅先データでは未登録の先行画像。 | 旧hero.svgがある場合も一般画面では使わない。 | 霞ヶ浦、湖畔、夕景、橋、水辺の街を含む土浦らしいビジュアル。現地写真ではなく上質な旅行イメージビジュアル。 |
-| 新潟県-新潟市 | 新潟市 | 新潟県 | 駅から港エリアへの移動時間を加算・春,夏,秋・海・グルメ | missing | /images/destinations/destination-057/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | 駅から港エリアへの移動時間を加算・春,夏,秋・海・グルメをもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |
+| 新潟県-新潟市 | 新潟市 | 新潟県 | 信濃川・水辺・都市景観・港町・日本海 | confirmed | /images/destinations/niigata/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 2026-07-12 | 一般画面表示OK。現地写真と誤認させない。 |
+| 新潟県-佐渡市 | 佐渡市 | 新潟県 | 日本海・海岸・島旅・断崖・自然景観 | confirmed | /images/destinations/sado/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。現行の抽選用旅先データでは未登録の先行画像。 | 2026-07-12 | 一般画面表示OK。現地写真と誤認させない。 |
 | 新潟県-湯沢町 | 湯沢町 | 新潟県 | 駅周辺・夏,秋,冬・温泉・山 | missing | /images/destinations/destination-058/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | 駅周辺・夏,秋,冬・温泉・山をもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |
 | 富山県-富山市 | 富山市 | 富山県 | 駅から中心市街地への移動時間を加算・春,秋,冬・山・グルメ | missing | /images/destinations/destination-059/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | 駅から中心市街地への移動時間を加算・春,秋,冬・山・グルメをもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |
 | 富山県-立山町 | 立山町 | 富山県 | 山岳観光の乗り換え時間を加算・夏,秋・山・温泉 | missing | /images/destinations/destination-060/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | 山岳観光の乗り換え時間を加算・夏,秋・山・温泉をもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |
@@ -183,7 +187,8 @@ rejected 条件:
 | 徳島県-三好市 | 三好市 | 徳島県 | 山間部のため駅からバス・車移動が必要・夏,秋・山・温泉 | missing | /images/destinations/destination-072/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | 山間部のため駅からバス・車移動が必要・夏,秋・山・温泉をもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |
 | 佐賀県-佐賀市 | 佐賀市 | 佐賀県 | 駅から中心市街地への移動時間を加算・春,秋・グルメ・カップル向け | missing | /images/destinations/destination-073/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | 駅から中心市街地への移動時間を加算・春,秋・グルメ・カップル向けをもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |
 | 佐賀県-嬉野市 | 嬉野市 | 佐賀県 | 駅から温泉街への移動時間を加算・秋,冬・温泉・グルメ | missing | /images/destinations/destination-074/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | 駅から温泉街への移動時間を加算・秋,冬・温泉・グルメをもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |
-| 長野県-長野市 | 長野市 | 長野県 | 駅から善光寺への移動時間を加算・春,秋,冬・山・グルメ | missing | /images/destinations/destination-075/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | 駅から善光寺への移動時間を加算・春,秋,冬・山・グルメをもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |
+| 長野県-長野市 | 長野市 | 長野県 | 善光寺・門前町・山並み・歴史散策・信州の街 | confirmed | /images/destinations/nagano/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 2026-07-12 | 一般画面表示OK。現地写真と誤認させない。 |
+| 長野県-小布施町 | 小布施町 | 長野県 | 栗の町・古い町並み・水路・山里・散策 | confirmed | /images/destinations/obuse/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。現行の抽選用旅先データでは未登録の先行画像。 | 2026-07-12 | 一般画面表示OK。現地写真と誤認させない。 |
 | 長野県-軽井沢町 | 軽井沢町 | 長野県 | 森・高原・別荘地・清流・避暑地 | confirmed | /images/destinations/karuizawa/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 旧karuizawa-hero.jpgや旧hero.svgは未使用候補。一般画面では使わない。 | 森、高原、別荘地、清流、避暑地を含む軽井沢らしいビジュアル。現地写真ではなく上質な旅行イメージビジュアル。 |
 | 静岡県-静岡市 | 静岡市 | 静岡県 | 富士山・市街地・緑・駿河湾方面の景色 | confirmed | /images/destinations/shizuoka/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 2026-07-12 | 一般画面表示OK。現地写真と誤認させない。 |
 | 静岡県-浜松市 | 浜松市 | 静岡県 | 浜名湖・湖畔・鳥居・水辺・自然散策 | confirmed | /images/destinations/hamamatsu/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 2026-07-12 | 一般画面表示OK。現地写真と誤認させない。 |
@@ -195,7 +200,7 @@ rejected 条件:
 | 北海道-富良野市 | 富良野市 | 北海道 | ラベンダー畑・花畑・丘陵・北海道らしい自然 | confirmed | /images/destinations/furano/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 旧furano-hero.jpgや旧hero.svgは未使用候補。一般画面では使わない。 | ラベンダー畑、花畑、丘陵、北海道らしい自然を含む富良野らしいビジュアル。現地写真ではなく上質な旅行イメージビジュアル。 |
 | 北海道-登別市 | 登別市 | 北海道 | 最寄り駅から温泉街への移動時間を加算・秋,冬・温泉・山 | missing | /images/destinations/destination-084/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | 最寄り駅から温泉街への移動時間を加算・秋,冬・温泉・山をもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |
 | 東京都-渋谷区 | 渋谷区 | 東京都 | 駅周辺・春,秋,冬・グルメ・カップル向け | missing | /images/destinations/destination-085/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | 駅周辺・春,秋,冬・グルメ・カップル向けをもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |
-| 神奈川県-小田原市 | 小田原市 | 神奈川県 | 駅から城址公園への移動時間を加算・春,夏,秋・海・グルメ | missing | /images/destinations/destination-086/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | 駅から城址公園への移動時間を加算・春,夏,秋・海・グルメをもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |
+| 神奈川県-小田原市 | 小田原市 | 神奈川県 | 小田原城・城下町・桜・歴史散策・海の近い街 | confirmed | /images/destinations/odawara/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 2026-07-12 | 一般画面表示OK。現地写真と誤認させない。 |
 | 千葉県-千葉市 | 千葉市 | 千葉県 | 海辺・都市景観・ベイエリア・公園・港町 | confirmed | /images/destinations/chiba/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。現行の抽選用旅先データでは未登録の先行画像。 | 2026-07-12 | 一般画面表示OK。現地写真と誤認させない。 |
 | 千葉県-銚子市 | 銚子市 | 千葉県 | 犬吠埼・灯台・太平洋・海岸・夕景 | confirmed | /images/destinations/choshi/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。現行の抽選用旅先データでは未登録の先行画像。 | 2026-07-12 | 一般画面表示OK。現地写真と誤認させない。 |
 | 千葉県-成田市 | 成田市 | 千葉県 | 成田山新勝寺・参道・寺社・歴史散策 | confirmed | /images/destinations/narita/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。現行の抽選用旅先データでは未登録の先行画像。 | 2026-07-12 | 一般画面表示OK。現地写真と誤認させない。 |
@@ -233,7 +238,7 @@ rejected 条件:
 | 長崎県-島原市 | 島原市 | 長崎県 | 駅から湧水エリアへ歩きやすい・春,秋,冬・温泉・グルメ | missing | /images/destinations/destination-118/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | 駅から湧水エリアへ歩きやすい・春,秋,冬・温泉・グルメをもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |
 | 宮崎県-日南市 | 日南市 | 宮崎県 | 日南海岸・太平洋・南国植物・海沿いドライブ | confirmed | /images/destinations/nichinan/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。現行の抽選用旅先データでは未登録の先行画像。 | 旧hero.svgがある場合も一般画面では使わない。 | 日南海岸、太平洋、南国植物、海沿いドライブを含む日南らしいビジュアル。現地写真ではなく上質な旅行イメージビジュアル。 |
 | 沖縄県-本部町 | 本部町 | 沖縄県 | 空港から車・バス移動を想定・春,夏,秋・海・グルメ | missing | /images/destinations/destination-120/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | 空港から車・バス移動を想定・春,夏,秋・海・グルメをもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |
-| 栃木県-佐野市 | 佐野市 | 栃木県 | 佐野ラーメン・厄除け大師・日帰り街歩き | rejected | /images/destinations/sano/hero.svg | - | ai_generated | 作成済みだが一般画面非表示。高品質画像で再作成する。 | 簡易SVGのため一般画面非表示。旅先固有要素と旅行アプリheroとしての魅力を高品質画像で再作成する。 | 佐野ラーメン・厄除け大師・日帰り街歩きをもとに、汎用背景に見えない高品質hero画像へ作り直す。 |
+| 栃木県-佐野市 | 佐野市 | 栃木県 | 街歩き・水辺・歴史ある街並み・佐野らしい散策 | confirmed | /images/destinations/sano/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。現行の抽選用旅先データでは未登録の先行画像。 | 旧hero.svgは簡易SVGのため未使用 / rejected扱い。一般画面では使わない。 | 一般画面表示OK。現地写真と誤認させない。 |
 
 ## グルメ・スポット・映え画像の補足方針
 

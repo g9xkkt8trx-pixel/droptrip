@@ -16,6 +16,7 @@ DROPTRIP のβ版リリース履歴を管理するためのメモです。
 - 箱根町・小樽市・草津町・金沢市の `hero-v1.webp` を高品質AI生成hero画像として `confirmed` 登録し、旧 `hero.svg` を一般画面で使わないようにしました。
 - 鎌倉市・熱海市・仙台市・福岡市の文字なし `hero-v2.webp` を高品質AI生成hero画像として `confirmed` 登録し、文字入りの旧 `hero-v1.webp` と旧 `hero.svg` は一般画面で使わないようにしました。
 - 鳴門市・別府市・甲府市・川越市の文字なし `hero-v1.webp` を高品質AI生成hero画像として `confirmed` 登録し、旧 `hero.svg` は一般画面で使わないようにしました。
+- 富士河口湖町・山中湖村・小田原市・佐野市・新潟市・佐渡市・長野市・小布施町の文字なし `hero-v1.webp` を高品質AI生成hero画像として `confirmed` 登録しました。佐野市の旧 `hero.svg` は一般画面では使いません。
 - 石垣市・宮古島市・札幌市・函館市の文字なし `hero-v1.webp` を高品質AI生成hero画像として `confirmed` 登録し、旧 `hero.svg` は一般画面で使わないようにしました。
 - 長崎市・広島市・宮島（廿日市市）・高山市の文字なし `hero-v1.webp` を高品質AI生成hero画像として `confirmed` 登録し、旧 `hero.svg` は一般画面で使わないようにしました。
 - 尾道市・倉敷市・松江市・由布市（湯布院）の文字なし `hero-v1.webp` を高品質AI生成hero画像として `confirmed` 登録し、旧 `hero.svg` は一般画面で使わないようにしました。
