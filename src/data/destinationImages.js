@@ -1557,6 +1557,126 @@ const KOSHIGAYA_CONFIRMED_HERO = {
   rejectedReason: '',
 }
 
+const TAITO_CONFIRMED_HERO = {
+  src: '/images/destinations/taito/hero-v1.webp',
+  alt: '浅草寺周辺と下町の雰囲気をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '浅草・浅草寺・下町・桜・歴史散策',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-13',
+  rejectedReason: '',
+}
+
+const SUMIDA_CONFIRMED_HERO = {
+  src: '/images/destinations/sumida/hero-v1.webp',
+  alt: '東京スカイツリーと隅田川の水辺をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '東京スカイツリー・隅田川・水辺・都市景観',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-13',
+  rejectedReason: '',
+}
+
+const CHIYODA_CONFIRMED_HERO = {
+  src: '/images/destinations/chiyoda/hero-v1.webp',
+  alt: '東京駅周辺と都心の街並みをイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '東京駅・丸の内・皇居周辺・都心散策',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-13',
+  rejectedReason: '',
+}
+
+const SHINJUKU_CONFIRMED_HERO = {
+  src: '/images/destinations/shinjuku/hero-v1.webp',
+  alt: '新宿の高層ビル群と都市景観をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '高層ビル・都心夜景・新宿御苑周辺・都市散策',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-13',
+  rejectedReason: '',
+}
+
+const SHIBUYA_CONFIRMED_HERO = {
+  src: '/images/destinations/shibuya/hero-v1.webp',
+  alt: '渋谷の街並みと都市のにぎわいをイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '渋谷・スクランブル交差点・都市夜景・若者文化',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-13',
+  rejectedReason: '',
+}
+
+const KOTO_CONFIRMED_HERO = {
+  src: '/images/destinations/koto/hero-v1.webp',
+  alt: '江東区の湾岸エリアと水辺の夕景をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '湾岸・豊洲・お台場方面・橋・水辺・夕景',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-13',
+  rejectedReason: '',
+}
+
+const URAYASU_CONFIRMED_HERO = {
+  src: '/images/destinations/urayasu/hero-v1.webp',
+  alt: '浦安のベイエリアと水辺のリゾート感をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: 'ベイエリア・舞浜周辺・水辺・リゾート感・夕景',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-13',
+  rejectedReason: '',
+}
+
+const FUJISAWA_CONFIRMED_HERO = {
+  src: '/images/destinations/fujisawa/hero-v1.webp',
+  alt: '藤沢の海辺と江の島方面の景色をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '江の島・湘南・海辺・砂浜・海沿い散策',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-13',
+  rejectedReason: '',
+}
+
 // 旅先ごとの固定イメージ画像を追加したときは、この対応表へ登録する。
 // まず destination.id を優先し、既存データとの互換性のため city キーも残す。
 const DESTINATION_LOCAL_IMAGES = {
@@ -1640,6 +1760,22 @@ const DESTINATION_LOCAL_IMAGES = {
   銚子市: { hero: CHOSHI_CONFIRMED_HERO },
   '千葉県-成田市': { hero: NARITA_CONFIRMED_HERO },
   成田市: { hero: NARITA_CONFIRMED_HERO },
+  '東京都-台東区': { hero: TAITO_CONFIRMED_HERO },
+  台東区: { hero: TAITO_CONFIRMED_HERO },
+  '東京都-墨田区': { hero: SUMIDA_CONFIRMED_HERO },
+  墨田区: { hero: SUMIDA_CONFIRMED_HERO },
+  '東京都-千代田区': { hero: CHIYODA_CONFIRMED_HERO },
+  千代田区: { hero: CHIYODA_CONFIRMED_HERO },
+  '東京都-新宿区': { hero: SHINJUKU_CONFIRMED_HERO },
+  新宿区: { hero: SHINJUKU_CONFIRMED_HERO },
+  '東京都-渋谷区': { hero: SHIBUYA_CONFIRMED_HERO },
+  渋谷区: { hero: SHIBUYA_CONFIRMED_HERO },
+  '東京都-江東区': { hero: KOTO_CONFIRMED_HERO },
+  江東区: { hero: KOTO_CONFIRMED_HERO },
+  '千葉県-浦安市': { hero: URAYASU_CONFIRMED_HERO },
+  浦安市: { hero: URAYASU_CONFIRMED_HERO },
+  '神奈川県-藤沢市': { hero: FUJISAWA_CONFIRMED_HERO },
+  藤沢市: { hero: FUJISAWA_CONFIRMED_HERO },
   松島町: { hero: '/images/destinations/matsushima-hero.jpg' },
   '宮城県-仙台市': {
     hero: SENDAI_CONFIRMED_HERO,
@@ -1838,6 +1974,14 @@ const DESTINATION_IMAGE_ID_ALIASES = {
   '千葉県-館山市': '館山市',
   '千葉県-銚子市': '銚子市',
   '千葉県-成田市': '成田市',
+  '東京都-台東区': '台東区',
+  '東京都-墨田区': '墨田区',
+  '東京都-千代田区': '千代田区',
+  '東京都-新宿区': '新宿区',
+  '東京都-渋谷区': '渋谷区',
+  '東京都-江東区': '江東区',
+  '千葉県-浦安市': '浦安市',
+  '神奈川県-藤沢市': '藤沢市',
   '宮城県-松島町': '松島町',
   '宮城県-仙台市': '仙台市',
   '福岡県-福岡市': '福岡市',

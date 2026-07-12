@@ -54,12 +54,12 @@ rejected 条件:
 ## 現在の整備状況
 
 - 現在の登録旅先: 120件
-- 固定hero登録あり: 101件
-- 一般画面に表示するconfirmed hero: 97件
+- 固定hero登録あり: 109件
+- 一般画面に表示するconfirmed hero: 105件
 - needs_review hero: 3件
 - rejected hero: 1件
-- missing hero: 27件
-- 先行confirmed登録: 宇都宮市・諏訪市・日立市・土浦市・出雲市・阿蘇市・日南市・米沢市・福島市・渋川市・姫路市・岐阜市・千葉市・銚子市・成田市・沼津市・山中湖村・佐野市・佐渡市・小布施町・三浦市・逗子市・葉山町・川口市・さいたま市・越谷市 26件（現行の抽選用旅先データでは未登録。追加時に都道府県-市区町村キーで表示可能）
+- missing hero: 19件
+- 先行confirmed登録: 宇都宮市・諏訪市・日立市・土浦市・出雲市・阿蘇市・日南市・米沢市・福島市・渋川市・姫路市・岐阜市・千葉市・銚子市・成田市・沼津市・山中湖村・佐野市・佐渡市・小布施町・三浦市・逗子市・葉山町・川口市・さいたま市・越谷市・墨田区・千代田区・新宿区・江東区・藤沢市 31件（現行の抽選用旅先データでは未登録。追加時に都道府県-市区町村キーで表示可能）
 - 第1弾SVG作成済み: 16件（一般画面では非表示 / 佐野市先行作成1件を含む）
 - 第2弾SVG作成済み: 16件（一般画面では非表示）
 
@@ -70,6 +70,8 @@ rejected 条件:
 富士河口湖町（`/images/destinations/fujikawaguchiko/hero-v1.webp`）、山中湖村（`/images/destinations/yamanakako/hero-v1.webp`）、小田原市（`/images/destinations/odawara/hero-v1.webp`）、佐野市（`/images/destinations/sano/hero-v1.webp`）、新潟市（`/images/destinations/niigata/hero-v1.webp`）、佐渡市（`/images/destinations/sado/hero-v1.webp`）、長野市（`/images/destinations/nagano/hero-v1.webp`）、小布施町（`/images/destinations/obuse/hero-v1.webp`）も文字なし高品質AI生成hero画像としてconfirmed登録します。佐野市の旧 `hero.svg` は一般画面では使いません。
 
 三島市（`/images/destinations/mishima/hero-v1.webp`）、三浦市（`/images/destinations/miura/hero-v1.webp`）、逗子市（`/images/destinations/zushi/hero-v1.webp`）、葉山町（`/images/destinations/hayama/hero-v1.webp`）、秩父市（`/images/destinations/chichibu/hero-v1.webp`）、川口市（`/images/destinations/kawaguchi/hero-v1.webp`）、さいたま市（`/images/destinations/saitama/hero-v1.webp`）、越谷市（`/images/destinations/koshigaya/hero-v1.webp`）も文字なし高品質AI生成hero画像としてconfirmed登録します。confirmed以外の古い候補画像や汎用fallbackは一般画面では使いません。
+
+台東区（`/images/destinations/taito/hero-v1.webp`）、墨田区（`/images/destinations/sumida/hero-v1.webp`）、千代田区（`/images/destinations/chiyoda/hero-v1.webp`）、新宿区（`/images/destinations/shinjuku/hero-v1.webp`）、渋谷区（`/images/destinations/shibuya/hero-v1.webp`）、江東区（`/images/destinations/koto/hero-v1.webp`）、浦安市（`/images/destinations/urayasu/hero-v1.webp`）、藤沢市（`/images/destinations/fujisawa/hero-v1.webp`）も文字なし高品質AI生成hero画像としてconfirmed登録します。一般画面では現地写真と誤認させる表現は使いません。
 
 鎌倉市・熱海市・仙台市・福岡市の `hero-v1.webp` は画像内に説明文が入っているため `rejected` とし、一般画面では非表示にします。文字なしの `hero-v2.webp` をユーザー確認済みのconfirmed heroとして登録します。
 
@@ -145,8 +147,12 @@ rejected 条件:
 | 北海道-札幌市 | 札幌市 | 北海道 | 大通公園・札幌テレビ塔・花壇・都市と自然 | confirmed | /images/destinations/sapporo/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 旧hero.svgは簡易SVGのため未使用 / rejected扱い。一般画面では使わない。 | 大通公園、札幌テレビ塔、花壇、都市と自然を含む札幌らしいビジュアル。現地写真ではなく上質な旅行イメージビジュアル。 |
 | 北海道-函館市 | 函館市 | 北海道 | 函館山夜景・港町・海辺・夕景 | confirmed | /images/destinations/hakodate/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 旧hero.svgは簡易SVGのため未使用 / rejected扱い。一般画面では使わない。 | 函館山夜景、港町、海辺、夕景を含む函館らしいビジュアル。現地写真ではなく上質な旅行イメージビジュアル。 |
 | 北海道-小樽市 | 小樽市 | 北海道 | 小樽運河・倉庫群・ガス灯・港町・夕景 | confirmed | /images/destinations/otaru/hero-v1.webp | - | ai_generated | ユーザー確認済み。高品質AI生成hero画像としてconfirmed登録。 | 旧hero.svgは簡易SVGのため未使用 / rejected扱い。一般画面では使わない。 | 小樽運河、倉庫群、ガス灯、港町、夕景を含む街歩きの雰囲気。現地写真ではなく上質な旅行イメージビジュアル。 |
-| 東京都-台東区 | 台東区 | 東京都 | 浅草の下町文化と上野の名所を巡る・グルメ・カップル向け | missing | /images/destinations/destination-034/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | 浅草の下町文化と上野の名所を巡る・グルメ・カップル向けをもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |
-| 千葉県-浦安市 | 浦安市 | 千葉県 | テーマパークと東京湾の景色を満喫・海・グルメ | missing | /images/destinations/destination-035/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | テーマパークと東京湾の景色を満喫・海・グルメをもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |
+| 東京都-台東区 | 台東区 | 東京都 | 浅草・浅草寺・下町・桜・歴史散策 | confirmed | /images/destinations/taito/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 2026-07-13 | 一般画面表示OK。現地写真と誤認させない。 |
+| 東京都-墨田区 | 墨田区 | 東京都 | 東京スカイツリー・隅田川・水辺・都市景観 | confirmed | /images/destinations/sumida/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。現行の抽選用旅先データでは未登録の先行画像。 | 2026-07-13 | 一般画面表示OK。現地写真と誤認させない。 |
+| 東京都-千代田区 | 千代田区 | 東京都 | 東京駅・丸の内・皇居周辺・都心散策 | confirmed | /images/destinations/chiyoda/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。現行の抽選用旅先データでは未登録の先行画像。 | 2026-07-13 | 一般画面表示OK。現地写真と誤認させない。 |
+| 東京都-新宿区 | 新宿区 | 東京都 | 高層ビル・都心夜景・新宿御苑周辺・都市散策 | confirmed | /images/destinations/shinjuku/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。現行の抽選用旅先データでは未登録の先行画像。 | 2026-07-13 | 一般画面表示OK。現地写真と誤認させない。 |
+| 東京都-江東区 | 江東区 | 東京都 | 湾岸・豊洲・お台場方面・橋・水辺・夕景 | confirmed | /images/destinations/koto/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。現行の抽選用旅先データでは未登録の先行画像。 | 2026-07-13 | 一般画面表示OK。現地写真と誤認させない。 |
+| 千葉県-浦安市 | 浦安市 | 千葉県 | ベイエリア・舞浜周辺・水辺・リゾート感・夕景 | confirmed | /images/destinations/urayasu/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 2026-07-13 | 一般画面表示OK。現地写真と誤認させない。 |
 | 埼玉県-秩父市 | 秩父市 | 埼玉県 | 山並み・神社・渓流・自然散策・秩父らしい山里 | confirmed | /images/destinations/chichibu/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 2026-07-13 | 一般画面表示OK。現地写真と誤認させない。 |
 | 愛知県-名古屋市 | 名古屋市 | 愛知県 | 都市景観・高層ビル・緑・名古屋らしい街並み | confirmed | /images/destinations/nagoya/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 2026-07-12 | 一般画面表示OK。現地写真と誤認させない。 |
 | 岐阜県-下呂市 | 下呂市 | 岐阜県 | 川沿いの温泉街・湯けむり・夕景・旅館街 | confirmed | /images/destinations/gero-onsen/hero-v2.webp | - | ai_generated | ユーザー確認済み。高品質AI生成hero画像として第1号confirmed登録。スマホキャッシュ対策としてファイル名をhero-v2.webpへ変更。 | 旧hero.svgは簡易SVGのため未使用 / rejected扱い。一般画面では使わない。 | 川沿いの温泉街、湯けむり、足湯、やわらかい夕方の光、浴衣で散策したくなる雰囲気。現地写真ではなく上質な旅行イメージビジュアル。 |
@@ -201,11 +207,12 @@ rejected 条件:
 | 沖縄県-宮古島市 | 宮古島市 | 沖縄県 | 宮古ブルー・橋・白砂・リゾート感 | confirmed | /images/destinations/miyakojima/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 旧hero.svgは簡易SVGのため未使用 / rejected扱い。一般画面では使わない。 | 宮古ブルー、橋、白砂、リゾート感を含む宮古島らしいビジュアル。現地写真ではなく上質な旅行イメージビジュアル。 |
 | 北海道-富良野市 | 富良野市 | 北海道 | ラベンダー畑・花畑・丘陵・北海道らしい自然 | confirmed | /images/destinations/furano/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 旧furano-hero.jpgや旧hero.svgは未使用候補。一般画面では使わない。 | ラベンダー畑、花畑、丘陵、北海道らしい自然を含む富良野らしいビジュアル。現地写真ではなく上質な旅行イメージビジュアル。 |
 | 北海道-登別市 | 登別市 | 北海道 | 最寄り駅から温泉街への移動時間を加算・秋,冬・温泉・山 | missing | /images/destinations/destination-084/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | 最寄り駅から温泉街への移動時間を加算・秋,冬・温泉・山をもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |
-| 東京都-渋谷区 | 渋谷区 | 東京都 | 駅周辺・春,秋,冬・グルメ・カップル向け | missing | /images/destinations/destination-085/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | 駅周辺・春,秋,冬・グルメ・カップル向けをもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |
+| 東京都-渋谷区 | 渋谷区 | 東京都 | 渋谷・スクランブル交差点・都市夜景・若者文化 | confirmed | /images/destinations/shibuya/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 2026-07-13 | 一般画面表示OK。現地写真と誤認させない。 |
 | 神奈川県-小田原市 | 小田原市 | 神奈川県 | 小田原城・城下町・桜・歴史散策・海の近い街 | confirmed | /images/destinations/odawara/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 2026-07-12 | 一般画面表示OK。現地写真と誤認させない。 |
 | 神奈川県-三浦市 | 三浦市 | 神奈川県 | 海岸・灯台・岩場・三浦半島・海辺散策 | confirmed | /images/destinations/miura/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。現行の抽選用旅先データでは未登録の先行画像。 | 2026-07-13 | 一般画面表示OK。現地写真と誤認させない。 |
 | 神奈川県-逗子市 | 逗子市 | 神奈川県 | 海辺・湾・湘南・ビーチ・穏やかな街並み | confirmed | /images/destinations/zushi/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。現行の抽選用旅先データでは未登録の先行画像。 | 2026-07-13 | 一般画面表示OK。現地写真と誤認させない。 |
 | 神奈川県-葉山町 | 葉山町 | 神奈川県 | 海岸・砂浜・湘南・別荘地・落ち着いた海辺 | confirmed | /images/destinations/hayama/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。現行の抽選用旅先データでは未登録の先行画像。 | 2026-07-13 | 一般画面表示OK。現地写真と誤認させない。 |
+| 神奈川県-藤沢市 | 藤沢市 | 神奈川県 | 江の島・湘南・海辺・砂浜・海沿い散策 | confirmed | /images/destinations/fujisawa/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。現行の抽選用旅先データでは未登録の先行画像。 | 2026-07-13 | 一般画面表示OK。現地写真と誤認させない。 |
 | 千葉県-千葉市 | 千葉市 | 千葉県 | 海辺・都市景観・ベイエリア・公園・港町 | confirmed | /images/destinations/chiba/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。現行の抽選用旅先データでは未登録の先行画像。 | 2026-07-12 | 一般画面表示OK。現地写真と誤認させない。 |
 | 千葉県-銚子市 | 銚子市 | 千葉県 | 犬吠埼・灯台・太平洋・海岸・夕景 | confirmed | /images/destinations/choshi/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。現行の抽選用旅先データでは未登録の先行画像。 | 2026-07-12 | 一般画面表示OK。現地写真と誤認させない。 |
 | 千葉県-成田市 | 成田市 | 千葉県 | 成田山新勝寺・参道・寺社・歴史散策 | confirmed | /images/destinations/narita/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。現行の抽選用旅先データでは未登録の先行画像。 | 2026-07-12 | 一般画面表示OK。現地写真と誤認させない。 |
