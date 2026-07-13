@@ -4,6 +4,7 @@ DROPTRIP のβ版リリース履歴を管理するためのメモです。
 
 ## v0.1.0-beta
 
+- 天草市・島原市・本部町・白浜町の文字なし `hero-v1.webp` を高品質AI生成hero画像として `confirmed` 登録しました。白浜町の旧needs_review候補は新しいWebP assetへ統合し、正式旅先137件すべてでconfirmed heroを表示できる状態にしました。
 - 郡上市・明石市・津山市・山口市・竹原市・丸亀市・今治市・徳島市の文字なし `hero-v1.webp` を高品質AI生成hero画像として `confirmed` 登録しました。
 - hero最終監査を実施し、正式旅先137件でconfirmed 125件、表示可能hero 125件、画像未作成11件、needs_review 1件、登録修正不要を確認しました。残件と推奨slugを `FINAL_HERO_REMAINING.md` に整理しました。
 - 那覇市・松島町の既存needs_review heroを文字なし `hero-v1.webp` のconfirmed assetへ更新しました。白石町（佐賀県）・南さつま市・諫早市・大村市・かほく市・羽咋市は、現行の旅先データ未登録のため先行confirmed登録しています。

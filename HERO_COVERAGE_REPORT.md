@@ -4,34 +4,32 @@
 
 ## 結論
 
-`src/data/destinations.js` の実際の旅先は137件です。従来の120件という想定とは一致しません。内訳は、表示可能なconfirmed heroが133件、ファイルはあるがレビュー待ちが1件、画像未作成が3件です。
+`src/data/destinations.js` の実際の旅先は137件です。従来の120件という想定とは一致しません。137件すべてが表示可能なconfirmed heroへ解決しています。
 
 | 項目 | 件数 | 判定 |
 |---|---:|---|
 | 正式旅先総数 | 137 | 同一キーの兵庫県-豊岡市が2件含まれる |
-| confirmed hero | 133 | 実ファイルあり、`shouldShowHero: true` |
-| shouldShowHero true | 133 | confirmed数と一致 |
+| confirmed hero | 137 | 実ファイルあり、`shouldShowHero: true` |
+| shouldShowHero true | 137 | confirmed数と一致 |
 | registration_fix_needed | 0 | キー不一致は検出されず |
 | file_missing | 0 | 登録済み参照の欠落なし |
-| needs_review | 1 | 白浜町。一般表示なし |
-| image_missing | 3 | 新規画像作成が必要 |
+| needs_review | 0 | 該当なし |
+| image_missing | 0 | 該当なし |
 | 旅先データ重複 | 1 | 兵庫県-豊岡市が2行 |
-| 互換エイリアス登録 | 124組 | `都道府県-市区町村` と `市区町村` の意図的な重複 |
+| 互換エイリアス登録 | 165組 | `都道府県-市区町村` と `市区町村` の意図的な重複 |
 | 未参照のhero WebP | 5 | 削除せず管理対象として残す |
 
 ## 表示条件
 
-一般画面で表示するのは、`status === "confirmed"`、`type === "destination_fixed"`、画像URLとaltがあり、`isIllustration` または `isPhoto` がtrue、かつ `hasEmbeddedText !== true` のheroだけです。確認済みの133件はいずれもこの条件を満たし、参照先ファイルも `public` 配下に存在します。古い `hero.svg`、カテゴリ・汎用・ランダムfallbackは解決結果に含まれません。
+一般画面で表示するのは、`status === "confirmed"`、`type === "destination_fixed"`、画像URLとaltがあり、`isIllustration` または `isPhoto` がtrue、かつ `hasEmbeddedText !== true` のheroだけです。確認済みの137件はいずれもこの条件を満たし、参照先ファイルも `public` 配下に存在します。古い `hero.svg`、カテゴリ・汎用・ランダムfallbackは解決結果に含まれません。
 
-## 本当に画像作成が必要な旅先（3件）
+## 本当に画像作成が必要な旅先（0件）
 
-天草市、島原市、本部町。
+該当なし。
 
-## ファイルはあるが表示しない旅先（3件）
+## ファイルはあるが表示しない旅先（0件）
 
-| 正式キー | src | 状態 | 表示しない理由 |
-|---|---|---|---|
-| 和歌山県-白浜町 | `/images/destinations/shirahama-hero.jpg` | needs_review | confirmed前のため |
+該当なし。
 
 ## 登録修正だけで解決できた旅先
 
@@ -60,4 +58,4 @@
 
 ## 最終監査（2026-07-13）
 
-正式旅先137件を再照合し、confirmed 133件、`shouldShowHero: true` 133件、`image_missing` 3件、`needs_review` 1件、`registration_fix_needed` 0件、`file_missing` 0件を確認しました。旅先データの重複は兵庫県-豊岡市の1件、`destinationImages` 未参照のhero WebPは5件です。残件の詳細と推奨slugは `FINAL_HERO_REMAINING.md` を正とします。
+正式旅先137件を再照合し、confirmed 137件、`shouldShowHero: true` 137件、`image_missing` 0件、`needs_review` 0件、`registration_fix_needed` 0件、`file_missing` 0件、意図しないhero登録重複0件を確認しました。旅先データの重複は兵庫県-豊岡市の1件、`destinationImages` 未参照のhero WebPは5件です。完了状態は `FINAL_HERO_REMAINING.md` を正とします。

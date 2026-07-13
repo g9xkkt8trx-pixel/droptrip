@@ -54,22 +54,23 @@ rejected 条件:
 ## 現在の整備状況
 
 - 2026-07-13の監査対象: `src/data/destinations.js` の正式旅先137件（同一キーの豊岡市2件を含む）
-- confirmed / 一般表示可能: 133件
-- needs_review: 1件（白浜町。ファイルはあるが一般画面では非表示）
+- confirmed / 一般表示可能: 137件
+- needs_review: 0件
 - registration_fix_needed: 0件
 - file_missing: 0件
-- image_missing: 3件
+- image_missing: 0件
 - 実データ未登録の先行hero登録: 29件（ファイル・登録は残し、旅先データ追加時に再監査）
 
 ### 2026-07-13 正式旅先ベースの状態一覧
 
 以下が `destinations.js` の正式旅先を基準にした最新状態です。id はすべて `都道府県-市区町村`、name/city は市区町村名です。過去の作成候補表にある仮パスは、この一覧より優先しません。
 
-最終監査結果: confirmed 133件、`shouldShowHero: true` 133件、`image_missing` 3件、`needs_review` 1件、`registration_fix_needed` 0件、`file_missing` 0件。次の生成対象と推奨slugは `FINAL_HERO_REMAINING.md` を参照します。
+最終監査結果: confirmed 137件、`shouldShowHero: true` 137件、`image_missing` 0件、`needs_review` 0件、`registration_fix_needed` 0件、`file_missing` 0件。正式旅先のhero整備は完了です。
 
 - `confirmed`（99行 / 98ユニークキー。兵庫県-豊岡市が2行）: 神奈川県-横浜市、神奈川県-鎌倉市、神奈川県-箱根町、栃木県-日光市、群馬県-草津町、宮城県-仙台市、青森県-青森市、青森県-弘前市、岩手県-盛岡市、福島県-会津若松市、静岡県-熱海市、石川県-金沢市、岐阜県-高山市、長野県-松本市、山梨県-富士河口湖町、静岡県-伊豆市、京都府-京都市、大阪府-大阪市、兵庫県-神戸市、奈良県-奈良市、兵庫県-豊岡市、福岡県-福岡市、長崎県-長崎市、大分県-別府市、大分県-由布市、熊本県-熊本市、鹿児島県-鹿児島市、北海道-札幌市、北海道-函館市、北海道-小樽市、東京都-台東区、千葉県-浦安市、埼玉県-秩父市、愛知県-名古屋市、岐阜県-下呂市、岐阜県-白川村、広島県-広島市、広島県-廿日市市、岡山県-倉敷市、鳥取県-鳥取市、香川県-高松市、愛媛県-松山市、高知県-高知市、沖縄県-石垣市、宮崎県-宮崎市、秋田県-秋田市、山形県-山形市、山形県-尾花沢市、茨城県-水戸市、茨城県-大洗町、新潟県-新潟市、福井県-福井市、三重県-伊勢市、滋賀県-大津市、滋賀県-近江八幡市、滋賀県-長浜市、島根県-松江市、島根県-出雲市、徳島県-鳴門市、長野県-長野市、長野県-軽井沢町、静岡県-静岡市、静岡県-浜松市、熊本県-阿蘇市、沖縄県-宮古島市、北海道-富良野市、東京都-墨田区、東京都-千代田区、東京都-新宿区、東京都-渋谷区、東京都-江東区、東京都-町田市、東京都-八王子市、東京都-立川市、東京都-調布市、神奈川県-小田原市、神奈川県-横須賀市、神奈川県-藤沢市、神奈川県-川崎市、千葉県-木更津市、千葉県-柏市、京都府-宇治市、広島県-尾道市、鹿児島県-指宿市、栃木県-那須町、埼玉県-川越市、千葉県-館山市、東京都-奥多摩町、長野県-上田市、福井県-敦賀市、山梨県-甲府市、静岡県-三島市、京都府-舞鶴市、京都府-宮津市、兵庫県-丹波篠山市、滋賀県-彦根市、和歌山県-和歌山市、宮崎県-日南市。
-- `needs_review`（1件）: 和歌山県-白浜町（`/images/destinations/shirahama-hero.jpg`）。実ファイルあり。confirmed化するまで一般画面では非表示。
-- `image_missing`（3件）: 熊本県-天草市、長崎県-島原市、沖縄県-本部町。
+- `needs_review`: 0件。
+- `image_missing`: 0件。
+- 2026-07-13追加confirmed: 天草市（`amakusa`）、島原市（`shimabara`）、本部町（`motobu`）、白浜町（`shirahama-wakayama`）。白浜町の旧needs_review候補は今回のWebP confirmed assetへ置換。
 - 2026-07-13追加confirmed: 郡上市（`gujo`）、明石市（`akashi`）、津山市（`tsuyama`）、山口市（`yamaguchi`）、竹原市（`takehara`）、丸亀市（`marugame`）、今治市（`imabari`）、徳島市（`tokushima`）。
 - 2026-07-13追加confirmed: 登別市（`noboribetsu`）、平泉町（`hiraizumi`）、足利市（`ashikaga`）、上山市（`kaminoyama`）、酒田市（`sakata`）、花巻市（`hanamaki`）、八戸市（`hachinohe`）、郡山市（`koriyama`）。
 - 2026-07-13追加confirmed: 那覇市（`naha`）、松島町（`matsushima-miyagi`）。既存needs_review候補をWebP confirmed assetへ置き換え。白石町（佐賀県）、南さつま市、諫早市、大村市、かほく市、羽咋市は実データ未登録の先行confirmed登録。
@@ -161,7 +162,7 @@ rejected 条件:
 | 兵庫県-神戸市 | 神戸市 | 兵庫県 | 港町・神戸ポートタワー・海辺・夕景・夜景 | confirmed | /images/destinations/kobe/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 2026-07-12 | 一般画面表示OK。現地写真と誤認させない。 |
 | 兵庫県-姫路市 | 姫路市 | 兵庫県 | 姫路城・白鷺城・桜・歴史散策 | confirmed | /images/destinations/himeji/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。現行の抽選用旅先データでは未登録の先行画像。 | 2026-07-12 | 一般画面表示OK。現地写真と誤認させない。 |
 | 奈良県-奈良市 | 奈良市 | 奈良県 | 奈良公園・鹿・寺社・古都・夕景 | confirmed | /images/destinations/nara/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 旧nara-hero.jpgや旧hero.svgは未使用候補。一般画面では使わない。 | 奈良公園、鹿、寺社、古都、夕景を含む奈良らしいビジュアル。現地写真ではなく上質な旅行イメージビジュアル。 |
-| 和歌山県-白浜町 | 白浜町 | 和歌山県 | 白い砂浜と温泉、海の絶景を満喫・温泉・海 | needs_review | /images/destinations/shirahama-hero.jpg | - | unknown | 通常。既存ローカル画像を固定hero候補として管理中。品質確認が完了するまで一般画面では非表示。WebP化と権利確認を継続。 | - | 白い砂浜と温泉、海の絶景を満喫・温泉・海をもとに、汎用背景に見えない高品質hero画像へ作り直す。 |
+| 和歌山県-白浜町 | 白浜町 | 和歌山県 | 白良浜・青い海・円月島・南紀・夕景 | confirmed | /images/destinations/shirahama-wakayama/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 2026-07-13 | 一般画面表示OK。現地写真と誤認させない。 |
 | 兵庫県-豊岡市 | 豊岡市 | 兵庫県 | 柳並木・外湯めぐり・川沿い温泉街・夜の灯り | confirmed | /images/destinations/kinosaki-onsen/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 旧hero.svgは簡易SVGのため未使用 / rejected扱い。一般画面では使わない。 | 柳並木、外湯めぐり、川沿い温泉街、夜の灯りを含む城崎温泉らしいビジュアル。現地写真ではなく上質な旅行イメージビジュアル。 |
 | 福岡県-福岡市 | 福岡市 | 福岡県 | 屋台・夜景・博多グルメ・川沿い | confirmed | /images/destinations/fukuoka/hero-v2.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 旧hero-v1.webpは画像内テキスト入り、旧hero.svgは簡易SVGのため未使用 / rejected扱い。一般画面では使わない。 | 屋台、夜景、博多グルメ、川沿いを含む福岡らしい夜のビジュアル。現地写真ではなく上質な旅行イメージビジュアル。 |
 | 長崎県-長崎市 | 長崎市 | 長崎県 | 港町・坂の街・夜景・異国情緒 | confirmed | /images/destinations/nagasaki/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 旧hero.svgは簡易SVGのため未使用 / rejected扱い。一般画面では使わない。 | 港町、坂の街、夜景、異国情緒を含む長崎らしいビジュアル。現地写真ではなく上質な旅行イメージビジュアル。 |

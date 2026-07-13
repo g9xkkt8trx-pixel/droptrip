@@ -2173,6 +2173,30 @@ const TOKUSHIMA_CONFIRMED_HERO = {
   sourceType: 'ai_generated', theme: '眉山・吉野川・市街地・水辺・山と街', hasEmbeddedText: false,
   reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
 }
+const AMAKUSA_CONFIRMED_HERO = {
+  src: '/images/destinations/amakusa/hero-v1.webp', alt: '天草の島々と青い海、橋のある風景をイメージしたビジュアル',
+  type: 'destination_fixed', status: 'confirmed', isIllustration: true, isPhoto: false,
+  sourceType: 'ai_generated', theme: '天草の島々・青い海・橋・漁港・熊本の島景色', hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
+}
+const SHIMABARA_CONFIRMED_HERO = {
+  src: '/images/destinations/shimabara/hero-v1.webp', alt: '島原城と水路、雲仙岳を望む町並みをイメージしたビジュアル',
+  type: 'destination_fixed', status: 'confirmed', isIllustration: true, isPhoto: false,
+  sourceType: 'ai_generated', theme: '島原城・武家屋敷・水路・雲仙岳・歴史的町並み', hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
+}
+const MOTOBU_CONFIRMED_HERO = {
+  src: '/images/destinations/motobu/hero-v1.webp', alt: '本部町の青い海とフクギ並木、島の景色をイメージしたビジュアル',
+  type: 'destination_fixed', status: 'confirmed', isIllustration: true, isPhoto: false,
+  sourceType: 'ai_generated', theme: '備瀬のフクギ並木・青い海・伊江島方面・沖縄北部', hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
+}
+const SHIRAHAMA_WAKAYAMA_CONFIRMED_HERO = {
+  src: '/images/destinations/shirahama-wakayama/hero-v1.webp', alt: '白浜の白い砂浜と青い海、岩の景観をイメージしたビジュアル',
+  type: 'destination_fixed', status: 'confirmed', isIllustration: true, isPhoto: false,
+  sourceType: 'ai_generated', theme: '白良浜・青い海・円月島・南紀・夕景', hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
+}
 
 // 旅先ごとの固定イメージ画像を追加したときは、この対応表へ登録する。
 // まず destination.id を優先し、既存データとの互換性のため city キーも残す。
@@ -2339,7 +2363,8 @@ const DESTINATION_LOCAL_IMAGES = {
   舞鶴市: { hero: MAIZURU_CONFIRMED_HERO },
   '兵庫県-丹波篠山市': { hero: TAMBASASAYAMA_CONFIRMED_HERO },
   丹波篠山市: { hero: TAMBASASAYAMA_CONFIRMED_HERO },
-  白浜町: { hero: '/images/destinations/shirahama-hero.jpg' },
+  '和歌山県-白浜町': { hero: SHIRAHAMA_WAKAYAMA_CONFIRMED_HERO },
+  白浜町: { hero: SHIRAHAMA_WAKAYAMA_CONFIRMED_HERO },
   '大阪府-大阪市': { hero: OSAKA_CONFIRMED_HERO },
   大阪市: { hero: OSAKA_CONFIRMED_HERO },
   '兵庫県-神戸市': { hero: KOBE_CONFIRMED_HERO },
@@ -2562,6 +2587,12 @@ const DESTINATION_LOCAL_IMAGES = {
   今治市: { hero: IMABARI_CONFIRMED_HERO },
   '徳島県-徳島市': { hero: TOKUSHIMA_CONFIRMED_HERO },
   徳島市: { hero: TOKUSHIMA_CONFIRMED_HERO },
+  '熊本県-天草市': { hero: AMAKUSA_CONFIRMED_HERO },
+  天草市: { hero: AMAKUSA_CONFIRMED_HERO },
+  '長崎県-島原市': { hero: SHIMABARA_CONFIRMED_HERO },
+  島原市: { hero: SHIMABARA_CONFIRMED_HERO },
+  '沖縄県-本部町': { hero: MOTOBU_CONFIRMED_HERO },
+  本部町: { hero: MOTOBU_CONFIRMED_HERO },
 }
 
 const DESTINATION_IMAGE_ID_ALIASES = {
@@ -2711,6 +2742,9 @@ const DESTINATION_IMAGE_ID_ALIASES = {
   '香川県-丸亀市': '丸亀市',
   '愛媛県-今治市': '今治市',
   '徳島県-徳島市': '徳島市',
+  '熊本県-天草市': '天草市',
+  '長崎県-島原市': '島原市',
+  '沖縄県-本部町': '本部町',
 }
 
 Object.entries(DESTINATION_IMAGE_ID_ALIASES).forEach(([id, city]) => {
