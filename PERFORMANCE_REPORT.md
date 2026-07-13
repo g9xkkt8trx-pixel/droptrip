@@ -172,6 +172,32 @@
 
 Vercelのキャッシュ・ヘッダー・本番URL用メタ情報の設定を追加しました。アプリのJavaScript、CSS、`photoSpots`遅延チャンク構成は変更していません。`VITE_PUBLIC_SITE_URL`はビルド時のHTMLメタ情報にだけ使われ、未設定時はcanonicalや絶対OGP URLを出力しません。
 
+## AIプランV2後
+
+| 対象 | V2前 | V2後 |
+| --- | ---: | ---: |
+| エントリー JavaScript | 437.55KB | 444.87KB |
+| エントリー JavaScript（gzip） | 121.35KB | 123.47KB |
+| CSS | 110.90KB | 113.94KB |
+| CSS（gzip） | 20.37KB | 21.03KB |
+| `photoSpots-*.js` | 156.40KB | 156.40KB |
+| `photoSpots-*.js`（gzip） | 35.21KB | 35.21KB |
+
+AIプランV2の表示・JSON正規化コードはエントリーへ加わりました。一方、confirmed映えスポット408件のデータ本体は通常表示時にもAIプラン生成時にも必要な時だけ読む遅延チャンクのままで、Viteの500KB警告はありません。
+
+## AI利用保護後
+
+| 対象 | 保護前 | 保護後 |
+| --- | ---: | ---: |
+| エントリー JavaScript | 445.11KB | 447.53KB |
+| エントリー JavaScript（gzip） | 123.53KB | 124.31KB |
+| CSS | 113.94KB | 114.06KB |
+| CSS（gzip） | 21.03KB | 21.05KB |
+| `photoSpots-*.js` | 156.40KB | 156.40KB |
+| `photoSpots-*.js`（gzip） | 35.21KB | 35.21KB |
+
+AI利用制限のブラウザ側ユーティリティ、クールダウン表示、API入口の検証を追加しました。映えスポットの遅延読み込み構成は維持し、Viteの500KB警告はありません。
+
 ## 維持した仕様
 
 - 旅先検索は正式旅先137件を対象とし、表示時は既知の豊岡市重複を1件に整理する。

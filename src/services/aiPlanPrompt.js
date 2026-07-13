@@ -36,6 +36,7 @@ export const createAiPlanPrompt = ({
   nearbySuggestions = [],
   transportComparisons = [],
   budget,
+  photoSpots = [],
 }) => {
   const touristSpotLines = compactList(destination.touristSpots, (spot) => (
     '- ' + spot.name + '（' + (spot.type ?? 'スポット') + ' / 目安:' + (spot.stayTime ?? '短時間') + '）: ' + (spot.description ?? '')
@@ -62,21 +63,25 @@ export const createAiPlanPrompt = ({
   const nightsDays = Number.isFinite(Number(tripSchedule.nights)) && Number.isFinite(Number(tripSchedule.days))
     ? tripSchedule.nights + '泊' + tripSchedule.days + '日'
     : scheduleLabel
+  const photoSpotLines = compactList(photoSpots, (spot) => (
+    '- ' + spot.name + '（' + (spot.category || '映えスポット') + '）: ' + (spot.summary || '')
+      + (spot.bestTime ? ' / おすすめ時間:' + spot.bestTime : '')
+      + (spot.bestSeason ? ' / おすすめ季節:' + spot.bestSeason : '')
+      + (spot.weatherNote ? ' / 注意:' + spot.weatherNote : '')
+      + (spot.accessNote ? ' / 補足:' + spot.accessNote : '')
+      + (spot.mapQuery ? ' / 地図検索:' + spot.mapQuery : '')
+  ), 3)
 
   return [
-    'あなたは日本国内旅行に詳しい旅行プランナーです。',
-    '抽象的な褒め言葉だけで終わらせず、下記のスポット名・ご当地グルメ名・周辺候補名を使って、実際の過ごし方が浮かぶ日本語の旅行プランを作成してください。',
-    '移動時間、営業状況、料金、予約可否は断定せず、必要に応じて「事前に公式情報やGoogle Mapsで確認してください」と自然に補足してください。',
-    '店舗名や施設名は候補として扱い、営業中・予約可・料金確定のような断定はしないでください。',
-    '観光スポットは「自然スポット」「街歩き」「温泉街」のような抽象語ではなく、入力データ内の具体的な施設名・地名・通り名・温泉街名を優先してください。',
-    '施設名を使う場合も、営業時間・料金・営業状況は訪問前確認が必要なものとして扱い、写真がある前提では書かないでください。',
-    '「郷土料理」「地元ラーメン」「カフェ」「市場グルメ」のような抽象語ではなく、入力データ内の具体的な料理名・食材名・地域名物名を優先してください。',
-    '食事提案は、いつ食べるかよりも、どんな料理か、味や食材の特徴、土地とのつながりが伝わる短い説明を優先してください。',
-    '店名を出す場合は候補扱いにし、営業時間・定休日・営業状況・予約可否は断定しないでください。',
-    '料理写真がある前提の表現は避け、写真・店の営業状況・提供内容は確認が必要なものとして扱ってください。',
+    'あなたはDROPTRIPの日本国内旅行プランナーです。出力はJSONのみで、Markdownや前置きは出力しません。',
+    'DROPTRIPから渡された正式データを最優先し、入力にない施設名、店名、料理名、営業時間、料金、休館日、予約可否、移動時間を作らないでください。',
+    'confirmed映えスポットが2件以上ある場合、旅程itemsとrecommendedPhotoSpotsに少なくとも2件を含めます。店舗名が不明な食事は「駅周辺の郷土料理店」など一般表現にしてください。',
+    '予定を詰め込みすぎず、各日に休憩を含めます。移動の詳細は断定せず、地図や公式情報で確認する表現にします。',
+    '雨天代替案を最低1件、写真撮影の注意・最適時間をデータの範囲で追加します。予算は概算・変動する旨をdisclaimerに入れます。',
     '',
     '## 入力条件',
     '出発地: ' + departure,
+    'destinationId: ' + (destination.id ?? destination.destinationId ?? ''),
     '旅先: ' + destination.prefecture + ' ' + destination.city,
     'region: ' + (destination.region ?? '未設定'),
     'tags: ' + joinOrDefault(destination.tags),
@@ -95,6 +100,7 @@ export const createAiPlanPrompt = ({
     destination.stayFit ? '日程相性スコア: ' + formatScoreObject(destination.stayFit) : '',
     '',
     touristSpotLines.length > 0 ? '## 使ってほしい観光スポット\n' + touristSpotLines.join('\n') : '',
+    photoSpotLines.length > 0 ? '## confirmed映えスポット（この名称・説明を優先）\n' + photoSpotLines.join('\n') : '',
     localFoodDetailLines.length > 0 ? '## 食事提案に含めたいご当地グルメ\n' + localFoodDetailLines.join('\n') : (localFoodSummary ? 'ご当地グルメ候補: ' + localFoodSummary : ''),
     nearbyHintSummary ? '周辺候補ヒント: ' + nearbyHintSummary : '',
     nearbySuggestionLines.length > 0 ? '## 長めの日程で余裕があれば寄りたい周辺候補\n' + nearbySuggestionLines.join('\n') : '',
@@ -102,14 +108,9 @@ export const createAiPlanPrompt = ({
     '交通手段比較:',
     transportSummary,
     '',
-    '## 出力形式',
-    '1. この旅のテーマ',
-    '2. ざっくり旅程（' + getScheduleTone(tripSchedule) + '）',
-    '3. 行きたいスポット（具体的なスポット名を使う）',
-    '4. 食べたいご当地グルメ（localFoodDetailsまたはlocalFoodCandidatesの名称を使う）',
-    '5. 余裕があれば寄りたい周辺候補（長期旅行または候補がある場合のみ）',
-    '6. 注意点（移動、営業状況、天候など確認が必要なもの）',
-    '',
-    '避ける表現: 「魅力的です」「楽しめます」「おすすめです」だけで文を終えない。必ずスポット名、食べ物名、過ごし方、同行者・目的・日程とのつながりを入れてください。',
+    '## JSON出力ルール',
+    'title, concept, summary, days, recommendedPhotoSpots, localFoodSuggestions, budgetEstimate, rainPlan, tips, disclaimerを必ず含める。',
+    'daysは旅行日数に合わせ、day、title、itemsを持つ。itemsはtime、type、title、description、duration、location、mapQuery、photoTip、cautionを必ず文字列で含める。',
+    '不明な値は空文字、該当がない配列は空配列にする。' + getScheduleTone(tripSchedule),
   ].filter(Boolean).join('\n')
 }

@@ -6,6 +6,21 @@ import {
   getGoogleMapsCommunicationModeLabel,
 } from './services/travelTime'
 import { createAiPlanPrompt } from './services/aiPlanPrompt'
+import { normalizeAiPlanV2 } from './services/aiPlanV2'
+import {
+  AI_PLAN_DAILY_LIMIT,
+  AI_PLAN_USAGE_STORAGE_KEY,
+  createAiPlanCooldownUntil,
+  createAiPlanCacheKey,
+  getAiPlanCooldownSeconds,
+  getAiPlanLocalDateKey,
+  loadAiPlanCooldownUntil,
+  loadAiPlanSessionCache,
+  loadAiPlanUsage as loadAiPlanUsageFromStorage,
+  saveAiPlanCooldownUntil,
+  saveAiPlanSessionCache,
+  saveAiPlanUsage as persistAiPlanUsage,
+} from './services/aiPlanUsageProtection'
 import { getOpenAiApiKeySource } from './services/openAiConfig'
 import { generateOpenAiPlan, getOpenAiCommunicationModeLabel, OPENAI_PLAN_MODEL } from './services/openAiPlan'
 import {
@@ -104,6 +119,12 @@ const emptyDrawBalanceReport = {
 
 const tripTypes = ['日帰り', '1泊2日', '自分で入力']
 const storedTripTypes = [...tripTypes, '2泊3日']
+const AI_PLAN_LOADING_STAGES = [
+  '旅先情報を整理しています',
+  '観光・映えスポットを組み立てています',
+  '日程ごとの流れを整えています',
+  '仕上げを確認しています',
+]
 const primaryTransportModes = ['車', '電車', '飛行機']
 const transportModes = [...primaryTransportModes]
 const seasonOptions = ['今の季節', '春', '夏', '秋', '冬', 'おまかせ']
@@ -278,7 +299,6 @@ const FAVORITES_STORAGE_KEY = 'droptrip-favorites'
 const COMPARE_STORAGE_KEY = 'droptrip-compare'
 const MAPS_API_KEY_STORAGE_KEY = 'droptrip-google-maps-api-key'
 const OPENAI_API_KEY_STORAGE_KEY = 'droptrip-openai-api-key'
-const AI_PLAN_USAGE_STORAGE_KEY = 'droptrip-ai-plan-usage'
 const TRAVEL_CACHE_STORAGE_KEY = 'droptrip-travel-time-cache'
 const DRAW_HISTORY_STORAGE_KEY = 'droptrip-draw-history'
 const INPUT_STATE_STORAGE_KEY = 'droptrip-input-state'
@@ -293,7 +313,6 @@ const createEmptyResultFeedbackForm = () => ({
   mobileIssue: '',
 })
 const MAX_HISTORY_ITEMS = 20
-const DAILY_AI_PLAN_LIMIT = 3
 const betaTestCheckpoints = [
   '旅先の提案は自然か',
   '画像は魅力的か',
@@ -1220,26 +1239,6 @@ const loadBetaFeedbackNotes = () => {
   }
 }
 
-const getLocalDateKey = (date = new Date()) => {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
-
-const loadAiPlanUsage = () => {
-  const today = getLocalDateKey()
-  try {
-    const saved = JSON.parse(window.localStorage.getItem(AI_PLAN_USAGE_STORAGE_KEY) ?? '{}')
-    if (saved?.date !== today || !Number.isInteger(saved?.count) || saved.count < 0) {
-      return { date: today, count: 0 }
-    }
-    return { date: today, count: Math.min(saved.count, DAILY_AI_PLAN_LIMIT) }
-  } catch {
-    return { date: today, count: 0 }
-  }
-}
-
 const loadTravelTimeCache = () => {
   try {
     const saved = JSON.parse(window.localStorage.getItem(TRAVEL_CACHE_STORAGE_KEY) ?? '{}')
@@ -1772,12 +1771,18 @@ const getConcreteStayIdeas = (destination = {}, schedule = {}, spots = [], foodD
   ]
 }
 
-const createAiDestinationPayload = (destination = {}, context = {}, featuredSpots = [], foodDetails = [], nearbySuggestions = []) => ({
+const createAiDestinationPayload = (destination = {}, context = {}, featuredSpots = [], foodDetails = [], nearbySuggestions = [], photoSpots = []) => ({
+  id: destination.id,
+  destinationId: destination.id,
   city: destination.city,
   prefecture: destination.prefecture,
   region: destination.region,
+  nearestStation: destination.nearestStation ?? '',
+  nearestStationLabel: destination.nearestStationLabel ?? '',
+  stationAccessNote: destination.stationAccessNote ?? '',
   tags: destination.tags ?? [],
   recommendText: destination.recommendText ?? destination.recommendation ?? '',
+  recommendation: destination.recommendation ?? destination.recommendText ?? '',
   bestSeasons: destination.bestSeasons ?? [],
   seasonHighlights: destination.seasonHighlights ?? {},
   localFoodCandidates: getConcreteFoodCandidates(destination.localFoodCandidates).slice(0, 10),
@@ -1802,6 +1807,9 @@ const createAiDestinationPayload = (destination = {}, context = {}, featuredSpot
     reason: item.reason,
     sharedTags: item.sharedTags ?? [],
     regionMatch: item.regionMatch ?? 'stay-focus',
+  })),
+  photoSpots: photoSpots.slice(0, 3).map(({ name, category, summary, bestTime, bestSeason, weatherNote, accessNote, mapQuery }) => ({
+    name, category, summary, bestTime, bestSeason, weatherNote, accessNote, mapQuery,
   })),
 })
 
@@ -2723,6 +2731,7 @@ function App() {
   const historyIdFallback = useRef(0)
   const travelRequestInFlight = useRef(false)
   const aiPlanRequestInFlight = useRef(false)
+  const aiPlanCache = useRef(new Map())
   const developerTitleClicks = useRef({ count: 0, lastClickAt: 0 })
   const destinationListScrollY = useRef(0)
   const [restoredInputState] = useState(loadInputState)
@@ -2762,8 +2771,11 @@ function App() {
   const [currentPage, setCurrentPage] = useState('main')
   const [aiPlanNotice, setAiPlanNotice] = useState('')
   const [aiPlanStatus, setAiPlanStatus] = useState('idle')
-  const [aiPlanResult, setAiPlanResult] = useState('')
-  const [aiPlanUsage, setAiPlanUsage] = useState(loadAiPlanUsage)
+  const [aiPlanResult, setAiPlanResult] = useState(null)
+  const [aiPlanLoadingStage, setAiPlanLoadingStage] = useState(0)
+  const [aiPlanUsage, setAiPlanUsage] = useState(loadAiPlanUsageFromStorage)
+  const [aiPlanCooldownUntil, setAiPlanCooldownUntil] = useState(loadAiPlanCooldownUntil)
+  const [aiPlanClock, setAiPlanClock] = useState(() => Date.now())
   const [isPremiumUser, setIsPremiumUser] = useState(loadPremiumStatus)
   const [drawSimulation, setDrawSimulation] = useState(null)
   const [conditionTestResults, setConditionTestResults] = useState({})
@@ -2874,6 +2886,20 @@ function App() {
       isActive = false
     }
   }, [destination, resultDetailView, photoSpotLoadAttempt])
+
+  useEffect(() => {
+    if (aiPlanStatus !== 'loading') return undefined
+    const intervalId = window.setInterval(() => {
+      setAiPlanLoadingStage((stage) => (stage + 1) % AI_PLAN_LOADING_STAGES.length)
+    }, 1800)
+    return () => window.clearInterval(intervalId)
+  }, [aiPlanStatus])
+
+  useEffect(() => {
+    if (aiPlanCooldownUntil <= aiPlanClock) return undefined
+    const intervalId = window.setInterval(() => setAiPlanClock((current) => current + 1000), 1000)
+    return () => window.clearInterval(intervalId)
+  }, [aiPlanClock, aiPlanCooldownUntil])
 
   const favoriteDestinations = favoriteCities
     .map((city) => destinations.find((place) => place.city === city))
@@ -3079,7 +3105,9 @@ function App() {
     : openAiApiKeySource === 'localStorage'
       ? '設定カードで設定済み'
       : '未設定'
-  const todayAiPlanUsageCount = aiPlanUsage.date === getLocalDateKey() ? aiPlanUsage.count : 0
+  const todayAiPlanUsageCount = aiPlanUsage.date === getAiPlanLocalDateKey() ? aiPlanUsage.count : 0
+  const remainingAiPlanCount = Math.max(0, AI_PLAN_DAILY_LIMIT - todayAiPlanUsageCount)
+  const aiPlanCooldownSeconds = getAiPlanCooldownSeconds(aiPlanCooldownUntil, aiPlanClock)
   const imagePreviewItems = createImagePreviewData(destinations)
   const filteredImagePreviewItems = filterImagePreviewItems(imagePreviewItems, imagePreviewFilter)
   const imageImprovementItems = createImageImprovementItems(imagePreviewItems)
@@ -3358,16 +3386,11 @@ function App() {
   }
 
   const saveAiPlanUsage = (usage) => {
-    setAiPlanUsage(usage)
-    try {
-      window.localStorage.setItem(AI_PLAN_USAGE_STORAGE_KEY, JSON.stringify(usage))
-    } catch {
-      // 保存できない環境でも、現在の画面では回数制限を維持する
-    }
+    setAiPlanUsage(persistAiPlanUsage(usage))
   }
 
   const resetAiPlanUsage = () => {
-    const resetUsage = { date: getLocalDateKey(), count: 0 }
+    const resetUsage = { date: getAiPlanLocalDateKey(), count: 0 }
     saveAiPlanUsage(resetUsage)
     setOpenAiApiKeyNotice('本日のAI生成回数をリセットしました。')
   }
@@ -3383,7 +3406,8 @@ function App() {
     ++aiPlanRequestId.current
     setAiPlanNotice('')
     setAiPlanStatus('idle')
-    setAiPlanResult('')
+    setAiPlanResult(null)
+    setAiPlanLoadingStage(0)
   }
 
   const resetInputConditions = () => {
@@ -3933,46 +3957,86 @@ function App() {
     if (!destination || !planContext) return
     if (!isPremiumEnabled(isPremiumUser)) {
       ++aiPlanRequestId.current
-      setAiPlanResult('')
+      setAiPlanResult(null)
       setAiPlanStatus('premium-required')
       setAiPlanNotice('プレミアム機能は今後提供予定です')
       return
     }
-    if (todayAiPlanUsageCount >= DAILY_AI_PLAN_LIMIT) {
+    const cacheKey = createAiPlanCacheKey({
+      destinationId: destination.id,
+      departure: planContext.departure,
+      tripType: planContext.tripType,
+      tripSchedule: currentTripSchedule,
+      season: planContext.travelSeason,
+      filters: planContext.selectedFilters,
+      purposes: planContext.selectedTravelPurposes,
+      movementRange: planContext.movementRange,
+      budget: currentBudget,
+    })
+    let cachedPlan = aiPlanCache.current.get(cacheKey)
+    if (!cachedPlan) {
+      const storedCache = loadAiPlanSessionCache()
+      if (storedCache?.key === cacheKey) {
+        cachedPlan = normalizeAiPlanV2(storedCache.plan)
+        if (cachedPlan) aiPlanCache.current.set(cacheKey, cachedPlan)
+      }
+    }
+    if (cachedPlan) {
+      setAiPlanResult(cachedPlan)
+      setAiPlanNotice('同じ条件で作成したプランを再表示しています。')
+      setAiPlanStatus('success')
+      return
+    }
+    if (todayAiPlanUsageCount >= AI_PLAN_DAILY_LIMIT) {
       ++aiPlanRequestId.current
-      setAiPlanResult('')
+      setAiPlanResult(null)
       setAiPlanStatus('limit')
       setAiPlanNotice('本日のAIプラン生成回数に達しました。明日またお試しください。')
+      return
+    }
+    if (aiPlanCooldownSeconds > 0) {
+      setAiPlanNotice(`次のAIプラン生成まで約${aiPlanCooldownSeconds}秒お待ちください。`)
       return
     }
 
     aiPlanRequestInFlight.current = true
     const requestId = ++aiPlanRequestId.current
-    saveAiPlanUsage({
-      date: getLocalDateKey(),
-      count: todayAiPlanUsageCount + 1,
-    })
     setAiPlanNotice('')
-    setAiPlanResult('')
+    setAiPlanResult(null)
+    setAiPlanLoadingStage(0)
     setAiPlanStatus('loading')
     const season = planContext.travelSeason === '今の季節'
       ? `今の季節（${getCurrentSeason()}）`
       : planContext.travelSeason
-    const aiDestination = createAiDestinationPayload(destination, planContext, featuredTouristSpots, localFoodDetails, planContext.tripSuggestions ?? [])
-    const prompt = createAiPlanPrompt({
-      departure: planContext.departure,
-      destination: aiDestination,
-      tripType: planContext.tripType,
-      tripSchedule: currentTripSchedule,
-      season,
-      selectedFilters: planContext.selectedFilters,
-      selectedTravelPurposes: planContext.selectedTravelPurposes,
-      movementRangeLabel: aiDestination.movementRangeLabel,
-      nearbySuggestions: aiDestination.nearbySuggestions,
-      transportComparisons: [],
-      budget: currentBudget,
-    })
     try {
+      const { getConfirmedPhotoSpots } = await import('./data/photoSpots.js')
+      const confirmedPhotoSpots = getConfirmedPhotoSpots(destination).slice(0, 3)
+      const aiDestination = createAiDestinationPayload(
+        destination,
+        planContext,
+        featuredTouristSpots,
+        localFoodDetails,
+        planContext.tripSuggestions ?? [],
+        confirmedPhotoSpots,
+      )
+      const prompt = createAiPlanPrompt({
+        departure: planContext.departure,
+        destination: aiDestination,
+        tripType: planContext.tripType,
+        tripSchedule: currentTripSchedule,
+        season,
+        selectedFilters: planContext.selectedFilters,
+        selectedTravelPurposes: planContext.selectedTravelPurposes,
+        movementRangeLabel: aiDestination.movementRangeLabel,
+        nearbySuggestions: aiDestination.nearbySuggestions,
+        transportComparisons: [],
+        budget: currentBudget,
+        photoSpots: aiDestination.photoSpots,
+      })
+      saveAiPlanUsage({
+        date: getAiPlanLocalDateKey(),
+        count: todayAiPlanUsageCount + 1,
+      })
       const result = await generateOpenAiPlan({
         prompt,
         destination: aiDestination,
@@ -3980,14 +4044,32 @@ function App() {
         storedApiKey: savedOpenAiApiKey,
       })
       if (requestId === aiPlanRequestId.current) {
-        setAiPlanResult(result.text)
+        aiPlanCache.current.set(cacheKey, result.plan)
+        if (!result.plan.isFallback) saveAiPlanSessionCache(cacheKey, result.plan)
+        const cooldownUntil = createAiPlanCooldownUntil()
+        saveAiPlanCooldownUntil(cooldownUntil)
+        setAiPlanCooldownUntil(cooldownUntil)
+        setAiPlanClock(cooldownUntil)
+        setAiPlanResult(result.plan)
         setOpenAiCommunicationMode(result.mode)
+        if (result.format === 'fallback') setAiPlanNotice('プランの一部を読みやすい形式で表示しています。')
         setAiPlanStatus('success')
       }
-    } catch {
+    } catch (error) {
       if (requestId === aiPlanRequestId.current) {
         setAiPlanStatus('error')
-        setAiPlanNotice('AIプランを生成できませんでした。しばらくしてから再度お試しください。')
+        const notices = {
+          OPENAI_NOT_CONFIGURED: 'AIプランを準備できませんでした。時間をおいて再度お試しください。',
+          AI_NOT_CONFIGURED: 'AIプランを準備できませんでした。時間をおいて再度お試しください。',
+          AI_CONFIGURATION_ERROR: 'AIプランを準備できませんでした。時間をおいて再度お試しください。',
+          AI_RATE_LIMIT: 'ただいまAIプランが混み合っています。少し時間をおいて再度お試しください。',
+          RATE_LIMITED: 'ただいまAIプランが混み合っています。少し時間をおいて再度お試しください。',
+          UPSTREAM_TIMEOUT: 'AIプランの生成に時間がかかっています。少し時間をおいて再試行してください。',
+          UPSTREAM_ERROR: 'AIプランを生成できませんでした。少し時間をおいて再試行してください。',
+          AI_TIMEOUT: 'AIプランの生成に時間がかかっています。少し時間をおいて再試行してください。',
+          AI_INVALID_RESPONSE: 'AIプランを整理できませんでした。もう一度お試しください。',
+        }
+        setAiPlanNotice(notices[error?.code] ?? 'AIプランを生成できませんでした。しばらくしてから再度お試しください。')
       }
     } finally {
       aiPlanRequestInFlight.current = false
@@ -4625,22 +4707,89 @@ function App() {
                 {isPremiumUser && <b>有効</b>}
               </div>
               <p className="premium-guide-description">観光スポットやご当地グルメを使って、日程別にもう少し詳しい回り方を整理できます。</p>
-              <button type="button" className={`ai-plan-button ${isPremiumUser ? 'premium-active' : 'premium-locked'}`} onClick={generateAiPlan} disabled={aiPlanStatus === 'loading'}>
+              <button type="button" className={`ai-plan-button ${isPremiumUser ? 'premium-active' : 'premium-locked'}`} onClick={generateAiPlan} disabled={aiPlanStatus === 'loading' || aiPlanCooldownSeconds > 0}>
                 <span aria-hidden="true">✦</span>
-                {aiPlanStatus === 'loading' ? 'AIプランを生成中...' : 'AIプランを作成'}
+                {aiPlanStatus === 'loading' ? 'AIプランを生成中...' : aiPlanCooldownSeconds > 0 ? `次の生成まで約${aiPlanCooldownSeconds}秒` : 'AIプランを作成'}
               </button>
+              <p className="ai-plan-usage-note">簡易制限: 本日はあと{remainingAiPlanCount}回生成できます{aiPlanCooldownSeconds > 0 ? ` / 次の生成まで約${aiPlanCooldownSeconds}秒` : ''}</p>
               {aiPlanNotice && <p className="ai-plan-key-notice" role="status">{aiPlanNotice}</p>}
+              {aiPlanStatus === 'error' && (
+                <button type="button" className="ai-plan-retry" onClick={generateAiPlan}>もう一度試す</button>
+              )}
               {aiPlanStatus === 'loading' && (
-                <div className="ai-plan-loading" role="status"><span aria-hidden="true" />AIプランを生成中...</div>
+                <div className="ai-plan-loading" role="status"><span aria-hidden="true" /><div><b>{AI_PLAN_LOADING_STAGES[aiPlanLoadingStage]}</b><small>生成には少し時間がかかります</small></div></div>
               )}
               {aiPlanStatus === 'success' && aiPlanResult && (
                 <section className="ai-plan-card" aria-labelledby="ai-plan-title">
                   <div className="ai-plan-heading">
                     <span aria-hidden="true">AI</span>
-                    <div><p>PERSONALIZED TRIP</p><h3 id="ai-plan-title">AIプラン案</h3></div>
+                    <div><p>PERSONALIZED TRIP</p><h3 id="ai-plan-title">{aiPlanResult.title}</h3></div>
                     <b>{OPENAI_PLAN_MODEL}</b>
                   </div>
-                  <div className="ai-generated-content">{aiPlanResult}</div>
+                  <div className="ai-plan-overview">
+                    {aiPlanResult.concept && <p className="ai-plan-concept">{aiPlanResult.concept}</p>}
+                    <p>{aiPlanResult.summary}</p>
+                  </div>
+                  {aiPlanResult.isFallback ? (
+                    <div className="ai-generated-content">{aiPlanResult.summary}</div>
+                  ) : (
+                    <>
+                      <div className="ai-plan-days">
+                        {aiPlanResult.days.map((day) => (
+                          <section className="ai-plan-day" key={`${day.day}-${day.title}`}>
+                            <h4><span>DAY {day.day}</span>{day.title}</h4>
+                            <ol>
+                              {day.items.map((item, index) => (
+                                <li key={`${item.time}-${item.title}-${index}`}>
+                                  <div className="ai-plan-item-heading">
+                                    {item.time && <time>{item.time}</time>}
+                                    {item.type && <span>{item.type}</span>}
+                                  </div>
+                                  <strong>{item.title}</strong>
+                                  {item.description && <p>{item.description}</p>}
+                                  {(item.duration || item.location) && <small>{[item.duration, item.location].filter(Boolean).join(' / ')}</small>}
+                                  {item.photoTip && <em>写真のヒント: {item.photoTip}</em>}
+                                  {item.caution && <em className="caution">注意: {item.caution}</em>}
+                                  {item.mapQuery && <a className="trend-map-link" href={getTrendMapsSearchUrl(destination, item)} target="_blank" rel="noopener noreferrer">Google Mapsで探す</a>}
+                                </li>
+                              ))}
+                            </ol>
+                          </section>
+                        ))}
+                      </div>
+                      {aiPlanResult.recommendedPhotoSpots.length > 0 && (
+                        <section className="ai-plan-detail-section">
+                          <h4>写真に残したいスポット</h4>
+                          <ul className="ai-plan-detail-list">
+                            {aiPlanResult.recommendedPhotoSpots.map((spot) => <li key={spot.name}><strong>{spot.name}</strong>{spot.reason && <span>{spot.reason}</span>}{spot.bestTime && <small>おすすめ: {spot.bestTime}</small>}</li>)}
+                          </ul>
+                        </section>
+                      )}
+                      {aiPlanResult.localFoodSuggestions.length > 0 && (
+                        <section className="ai-plan-detail-section">
+                          <h4>ご当地グルメ</h4>
+                          <ul className="ai-plan-detail-list">
+                            {aiPlanResult.localFoodSuggestions.map((food) => <li key={food.name}><strong>{food.name}</strong>{food.description && <span>{food.description}</span>}{food.note && <small>{food.note}</small>}</li>)}
+                          </ul>
+                        </section>
+                      )}
+                      {Object.values(aiPlanResult.budgetEstimate).some(Boolean) && (
+                        <section className="ai-plan-detail-section">
+                          <h4>費用の目安</h4>
+                          <dl className="ai-plan-budget">
+                            {Object.entries({ 交通: aiPlanResult.budgetEstimate.transport, 食事: aiPlanResult.budgetEstimate.food, 観光: aiPlanResult.budgetEstimate.sightseeing, 宿泊: aiPlanResult.budgetEstimate.lodging, 合計: aiPlanResult.budgetEstimate.total }).filter(([, value]) => value).map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}
+                          </dl>
+                        </section>
+                      )}
+                      {aiPlanResult.rainPlan.length > 0 && (
+                        <section className="ai-plan-detail-section">
+                          <h4>雨の日の代替案</h4>
+                          <ul className="ai-plan-detail-list">{aiPlanResult.rainPlan.map((item, index) => <li key={`${item.replace}-${item.with}-${index}`}><strong>{[item.replace, item.with].filter(Boolean).join(' → ')}</strong>{item.reason && <span>{item.reason}</span>}</li>)}</ul>
+                        </section>
+                      )}
+                      {aiPlanResult.tips.length > 0 && <ul className="ai-plan-tips">{aiPlanResult.tips.map((tip) => <li key={tip}>{tip}</li>)}</ul>}
+                    </>
+                  )}
                   <dl>
                     <div><dt>出発地</dt><dd>{planContext.departure}</dd></div>
                     <div><dt>旅先</dt><dd>{destination.prefecture} {destination.city}</dd></div>
@@ -4649,6 +4798,7 @@ function App() {
                     <div><dt>同行者・旅のスタイル</dt><dd>{planContext.selectedFilters.length > 0 ? planContext.selectedFilters.join('、') : '指定なし'}</dd></div>
                     <div><dt>旅の目的</dt><dd>{planContext.selectedTravelPurposes.length > 0 ? planContext.selectedTravelPurposes.join('、') : '指定なし'}</dd></div>
                   </dl>
+                  {aiPlanResult.disclaimer && <p className="ai-plan-notice">{aiPlanResult.disclaimer}</p>}
                 </section>
               )}
             </section>
@@ -5413,7 +5563,7 @@ function App() {
           <div className="ai-usage-settings">
             <div>
               <strong>本日のAI生成回数</strong>
-              <p>{todayAiPlanUsageCount} / {DAILY_AI_PLAN_LIMIT}回</p>
+              <p>{todayAiPlanUsageCount} / {AI_PLAN_DAILY_LIMIT}回</p>
             </div>
             <button type="button" onClick={resetAiPlanUsage} disabled={todayAiPlanUsageCount === 0}>回数をリセット</button>
           </div>
@@ -6174,7 +6324,7 @@ function App() {
               <div><dt>グルメ説明診断</dt><dd>{destination?.localFoodDetails?.length > 0 && localFoodDetails.length === 0 ? 'localFoodDetailsあり / 表示なし' : '表示対象あり'}</dd></div>
               <div><dt>長期候補診断</dt><dd>{destination?.nearbyDestinationHints?.length > 0 && currentTripSchedule.days >= 3 && !(planContext?.tripSuggestions?.length > 0) ? 'nearbyDestinationHintsあり / 長期表示なし' : '表示条件に問題なし'}</dd></div>
               <div><dt>説明強化優先</dt><dd>{featuredTouristSpots.length < 3 || localFoodDetails.length < 2 ? 'スポットまたはグルメ説明を追加確認' : '具体情報あり'}</dd></div>
-              <div><dt>本日のAI生成回数</dt><dd>{todayAiPlanUsageCount} / {DAILY_AI_PLAN_LIMIT}回</dd></div>
+              <div><dt>本日のAI生成回数</dt><dd>{todayAiPlanUsageCount} / {AI_PLAN_DAILY_LIMIT}回</dd></div>
               <div><dt>プレミアム状態</dt><dd>{isPremiumUser ? '有効（テスト）' : '無効'}</dd></div>
               <div><dt>移動情報取得状態</dt><dd>{travelStatusLabels[travelInfo.status] ?? travelInfo.status}</dd></div>
               <div><dt>TRANSIT origin候補</dt><dd>{travelInfo.transitDebug?.originCandidates?.join(' / ') || '未検索'}</dd></div>

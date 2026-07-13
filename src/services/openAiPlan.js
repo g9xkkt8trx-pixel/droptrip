@@ -1,8 +1,9 @@
 import { getOpenAiApiKey } from './openAiConfig'
+import { createAiPlanTextFallback, parseAiPlanV2 } from './aiPlanV2'
 
 const SERVER_PLAN_API_URL = '/api/generate-plan'
 const OPENAI_RESPONSES_API_URL = 'https://api.openai.com/v1/responses'
-const REQUEST_TIMEOUT_MS = 60000
+const REQUEST_TIMEOUT_MS = 35_000
 
 // 公開版のモデルはサーバー側の OPENAI_PLAN_MODEL で管理する。
 // この値はローカル直呼びフォールバック専用。
@@ -39,16 +40,27 @@ const requestServerPlan = async ({ prompt, destination, travelType, signal }) =>
   }
 
   if (!response.ok) {
-    const error = new Error(`AI plan server request failed: ${response.status}`)
+    const data = await response.json().catch(() => ({}))
+    const error = new Error('AI plan server request failed')
+    error.code = typeof data.code === 'string' ? data.code : 'AI_SERVICE_ERROR'
+    error.status = response.status
     error.serverUnavailable = response.status === 404 || response.status === 405
     throw error
   }
 
-  const data = await response.json()
+  const data = await response.json().catch(() => ({}))
   if (typeof data.plan !== 'string' || !data.plan.trim()) {
-    throw new Error('AI plan server response did not include a plan')
+    const error = new Error('AI plan server response did not include a plan')
+    error.code = 'AI_INVALID_RESPONSE'
+    throw error
   }
-  return { text: data.plan.trim(), mode: 'server', model: data.model || 'server setting' }
+  const parsedPlan = data.format === 'ai-plan-v2' ? parseAiPlanV2(data.plan) : null
+  return {
+    plan: parsedPlan ?? createAiPlanTextFallback(data.plan),
+    mode: 'server',
+    model: data.model || 'server setting',
+    format: parsedPlan ? 'ai-plan-v2' : 'fallback',
+  }
 }
 
 const canUseLocalDirectFallback = () => {
@@ -75,8 +87,21 @@ const requestLocalDirectPlan = async (prompt, storedApiKey, signal) => {
     signal,
   })
 
-  if (!response.ok) throw new Error(`OpenAI API request failed: ${response.status}`)
-  return { text: extractOutputText(await response.json()), mode: 'local-direct', model: OPENAI_PLAN_MODEL }
+  if (!response.ok) {
+    const error = new Error('OpenAI API request failed')
+    error.code = response.status === 429 ? 'AI_RATE_LIMIT' : 'AI_SERVICE_ERROR'
+    error.status = response.status
+    throw error
+  }
+
+  const text = extractOutputText(await response.json())
+  const parsedPlan = parseAiPlanV2(text)
+  return {
+    plan: parsedPlan ?? createAiPlanTextFallback(text),
+    mode: 'local-direct',
+    model: OPENAI_PLAN_MODEL,
+    format: parsedPlan ? 'ai-plan-v2' : 'fallback',
+  }
 }
 
 export const getOpenAiCommunicationModeLabel = (mode = 'server') => (
@@ -94,6 +119,9 @@ export const generateOpenAiPlan = async ({ prompt, destination, travelType, stor
       if (!error.serverUnavailable || !canUseLocalDirectFallback()) throw error
       return await requestLocalDirectPlan(prompt, storedApiKey, controller.signal)
     }
+  } catch (error) {
+    if (controller.signal.aborted && !error.code) error.code = 'AI_TIMEOUT'
+    throw error
   } finally {
     globalThis.clearTimeout(timeoutId)
   }

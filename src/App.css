@@ -2136,6 +2136,15 @@ h1 {
   opacity: 0.72;
 }
 
+.ai-plan-usage-note {
+  margin: -4px 0 12px;
+  color: #777594;
+  font-size: 0.6rem;
+  font-weight: 700;
+  line-height: 1.55;
+  text-align: center;
+}
+
 .ai-plan-loading {
   order: 72;
   display: flex;
@@ -2161,6 +2170,18 @@ h1 {
   animation: travel-spin 0.8s linear infinite;
 }
 
+.ai-plan-loading b,
+.ai-plan-loading small {
+  display: block;
+}
+
+.ai-plan-loading small {
+  margin-top: 2px;
+  color: #817eaa;
+  font-size: 0.58rem;
+  font-weight: 600;
+}
+
 .ai-plan-key-notice {
   order: 72;
   margin: -3px 0 12px;
@@ -2171,6 +2192,20 @@ h1 {
   border-radius: 11px;
   font-size: 0.66rem;
   line-height: 1.55;
+}
+
+.ai-plan-retry {
+  width: 100%;
+  margin: -3px 0 12px;
+  padding: 10px;
+  color: #605b9f;
+  background: #fff;
+  border: 1px solid #cfcbea;
+  border-radius: 10px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 800;
 }
 
 .ai-plan-card {
@@ -2244,6 +2279,114 @@ h1 {
   font-size: 0.7rem;
   line-height: 1.75;
   white-space: pre-wrap;
+}
+
+.ai-plan-overview {
+  margin: 13px 0;
+  padding: 13px;
+  color: #4e526a;
+  background: rgba(255, 255, 255, 0.84);
+  border-radius: 11px;
+  font-size: 0.7rem;
+  line-height: 1.75;
+}
+
+.ai-plan-overview p { margin: 0; }
+.ai-plan-overview p + p { margin-top: 6px; }
+.ai-plan-concept { color: #615cad; font-weight: 800; }
+
+.ai-plan-days,
+.ai-plan-detail-section { margin: 14px 0; }
+
+.ai-plan-day {
+  margin-top: 10px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid #e3e0f3;
+  border-radius: 11px;
+}
+
+.ai-plan-day h4,
+.ai-plan-detail-section h4 {
+  margin: 0 0 9px;
+  color: #56518b;
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+
+.ai-plan-day h4 span {
+  margin-right: 6px;
+  color: #8882bd;
+  font-size: 0.54rem;
+  letter-spacing: 0.08em;
+}
+
+.ai-plan-day ol,
+.ai-plan-detail-list,
+.ai-plan-tips {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ai-plan-day li {
+  min-width: 0;
+  padding: 10px 0;
+  border-top: 1px solid #e9e7f4;
+}
+
+.ai-plan-day li:first-child { border-top: 0; padding-top: 0; }
+.ai-plan-day li:last-child { padding-bottom: 0; }
+
+.ai-plan-item-heading { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+.ai-plan-item-heading time { color: #5f5aa2; font-size: 0.64rem; font-weight: 900; }
+.ai-plan-item-heading span { padding: 2px 5px; color: #7771aa; background: #efedfa; border-radius: 5px; font-size: 0.52rem; font-weight: 800; }
+.ai-plan-day li > strong { display: block; margin-top: 4px; color: #4e5174; font-size: 0.7rem; }
+.ai-plan-day li > p { margin: 4px 0 0; color: #62677d; font-size: 0.65rem; line-height: 1.6; }
+.ai-plan-day li > small,
+.ai-plan-day li > em { display: block; margin-top: 4px; color: #85829e; font-size: 0.58rem; font-style: normal; line-height: 1.5; }
+.ai-plan-day li > em { color: #6d669f; }
+.ai-plan-day li > em.caution { color: #9a6f52; }
+.ai-plan-day .trend-map-link { display: inline-block; margin-top: 7px; }
+
+.ai-plan-detail-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.ai-plan-detail-list li {
+  min-width: 0;
+  padding: 9px;
+  background: #fff;
+  border: 1px solid #e5e2f4;
+  border-radius: 9px;
+}
+
+.ai-plan-detail-list strong,
+.ai-plan-detail-list span,
+.ai-plan-detail-list small { display: block; }
+.ai-plan-detail-list strong { color: #565171; font-size: 0.64rem; }
+.ai-plan-detail-list span { margin-top: 3px; color: #73788c; font-size: 0.59rem; line-height: 1.5; }
+.ai-plan-detail-list small { margin-top: 4px; color: #756eb0; font-size: 0.56rem; }
+
+.ai-plan-budget {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+}
+
+.ai-plan-budget > div { padding: 8px; background: #fff; border-radius: 8px; }
+.ai-plan-budget dt { color: #9490b0; font-size: 0.54rem; }
+.ai-plan-budget dd { margin: 2px 0 0; color: #595575; font-size: 0.61rem; font-weight: 800; line-height: 1.45; }
+.ai-plan-tips { display: grid; gap: 5px; margin: 12px 0; }
+.ai-plan-tips li { padding-left: 13px; color: #68667d; font-size: 0.62rem; line-height: 1.55; position: relative; }
+.ai-plan-tips li::before { position: absolute; left: 0; color: #746eb4; content: '•'; }
+
+@media (max-width: 430px) {
+  .ai-plan-detail-list,
+  .ai-plan-budget { grid-template-columns: 1fr; }
 }
 
 .ai-plan-card dl {

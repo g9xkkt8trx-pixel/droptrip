@@ -9,6 +9,8 @@
     "lint": "eslint .",
     "test:destination-search": "node scripts/verify-destination-search.mjs",
     "test:photo-spots": "node scripts/verify-photo-spots.mjs",
+    "test:ai-plan-v2": "node scripts/verify-ai-plan-v2.mjs",
+    "test:ai-usage-protection": "node scripts/verify-ai-usage-protection.mjs",
     "test:production-readiness": "node scripts/verify-production-readiness.mjs",
     "preview": "vite preview"
   },
