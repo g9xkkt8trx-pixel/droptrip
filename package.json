@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
+    "test:destination-search": "node scripts/verify-destination-search.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
