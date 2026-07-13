@@ -14,20 +14,12 @@ import {
   PREMIUM_STATUS_STORAGE_KEY,
   savePremiumStatus,
 } from './services/premium'
-import destinations from './data/destinations.js'
 import {
   createDestinationSearchFields,
   dedupeDestinations,
   getDestinationSearchMatches,
   normalizeDestinationSearchText,
 } from './utils/destinationSearch.js'
-import {
-  destinationImageMap,
-  getImageUrl,
-  isValidImageUrl,
-} from './data/destinationImages'
-import { runDestinationQualityChecks } from './services/destinationQuality'
-import { analyzeDrawBalance } from './services/drawBalance'
 import {
   APP_API_MODE,
   APP_BETA_SCOPE,
@@ -36,6 +28,79 @@ import {
   APP_STAGE,
   APP_VERSION,
 } from './config/appVersion'
+
+let loadedDestinations = []
+
+const getImageUrl = (image) => {
+  if (typeof image === 'string') return image
+  return image?.src ?? image?.url ?? image?.imageUrl ?? ''
+}
+
+const isValidImageUrl = (value) => {
+  const imageUrl = getImageUrl(value)
+  if (typeof imageUrl !== 'string' || !imageUrl.trim()) return false
+  if (imageUrl.startsWith('/images/') || imageUrl.startsWith('data:image/')) return true
+  try {
+    const url = new URL(imageUrl)
+    return ['http:', 'https:'].includes(url.protocol)
+  } catch {
+    return false
+  }
+}
+
+const emptyDestinationQualityReport = {
+  passed: 0,
+  warningCount: 0,
+  globalChecks: [],
+  total: 0,
+  warnings: [],
+  imageStatus: {
+    configured: 0,
+    tagFallback: 0,
+    genericFallback: 0,
+    external: 0,
+    invalid: 0,
+    illustration: 0,
+    temporary: 0,
+    creditMissing: 0,
+    licenseUnconfirmed: 0,
+    needsReview: 0,
+  },
+  metadataStatus: {
+    destinationTotal: 0,
+    missingRegion: [],
+    missingLocalFood: [],
+    missingLocalFoodDetails: [],
+    missingTouristSpots: [],
+    touristSpotShortage: [],
+    missingCompanionFit: [],
+    missingPurposeFit: [],
+    missingStayFit: [],
+    missingNearbyHints: [],
+    priorityCompleted: 0,
+    priorityTotal: 0,
+    priorityMissing: [],
+    longStayHintShortage: [],
+  },
+  imageReuse: {
+    categoryUsage: [],
+    overusedCategoryImages: [],
+    missingMajorImages: [],
+  },
+  coverage: { tagCounts: {} },
+}
+
+const emptyDrawBalanceReport = {
+  total: 0,
+  prefectureCounts: [],
+  warnings: [],
+  tagCounts: {},
+  tripTypeCounts: {},
+  seasonCounts: {},
+  regionCounts: {},
+  stationAccessCounts: {},
+  budgetCounts: {},
+}
 
 const tripTypes = ['日帰り', '1泊2日', '自分で入力']
 const storedTripTypes = [...tripTypes, '2泊3日']
@@ -239,8 +304,6 @@ const betaTestCheckpoints = [
   'AIプラン案内は押し売り感がないか',
   'スマホで見づらい箇所はないか',
 ]
-const destinationQualityReport = runDestinationQualityChecks(destinations)
-const drawBalanceReport = analyzeDrawBalance(destinations)
 const publicSecurityChecks = [
   { label: 'APIキー全文が画面に表示されない', passed: true, note: '設定状態と末尾4文字だけを表示します。' },
   { label: '.env がGit管理対象外', passed: true, note: '.gitignoreで .env と派生ファイルを除外しています。' },
@@ -368,7 +431,7 @@ const getDistanceKm = (origin, destination) => {
 
 const inferOriginCoordinates = (departure = '') => {
   const normalized = departure.trim()
-  const destinationMatch = destinations.find((place) => (
+  const destinationMatch = loadedDestinations.find((place) => (
     normalized.includes(place.city) || normalized.includes(place.prefecture)
   ))
   if (destinationMatch?.latitude && destinationMatch?.longitude) {
@@ -519,7 +582,7 @@ const getTripScheduleScore = (destination, schedule, movementRangeEstimate) => {
   const region = getDestinationRegion(destination)
   const isIslandStay = region === '沖縄' || ['石垣市', '那覇市'].includes(destination.city)
   const longStayTags = ['温泉', '山', '海', 'グルメ', '歴史', 'カップル向け'].filter((tag) => destination.tags?.includes(tag)).length
-  const sameRegionCount = destinations.filter((place) => place.id !== destination.id && getDestinationRegion(place) === region).length
+  const sameRegionCount = loadedDestinations.filter((place) => place.id !== destination.id && getDestinationRegion(place) === region).length
   let score = schedule.days >= 5 ? 20 : 13
   score += Math.round((destination.stayFit?.[schedule.days >= 5 ? 'longStay' : 'twoNights'] ?? 0) / 7)
   if (destination.goodForLongStay && schedule.days >= 5) score += 6
@@ -597,7 +660,7 @@ const inferOriginRegion = (departure = '') => {
   const prefectureMatch = Object.keys(prefectureRegionMap).find((prefecture) => normalized.includes(prefecture))
   if (prefectureMatch) return prefectureRegionMap[prefectureMatch]
 
-  const destinationMatch = destinations.find((place) => (
+  const destinationMatch = loadedDestinations.find((place) => (
     normalized.includes(place.city) || normalized.includes(place.nearestStation ?? '')
   ))
   if (destinationMatch) return getDestinationRegion(destinationMatch)
@@ -2123,22 +2186,20 @@ const getPriorityFixedHeroReadiness = (destinationList = []) => {
 
 const getHeroWaveReadiness = (destinationList = [], waveDestinations = []) => {
   const fixedCities = new Set(getFixedHeroImageCities(destinationList))
-  const completed = waveDestinations.filter(({ id, city }) => (
-    fixedCities.has(city) || Boolean(destinationImageMap[id]?.hero?.src)
-  )).length
+  const completed = waveDestinations.filter(({ city }) => fixedCities.has(city)).length
   return `${completed}/${waveDestinations.length}`
 }
 
 const getHeroWaveMissingCities = (destinationList = [], waveDestinations = []) => {
   const fixedCities = new Set(getFixedHeroImageCities(destinationList))
   return waveDestinations
-    .filter(({ id, city }) => !fixedCities.has(city) && !destinationImageMap[id]?.hero?.src)
+    .filter(({ city }) => !fixedCities.has(city))
     .map(({ city }) => city)
 }
 
-const getHeroWaveMetadataIssueCities = (waveDestinations = []) => waveDestinations
-  .filter(({ id }) => {
-    const hero = destinationImageMap[id]?.hero
+const getHeroWaveMetadataIssueCities = (destinationList = [], waveDestinations = []) => waveDestinations
+  .filter(({ id, city }) => {
+    const hero = destinationList.find((place) => place.id === id || place.city === city)?.heroImage
     return !hero?.alt || !['confirmed', 'needs_review', 'rejected'].includes(hero.status) || hero.isIllustration !== true
   })
   .map(({ city }) => city)
@@ -2727,6 +2788,43 @@ function App() {
   const [destinationRangeFilter, setDestinationRangeFilter] = useState('auto')
   const [destinationFavoritesOnly, setDestinationFavoritesOnly] = useState(false)
   const [destinationFiltersOpen, setDestinationFiltersOpen] = useState(false)
+  const [destinations, setDestinations] = useState([])
+  const [isDestinationDataReady, setIsDestinationDataReady] = useState(false)
+  const [destinationQualityReport, setDestinationQualityReport] = useState(emptyDestinationQualityReport)
+  const [drawBalanceReport, setDrawBalanceReport] = useState(emptyDrawBalanceReport)
+
+  useEffect(() => {
+    let isActive = true
+
+    import('./data/destinations.js').then(({ default: destinationList }) => {
+      if (!isActive) return
+      loadedDestinations = destinationList
+      setDestinations(destinationList)
+      setIsDestinationDataReady(true)
+    })
+
+    return () => {
+      isActive = false
+    }
+  }, [])
+
+  useEffect(() => {
+    if (currentPage !== 'developer' || !isDestinationDataReady) return undefined
+
+    let isActive = true
+    Promise.all([
+      import('./services/destinationQuality.js'),
+      import('./services/drawBalance.js'),
+    ]).then(([qualityModule, balanceModule]) => {
+      if (!isActive) return
+      setDestinationQualityReport(qualityModule.runDestinationQualityChecks(destinations))
+      setDrawBalanceReport(balanceModule.analyzeDrawBalance(destinations))
+    })
+
+    return () => {
+      isActive = false
+    }
+  }, [currentPage, destinations, isDestinationDataReady])
 
   const favoriteDestinations = favoriteCities
     .map((city) => destinations.find((place) => place.city === city))
@@ -3646,6 +3744,10 @@ function App() {
   const chooseDestination = async (event) => {
     event?.preventDefault?.()
     if (travelRequestInFlight.current) return
+    if (!isDestinationDataReady) {
+      setNoMatchMessage('旅先データを読み込み中です。少し待ってからもう一度お試しください。')
+      return
+    }
     const normalizedDeparture = departure.trim()
 
     if (!normalizedDeparture) {
@@ -4050,8 +4152,8 @@ function App() {
           </fieldset>
 
           <p className="decide-note">思いがけない場所へ、出かけよう。</p>
-          <button type="submit" className="decide-button">
-            <span>旅先を決める</span>
+          <button type="submit" className="decide-button" disabled={!isDestinationDataReady}>
+            <span>{isDestinationDataReady ? '旅先を決める' : '旅先データを準備中'}</span>
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="m5 12 14-7-4 14-3-6-7-1Z" />
             </svg>
@@ -5453,10 +5555,10 @@ function App() {
               <div><dt>一般表示heroなし</dt><dd>{formatShortageList(getMissingFixedHeroImageCities(destinations))}</dd></div>
               <div><dt>甲府市 一般表示hero</dt><dd>{getFixedHeroImageCities(destinations).includes('甲府市') ? '表示対象' : '非表示'}</dd></div>
               <div><dt>第1弾16旅先 hero未登録</dt><dd>{formatShortageList(getHeroWaveMissingCities(destinations, firstHeroWaveDestinations))}</dd></div>
-              <div><dt>第1弾16旅先 メタ情報要確認</dt><dd>{formatShortageList(getHeroWaveMetadataIssueCities(firstHeroWaveDestinations))}</dd></div>
+              <div><dt>第1弾16旅先 メタ情報要確認</dt><dd>{formatShortageList(getHeroWaveMetadataIssueCities(destinations, firstHeroWaveDestinations))}</dd></div>
               <div><dt>第1弾16旅先 読み込み失敗</dt><dd>{formatShortageList(getHeroWaveLoadFailureCities(imageFailures, firstHeroWaveDestinations))}</dd></div>
               <div><dt>第2弾16旅先 hero未登録</dt><dd>{formatShortageList(getHeroWaveMissingCities(destinations, secondHeroWaveDestinations))}</dd></div>
-              <div><dt>第2弾16旅先 メタ情報要確認</dt><dd>{formatShortageList(getHeroWaveMetadataIssueCities(secondHeroWaveDestinations))}</dd></div>
+              <div><dt>第2弾16旅先 メタ情報要確認</dt><dd>{formatShortageList(getHeroWaveMetadataIssueCities(destinations, secondHeroWaveDestinations))}</dd></div>
               <div><dt>第2弾16旅先 読み込み失敗</dt><dd>{formatShortageList(getHeroWaveLoadFailureCities(imageFailures, secondHeroWaveDestinations))}</dd></div>
               <div><dt>結果画面hero方針</dt><dd>confirmedのdestination_fixedのみ表示 / needs_review・rejected・missing・category fallback・generic・randomは非表示</dd></div>
               <div><dt>hero category fallback残存</dt><dd>{formatShortageList(getCategoryFallbackHeroCities(destinations))}</dd></div>
