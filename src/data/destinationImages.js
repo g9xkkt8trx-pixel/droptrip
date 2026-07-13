@@ -1973,6 +1973,62 @@ const TOBA_CONFIRMED_HERO = {
   sourceType: 'ai_generated', theme: '鳥羽湾・島々・港町・海・伊勢志摩', hasEmbeddedText: false,
   reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
 }
+const TAKASHIMA_CONFIRMED_HERO = {
+  src: '/images/destinations/takashima/hero-v1.webp',
+  alt: '高島の琵琶湖とメタセコイア並木をイメージしたビジュアル',
+  type: 'destination_fixed', status: 'confirmed', isIllustration: true, isPhoto: false,
+  sourceType: 'ai_generated', theme: '琵琶湖・メタセコイア並木・山並み・湖畔', hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
+}
+const SHIMONOSEKI_CONFIRMED_HERO = {
+  src: '/images/destinations/shimonoseki/hero-v1.webp',
+  alt: '下関の関門海峡と関門橋、港町をイメージしたビジュアル',
+  type: 'destination_fixed', status: 'confirmed', isIllustration: true, isPhoto: false,
+  sourceType: 'ai_generated', theme: '関門海峡・関門橋・港町・海峡の景色', hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
+}
+const HAGI_CONFIRMED_HERO = {
+  src: '/images/destinations/hagi/hero-v1.webp',
+  alt: '萩の白壁と夏みかんのある城下町をイメージしたビジュアル',
+  type: 'destination_fixed', status: 'confirmed', isIllustration: true, isPhoto: false,
+  sourceType: 'ai_generated', theme: '城下町・白壁・夏みかん・歴史的町並み', hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
+}
+const MIYOSHI_CONFIRMED_HERO = {
+  src: '/images/destinations/miyoshi/hero-v1.webp',
+  alt: '三好の祖谷渓とかずら橋をイメージしたビジュアル',
+  type: 'destination_fixed', status: 'confirmed', isIllustration: true, isPhoto: false,
+  sourceType: 'ai_generated', theme: '祖谷渓・かずら橋・山・渓谷・秘境', hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
+}
+const SAGA_CONFIRMED_HERO = {
+  src: '/images/destinations/saga/hero-v1.webp',
+  alt: '佐賀の水辺と落ち着いた城下町をイメージしたビジュアル',
+  type: 'destination_fixed', status: 'confirmed', isIllustration: true, isPhoto: false,
+  sourceType: 'ai_generated', theme: '佐賀城周辺・平野・水辺・城下町', hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
+}
+const URESHINO_CONFIRMED_HERO = {
+  src: '/images/destinations/ureshino/hero-v1.webp',
+  alt: '嬉野の温泉街と茶畑をイメージしたビジュアル',
+  type: 'destination_fixed', status: 'confirmed', isIllustration: true, isPhoto: false,
+  sourceType: 'ai_generated', theme: '嬉野温泉・川・茶畑・湯けむり・温泉街', hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
+}
+const KITAKYUSHU_CONFIRMED_HERO = {
+  src: '/images/destinations/kitakyushu/hero-v1.webp',
+  alt: '北九州の門司港レトロと港の風景をイメージしたビジュアル',
+  type: 'destination_fixed', status: 'confirmed', isIllustration: true, isPhoto: false,
+  sourceType: 'ai_generated', theme: '門司港レトロ・赤れんが・港・海峡・歴史建築', hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
+}
+const KUSHIRO_CONFIRMED_HERO = {
+  src: '/images/destinations/kushiro/hero-v1.webp',
+  alt: '釧路湿原と蛇行する川、朝霧をイメージしたビジュアル',
+  type: 'destination_fixed', status: 'confirmed', isIllustration: true, isPhoto: false,
+  sourceType: 'ai_generated', theme: '釧路湿原・蛇行する川・朝霧・北海道の大自然', hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
+}
 
 // 旅先ごとの固定イメージ画像を追加したときは、この対応表へ登録する。
 // まず destination.id を優先し、既存データとの互換性のため city キーも残す。
@@ -2300,6 +2356,22 @@ const DESTINATION_LOCAL_IMAGES = {
   豊岡市: { hero: KINOSAKI_ONSEN_CONFIRMED_HERO },
   '山形県-尾花沢市': { hero: GINZAN_ONSEN_CONFIRMED_HERO },
   尾花沢市: { hero: GINZAN_ONSEN_CONFIRMED_HERO },
+  '滋賀県-高島市': { hero: TAKASHIMA_CONFIRMED_HERO },
+  高島市: { hero: TAKASHIMA_CONFIRMED_HERO },
+  '山口県-下関市': { hero: SHIMONOSEKI_CONFIRMED_HERO },
+  下関市: { hero: SHIMONOSEKI_CONFIRMED_HERO },
+  '山口県-萩市': { hero: HAGI_CONFIRMED_HERO },
+  萩市: { hero: HAGI_CONFIRMED_HERO },
+  '徳島県-三好市': { hero: MIYOSHI_CONFIRMED_HERO },
+  三好市: { hero: MIYOSHI_CONFIRMED_HERO },
+  '佐賀県-佐賀市': { hero: SAGA_CONFIRMED_HERO },
+  佐賀市: { hero: SAGA_CONFIRMED_HERO },
+  '佐賀県-嬉野市': { hero: URESHINO_CONFIRMED_HERO },
+  嬉野市: { hero: URESHINO_CONFIRMED_HERO },
+  '福岡県-北九州市': { hero: KITAKYUSHU_CONFIRMED_HERO },
+  北九州市: { hero: KITAKYUSHU_CONFIRMED_HERO },
+  '北海道-釧路市': { hero: KUSHIRO_CONFIRMED_HERO },
+  釧路市: { hero: KUSHIRO_CONFIRMED_HERO },
 }
 
 const DESTINATION_IMAGE_ID_ALIASES = {
@@ -2419,6 +2491,14 @@ const DESTINATION_IMAGE_ID_ALIASES = {
   '愛媛県-松山市': '松山市',
   '兵庫県-豊岡市': '豊岡市',
   '山形県-尾花沢市': '尾花沢市',
+  '滋賀県-高島市': '高島市',
+  '山口県-下関市': '下関市',
+  '山口県-萩市': '萩市',
+  '徳島県-三好市': '三好市',
+  '佐賀県-佐賀市': '佐賀市',
+  '佐賀県-嬉野市': '嬉野市',
+  '福岡県-北九州市': '北九州市',
+  '北海道-釧路市': '釧路市',
 }
 
 Object.entries(DESTINATION_IMAGE_ID_ALIASES).forEach(([id, city]) => {
