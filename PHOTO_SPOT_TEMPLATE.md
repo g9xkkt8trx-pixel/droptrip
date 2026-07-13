@@ -48,6 +48,7 @@
 ## 追加後の検証
 
 1. `npm run test:photo-spots` を実行します。
-2. `npm run lint` と `npm run build` を実行します。
-3. 該当旅先の「映え」詳細で、confirmedの項目だけが表示されることを確認します。
-4. 未登録項目の空ラベル、重複表示、検索・heroへの影響がないことを確認します。
+2. confirmedデータに`manual_verified`、確認日、公式情報源の名称とHTTP(S) URLがあることを確認します。
+3. `npm run lint` と `npm run build` を実行します。
+4. 該当旅先の「映え」詳細で、confirmedの項目だけが表示されることを確認します。
+5. 未登録項目の空ラベル、重複表示、検索・heroへの影響がないことを確認します。

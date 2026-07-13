@@ -14,17 +14,19 @@
 | `trendHighlights` | `name`、`category`、`description`、`mapQuery`、`bestFor`、`sourceStatus`、`note` | 29 | 116 | 「映え・トレンド」詳細に表示 |
 | `touristSpots` | `name`、`type`、`description`、`bestFor`、`stayTime`、`sourceStatus`、`note` | 既存データ由来 | 旅先ごとに可変 | 「行きたい場所」詳細に表示 |
 | `highlight` / `recommendText` | 文章 | 137 | 旅先ごとに1件 | 旅先紹介に使用 |
-| `photoSpots` | 専用構造 | 4 | 12 | confirmedのみを「映え」詳細に表示 |
+| `photoSpots` | 専用構造 | 8 | 24 | confirmedのみを「映え」詳細に表示 |
 
 `trendHighlights`はすべて`sourceStatus: needs_review`を初期値にしており、既存文章をconfirmedへ移行していません。既存の表示を消さないまま、公式または施設公式サイトで確認した沖縄県の4旅先・12件を専用データへ新規登録しました。
 
-## 初回confirmed登録
+## confirmed登録状況
 
-- 対象旅先: 那覇市、石垣市、宮古島市、本部町
-- confirmed: 12件
+- 対象旅先: 那覇市、石垣市、宮古島市、本部町、箱根町、京都市、小樽市、函館市
+- confirmed: 24件
 - needs_review: 0件
 - draft: 0件
-- 情報源URL: 12件。`sourceName`と`sourceUrl`は監査用に保持し、一般画面には表示しません。
+- 情報源URL: 24件。`sourceName`と`sourceUrl`は監査用に保持し、一般画面には表示しません。
+
+第1弾は沖縄県の4旅先・12件、第2弾は箱根町・京都市・小樽市・函館市の4旅先・12件です。
 
 ## 現状の課題
 
