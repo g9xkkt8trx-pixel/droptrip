@@ -1797,6 +1797,126 @@ const KAWASAKI_CONFIRMED_HERO = {
   rejectedReason: '',
 }
 
+const OTSU_CONFIRMED_HERO = {
+  src: '/images/destinations/otsu/hero-v1.webp',
+  alt: '大津の琵琶湖と湖畔の街並みをイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '琵琶湖・湖畔・水辺・山並み・街歩き',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-13',
+  rejectedReason: '',
+}
+
+const HIKONE_CONFIRMED_HERO = {
+  src: '/images/destinations/hikone/hero-v1.webp',
+  alt: '彦根城と桜、城下町の風景をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '彦根城・桜・城下町・琵琶湖周辺・歴史散策',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-13',
+  rejectedReason: '',
+}
+
+const OMIHACHIMAN_CONFIRMED_HERO = {
+  src: '/images/destinations/omihachiman/hero-v1.webp',
+  alt: '近江八幡の八幡堀と水郷の町並みをイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '八幡堀・水郷・白壁の町並み・舟・歴史散策',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-13',
+  rejectedReason: '',
+}
+
+const NAGAHAMA_CONFIRMED_HERO = {
+  src: '/images/destinations/nagahama/hero-v1.webp',
+  alt: '長浜の古い町並みと黒壁スクエアをイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '黒壁スクエア・古い町並み・北国街道・街歩き',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-13',
+  rejectedReason: '',
+}
+
+const UJI_CONFIRMED_HERO = {
+  src: '/images/destinations/uji/hero-v1.webp',
+  alt: '宇治川と橋、落ち着いた茶のまちをイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '宇治川・橋・茶のまち・寺社・水辺散策',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-13',
+  rejectedReason: '',
+}
+
+const MIYAZU_CONFIRMED_HERO = {
+  src: '/images/destinations/miyazu/hero-v1.webp',
+  alt: '宮津の天橋立と海辺の景色をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '天橋立・海辺・松並木・日本海・絶景',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-13',
+  rejectedReason: '',
+}
+
+const MAIZURU_CONFIRMED_HERO = {
+  src: '/images/destinations/maizuru/hero-v1.webp',
+  alt: '舞鶴の港町と海辺の風景をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '港町・舞鶴湾・艦船・海辺・赤れんが',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-13',
+  rejectedReason: '',
+}
+
+const TAMBASASAYAMA_CONFIRMED_HERO = {
+  src: '/images/destinations/tambasasayama/hero-v1.webp',
+  alt: '丹波篠山の城下町と山あいの町並みをイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '城下町・古い町並み・山あい・丹波篠山・街歩き',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-13',
+  rejectedReason: '',
+}
+
 // 旅先ごとの固定イメージ画像を追加したときは、この対応表へ登録する。
 // まず destination.id を優先し、既存データとの互換性のため city キーも残す。
 const DESTINATION_LOCAL_IMAGES = {
@@ -1944,6 +2064,22 @@ const DESTINATION_LOCAL_IMAGES = {
   高山市: { hero: TAKAYAMA_CONFIRMED_HERO },
   '三重県-伊勢市': { hero: ISE_CONFIRMED_HERO },
   伊勢市: { hero: ISE_CONFIRMED_HERO },
+  '滋賀県-大津市': { hero: OTSU_CONFIRMED_HERO },
+  大津市: { hero: OTSU_CONFIRMED_HERO },
+  '滋賀県-彦根市': { hero: HIKONE_CONFIRMED_HERO },
+  彦根市: { hero: HIKONE_CONFIRMED_HERO },
+  '滋賀県-近江八幡市': { hero: OMIHACHIMAN_CONFIRMED_HERO },
+  近江八幡市: { hero: OMIHACHIMAN_CONFIRMED_HERO },
+  '滋賀県-長浜市': { hero: NAGAHAMA_CONFIRMED_HERO },
+  長浜市: { hero: NAGAHAMA_CONFIRMED_HERO },
+  '京都府-宇治市': { hero: UJI_CONFIRMED_HERO },
+  宇治市: { hero: UJI_CONFIRMED_HERO },
+  '京都府-宮津市': { hero: MIYAZU_CONFIRMED_HERO },
+  宮津市: { hero: MIYAZU_CONFIRMED_HERO },
+  '京都府-舞鶴市': { hero: MAIZURU_CONFIRMED_HERO },
+  舞鶴市: { hero: MAIZURU_CONFIRMED_HERO },
+  '兵庫県-丹波篠山市': { hero: TAMBASASAYAMA_CONFIRMED_HERO },
+  丹波篠山市: { hero: TAMBASASAYAMA_CONFIRMED_HERO },
   白浜町: { hero: '/images/destinations/shirahama-hero.jpg' },
   '大阪府-大阪市': { hero: OSAKA_CONFIRMED_HERO },
   大阪市: { hero: OSAKA_CONFIRMED_HERO },
