@@ -1,5 +1,17 @@
 export const PHOTO_SPOT_STATUSES = new Set(['confirmed', 'needs_review', 'draft'])
 
+const createConfirmedPhotoSpot = (spot) => ({
+  appealTags: [],
+  bestTime: '',
+  bestSeason: '',
+  weatherNote: '',
+  accessNote: '',
+  sourceStatus: 'manual_verified',
+  sourceCheckedAt: '2026-07-13',
+  status: 'confirmed',
+  ...spot,
+})
+
 // Confirmed entries are added only after a source check. Existing trendHighlights
 // remain in their current data source until they meet this dedicated schema.
 export const photoSpots = [
@@ -435,6 +447,36 @@ export const photoSpots = [
     sourceUrl: 'https://www.hakodate.travel/en/sightseeing-spots/',
     status: 'confirmed',
   },
+  createConfirmedPhotoSpot({ id: 'yokohama-red-brick-warehouse', destinationId: '神奈川県-横浜市', name: '横浜赤レンガ倉庫', category: '港・夜景', summary: '歴史的な赤レンガ建築と港の水辺がつくる景観を楽しめます。', appealTags: ['赤レンガ', '港', '歴史建築'], mapQuery: '神奈川県横浜市 横浜赤レンガ倉庫', sourceName: '横浜赤レンガ倉庫 公式サイト', sourceUrl: 'https://www.yokohama-akarenga.jp/about/' }),
+  createConfirmedPhotoSpot({ id: 'yokohama-osanbashi', destinationId: '神奈川県-横浜市', name: '横浜港大さん橋国際客船ターミナル', category: '港・夜景', summary: '屋上の広いデッキから、横浜港と周辺の都市景観を見渡せます。', appealTags: ['港', 'デッキ', '都市景観'], mapQuery: '神奈川県横浜市 横浜港大さん橋国際客船ターミナル', sourceName: '横浜港大さん橋国際客船ターミナル 公式サイト', sourceUrl: 'https://osanbashi.jp/' }),
+  createConfirmedPhotoSpot({ id: 'yokohama-yamashita-park', destinationId: '神奈川県-横浜市', name: '山下公園', category: '港・夜景', summary: '横浜港を望む水辺の公園で、海と港町の景観を楽しめます。', appealTags: ['公園', '海辺', '港'], mapQuery: '神奈川県横浜市 山下公園', sourceName: '横浜市公式ホームページ', sourceUrl: 'https://www.city.yokohama.lg.jp/naka/kurashi/machizukuri_kankyo/machizukuri/rekiken/yamashita.html' }),
+  createConfirmedPhotoSpot({ id: 'sapporo-moerenuma-park', destinationId: '北海道-札幌市', name: 'モエレ沼公園', category: '湖・自然', summary: 'イサム・ノグチの設計による、地形とアートが調和した公園です。', appealTags: ['公園', 'アート', '自然'], mapQuery: '北海道札幌市 モエレ沼公園', sourceName: 'モエレ沼公園 公式サイト', sourceUrl: 'https://moerenumapark.jp/' }),
+  createConfirmedPhotoSpot({ id: 'sapporo-mt-moiwa', destinationId: '北海道-札幌市', name: '藻岩山', category: '展望台', summary: '札幌市街と周辺の山並みを望める山の展望地です。', appealTags: ['展望', '夜景', '山'], weatherNote: '天候によって眺望が変わるため、訪問前に公式情報を確認してください。', mapQuery: '北海道札幌市 藻岩山', sourceName: '札幌もいわ山ロープウェイ 公式サイト', sourceUrl: 'https://mt-moiwa.jp/' }),
+  createConfirmedPhotoSpot({ id: 'sapporo-tv-tower', destinationId: '北海道-札幌市', name: 'さっぽろテレビ塔', category: '展望台', summary: '大通公園と札幌市街を見渡せる展望施設です。', appealTags: ['展望', '大通公園', '都市景観'], mapQuery: '北海道札幌市 さっぽろテレビ塔', sourceName: 'さっぽろテレビ塔 公式サイト', sourceUrl: 'https://www.tv-tower.co.jp/' }),
+  createConfirmedPhotoSpot({ id: 'kushiro-wetland', destinationId: '北海道-釧路市', name: '釧路湿原', category: '湖・自然', summary: '釧路湿原国立公園を代表する広大な湿地景観です。見学地点により眺めが異なります。', appealTags: ['湿原', '自然', '釧路川'], mapQuery: '北海道釧路市 釧路湿原国立公園', sourceName: '環境省 釧路湿原国立公園', sourceUrl: 'https://www.env.go.jp/park/kushiro/' }),
+  createConfirmedPhotoSpot({ id: 'kushiro-nusamai-bridge', destinationId: '北海道-釧路市', name: '幣舞橋', category: '港・夜景', summary: '釧路川に架かる橋から、水辺と市街地の景観を楽しめます。', appealTags: ['橋', '釧路川', '水辺'], mapQuery: '北海道釧路市 幣舞橋', sourceName: '釧路市公式ホームページ', sourceUrl: 'https://www.city.kushiro.lg.jp/' }),
+  createConfirmedPhotoSpot({ id: 'kushiro-wetland-observatory', destinationId: '北海道-釧路市', name: '釧路市湿原展望台', category: '展望台', summary: '釧路湿原を見渡す高台にある展望と展示の施設です。', appealTags: ['湿原', '展望', '自然'], mapQuery: '北海道釧路市 釧路市湿原展望台', sourceName: '釧路市公式ホームページ', sourceUrl: 'https://www.city.kushiro.lg.jp/shisei/shisetsu/1007655/1007656/1007869.html' }),
+  createConfirmedPhotoSpot({ id: 'amakusa-sakitsu-village', destinationId: '熊本県-天草市', name: '崎津集落', category: '歴史街区', summary: '海辺に教会と集落の景観が残る、天草の歴史を伝える地区です。', appealTags: ['集落', '海辺', '歴史'], mapQuery: '熊本県天草市 崎津集落', sourceName: '天草市公式 世界文化遺産 天草の崎津集落', sourceUrl: 'https://www.city.amakusa.kumamoto.jp/sakitsu-sekai/kiji0039/index.html' }),
+  createConfirmedPhotoSpot({ id: 'amakusa-oe-church', destinationId: '熊本県-天草市', name: '大江天主堂', category: '歴史・文化', summary: '天草の丘に建つ教会建築と周辺の景観を楽しめます。', appealTags: ['教会', '建築', '天草'], mapQuery: '熊本県天草市 大江天主堂', sourceName: '天草宝島観光協会 公式サイト', sourceUrl: 'https://www.t-island.jp/' }),
+  createConfirmedPhotoSpot({ id: 'amakusa-kuratake-shrine', destinationId: '熊本県-天草市', name: '倉岳神社', category: '神社・歴史', summary: '倉岳山頂付近にある神社と、天草の山海を望む景観が特徴です。', appealTags: ['神社', '山', '展望'], weatherNote: '山頂付近への交通・道路状況は変動するため、最新の公式情報を確認してください。', mapQuery: '熊本県天草市 倉岳神社', sourceName: '天草宝島観光協会 公式サイト', sourceUrl: 'https://www.t-island.jp/' }),
+  createConfirmedPhotoSpot({ id: 'shirahama-shirarahama', destinationId: '和歌山県-白浜町', name: '白良浜', category: 'ビーチ', summary: '白い砂浜と青い海が広がる、白浜を代表する海辺の景観です。', appealTags: ['砂浜', '海', '白浜'], mapQuery: '和歌山県白浜町 白良浜', sourceName: '南紀白浜観光協会 公式サイト', sourceUrl: 'https://www.nankishirahama.jp/' }),
+  createConfirmedPhotoSpot({ id: 'shirahama-engetsuto', destinationId: '和歌山県-白浜町', name: '円月島', category: '港・夜景', summary: '海に浮かぶ岩の島を、安全な見学場所から眺められる景観です。', appealTags: ['海', '岩島', '夕景'], weatherNote: '岩場への危険な接近や立入はせず、安全な場所から見学してください。', mapQuery: '和歌山県白浜町 円月島', sourceName: '南紀白浜観光協会 公式サイト', sourceUrl: 'https://www.nankishirahama.jp/' }),
+  createConfirmedPhotoSpot({ id: 'shirahama-sandanbeki', destinationId: '和歌山県-白浜町', name: '三段壁', category: '湖・自然', summary: '海岸の断崖と海がつくる、南紀白浜の地形景観を見られます。', appealTags: ['断崖', '海岸', '海'], weatherNote: '強風・高波時は海岸付近での撮影を避けてください。', mapQuery: '和歌山県白浜町 三段壁', sourceName: '南紀白浜観光協会 公式サイト', sourceUrl: 'https://www.nankishirahama.jp/' }),
+  createConfirmedPhotoSpot({ id: 'toyama-kansui-park', destinationId: '富山県-富山市', name: '富岩運河環水公園', category: '湖・自然', summary: '富岩運河の水辺と橋、開放的な芝生が広がる公園です。', appealTags: ['運河', '水辺', '公園'], mapQuery: '富山県富山市 富岩運河環水公園', sourceName: '富山県公式観光サイト とやま観光ナビ', sourceUrl: 'https://www.info-toyama.com/' }),
+  createConfirmedPhotoSpot({ id: 'toyama-glass-art-museum', destinationId: '富山県-富山市', name: '富山市ガラス美術館', category: '歴史・文化', summary: 'ガラス作品と建築空間を鑑賞できる美術館です。', appealTags: ['ガラス', '美術館', '建築'], weatherNote: '営業時間、料金、撮影ルールは訪問前に公式案内を確認してください。', mapQuery: '富山県富山市 富山市ガラス美術館', sourceName: '富山市ガラス美術館 公式サイト', sourceUrl: 'https://toyama-glass-art-museum.jp/' }),
+  createConfirmedPhotoSpot({ id: 'toyama-iwase-district', destinationId: '富山県-富山市', name: '岩瀬地区', category: '歴史街区', summary: '北前船で栄えた港町の歴史的な町並みを歩ける地区です。', appealTags: ['港町', '北前船', '町並み'], mapQuery: '富山県富山市 岩瀬地区', sourceName: '富山県公式観光サイト とやま観光ナビ', sourceUrl: 'https://www.info-toyama.com/' }),
+  createConfirmedPhotoSpot({ id: 'sasebo-tenkaimine', destinationId: '長崎県-佐世保市', name: '展海峰', category: '展望台', summary: '九十九島の島々と海を望める展望地です。', appealTags: ['九十九島', '展望', '海'], weatherNote: '天候によって眺望が変わるため、訪問前に公式情報を確認してください。', mapQuery: '長崎県佐世保市 展海峰', sourceName: '佐世保観光コンベンション協会 公式サイト', sourceUrl: 'https://www.sasebo99.com/' }),
+  createConfirmedPhotoSpot({ id: 'sasebo-ishidake-observatory', destinationId: '長崎県-佐世保市', name: '石岳展望台', category: '展望台', summary: '九十九島と海の広がりを望める展望地です。', appealTags: ['九十九島', '展望', '海'], weatherNote: '天候によって眺望が変わるため、訪問前に公式情報を確認してください。', mapQuery: '長崎県佐世保市 石岳展望台', sourceName: '佐世保観光コンベンション協会 公式サイト', sourceUrl: 'https://www.sasebo99.com/' }),
+  createConfirmedPhotoSpot({ id: 'sasebo-huis-ten-bosch', destinationId: '長崎県-佐世保市', name: 'ハウステンボス', category: '歴史・文化', summary: '建築や水辺、季節ごとの演出を楽しめるテーマパークです。', appealTags: ['建築', '水辺', '街並み'], weatherNote: '営業時間、料金、撮影ルールは訪問前に公式案内を確認してください。', mapQuery: '長崎県佐世保市 ハウステンボス', sourceName: 'ハウステンボス 公式サイト', sourceUrl: 'https://www.huistenbosch.co.jp/' }),
+  createConfirmedPhotoSpot({ id: 'yamaguchi-rurikoji-pagoda', destinationId: '山口県-山口市', name: '瑠璃光寺五重塔', category: '寺院・歴史', summary: '瑠璃光寺境内に立つ五重塔と池、緑の景観を楽しめます。', appealTags: ['五重塔', '寺院', '池'], mapQuery: '山口県山口市 瑠璃光寺五重塔', sourceName: '山口市公式観光情報', sourceUrl: 'https://yamaguchi-city.jp/' }),
+  createConfirmedPhotoSpot({ id: 'yamaguchi-ichinosaka-river', destinationId: '山口県-山口市', name: '一の坂川', category: '湖・自然', summary: '山口市中心部を流れる川沿いの、水辺と街並みの景観です。', appealTags: ['川', '水辺', '街並み'], mapQuery: '山口県山口市 一の坂川', sourceName: '山口市公式観光情報', sourceUrl: 'https://yamaguchi-city.jp/' }),
+  createConfirmedPhotoSpot({ id: 'yamaguchi-joeiji-sesshu-garden', destinationId: '山口県-山口市', name: '常栄寺雪舟庭', category: '庭園', summary: '常栄寺にある池泉回遊式庭園で、庭園と山並みの景観を楽しめます。', appealTags: ['庭園', '池', '寺院'], mapQuery: '山口県山口市 常栄寺雪舟庭', sourceName: '山口市公式観光情報', sourceUrl: 'https://yamaguchi-city.jp/' }),
+  createConfirmedPhotoSpot({ id: 'akashi-park', destinationId: '兵庫県-明石市', name: '明石公園', category: '歴史・文化', summary: '明石城跡を含む、池と緑が広がる歴史公園です。', appealTags: ['城跡', '公園', '池'], mapQuery: '兵庫県明石市 明石公園', sourceName: '兵庫県立明石公園 公式サイト', sourceUrl: 'https://hyogo-park.or.jp/akashi/' }),
+  createConfirmedPhotoSpot({ id: 'akashi-okura-coast', destinationId: '兵庫県-明石市', name: '大蔵海岸', category: 'ビーチ', summary: '明石海峡大橋方面と海を望める海辺の景観です。', appealTags: ['海', '明石海峡大橋', '海岸'], mapQuery: '兵庫県明石市 大蔵海岸', sourceName: '明石市公式ホームページ', sourceUrl: 'https://www.city.akashi.lg.jp/' }),
+  createConfirmedPhotoSpot({ id: 'akashi-uonotana-market', destinationId: '兵庫県-明石市', name: '魚の棚商店街', category: '歴史街区', summary: '鮮魚店などが並ぶ、明石の食文化を感じられる商店街です。', appealTags: ['商店街', '食文化', '街歩き'], weatherNote: '店舗や通行者を妨げる撮影は控えてください。', mapQuery: '兵庫県明石市 魚の棚商店街', sourceName: '魚の棚商店街 公式サイト', sourceUrl: 'https://www.uonotana.or.jp/' }),
+  createConfirmedPhotoSpot({ id: 'toba-observatory', destinationId: '三重県-鳥羽市', name: '鳥羽展望台', category: '展望台', summary: '海とリアス海岸を望める、鳥羽の展望地です。', appealTags: ['展望', '海', '海岸線'], weatherNote: '天候によって眺望が変わるため、訪問前に公式情報を確認してください。', mapQuery: '三重県鳥羽市 鳥羽展望台', sourceName: '鳥羽市観光協会 公式サイト', sourceUrl: 'https://www.tobakanko.jp/' }),
+  createConfirmedPhotoSpot({ id: 'toba-mikimoto-pearl-island', destinationId: '三重県-鳥羽市', name: 'ミキモト真珠島', category: '歴史・文化', summary: '真珠に関する展示と、鳥羽湾に面した島の景観を楽しめます。', appealTags: ['真珠', '展示', '鳥羽湾'], weatherNote: '営業時間、料金、撮影ルールは訪問前に公式案内を確認してください。', mapQuery: '三重県鳥羽市 ミキモト真珠島', sourceName: 'ミキモト真珠島 公式サイト', sourceUrl: 'https://www.mikimoto-pearl-museum.co.jp/' }),
+  createConfirmedPhotoSpot({ id: 'toba-aquarium', destinationId: '三重県-鳥羽市', name: '鳥羽水族館', category: '水族館', summary: '多様な海や川の生きものを展示する水族館です。', appealTags: ['水族館', '生きもの', '屋内'], weatherNote: '営業時間、料金、撮影ルールは訪問前に公式案内を確認してください。', mapQuery: '三重県鳥羽市 鳥羽水族館', sourceName: '鳥羽水族館 公式サイト', sourceUrl: 'https://aquarium.co.jp/' }),
 ]
 
 const getDestinationKeys = (destination = {}) => new Set([
