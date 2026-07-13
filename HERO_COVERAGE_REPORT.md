@@ -4,16 +4,16 @@
 
 ## 結論
 
-`src/data/destinations.js` の実際の旅先は137件です。従来の120件という想定とは一致しません。内訳は、表示可能なconfirmed heroが123件、ファイルはあるがレビュー待ちが3件、画像未作成が11件です。
+`src/data/destinations.js` の実際の旅先は137件です。従来の120件という想定とは一致しません。内訳は、表示可能なconfirmed heroが125件、ファイルはあるがレビュー待ちが1件、画像未作成が11件です。
 
 | 項目 | 件数 | 判定 |
 |---|---:|---|
 | 正式旅先総数 | 137 | 同一キーの兵庫県-豊岡市が2件含まれる |
-| confirmed hero | 123 | 実ファイルあり、`shouldShowHero: true` |
-| shouldShowHero true | 123 | confirmed数と一致 |
+| confirmed hero | 125 | 実ファイルあり、`shouldShowHero: true` |
+| shouldShowHero true | 125 | confirmed数と一致 |
 | registration_fix_needed | 0 | キー不一致は検出されず |
 | file_missing | 0 | 登録済み参照の欠落なし |
-| needs_review | 3 | 松島町・白浜町・那覇市。一般表示なし |
+| needs_review | 1 | 白浜町。一般表示なし |
 | image_missing | 11 | 新規画像作成が必要 |
 | 旅先データ重複 | 1 | 兵庫県-豊岡市が2行 |
 | 互換エイリアス登録 | 124組 | `都道府県-市区町村` と `市区町村` の意図的な重複 |
@@ -21,7 +21,7 @@
 
 ## 表示条件
 
-一般画面で表示するのは、`status === "confirmed"`、`type === "destination_fixed"`、画像URLとaltがあり、`isIllustration` または `isPhoto` がtrue、かつ `hasEmbeddedText !== true` のheroだけです。確認済みの123件はいずれもこの条件を満たし、参照先ファイルも `public` 配下に存在します。古い `hero.svg`、カテゴリ・汎用・ランダムfallbackは解決結果に含まれません。
+一般画面で表示するのは、`status === "confirmed"`、`type === "destination_fixed"`、画像URLとaltがあり、`isIllustration` または `isPhoto` がtrue、かつ `hasEmbeddedText !== true` のheroだけです。確認済みの125件はいずれもこの条件を満たし、参照先ファイルも `public` 配下に存在します。古い `hero.svg`、カテゴリ・汎用・ランダムfallbackは解決結果に含まれません。
 
 ## 本当に画像作成が必要な旅先（11件）
 
@@ -31,9 +31,7 @@
 
 | 正式キー | src | 状態 | 表示しない理由 |
 |---|---|---|---|
-| 宮城県-松島町 | `/images/destinations/matsushima-hero.jpg` | needs_review | confirmed前のため |
 | 和歌山県-白浜町 | `/images/destinations/shirahama-hero.jpg` | needs_review | confirmed前のため |
-| 沖縄県-那覇市 | `/images/destinations/naha-hero.jpg` | needs_review | confirmed前のため |
 
 ## 登録修正だけで解決できた旅先
 
@@ -53,6 +51,8 @@
 高島市、下関市、萩市、三好市（徳島県）、佐賀市、嬉野市、北九州市、釧路市の文字なしheroもconfirmed登録しました。8件すべての`shouldShowHero`はtrueです。
 
 登別市、平泉町、足利市、上山市、酒田市、花巻市、八戸市、郡山市の文字なしheroもconfirmed登録しました。8件すべての`shouldShowHero`はtrueです。
+
+那覇市・松島町の既存needs_review候補をWebP confirmed assetへ更新しました。白石町（佐賀県）、南さつま市、諫早市、大村市、かほく市、羽咋市は、現行の正式旅先データにないため、指定キーで先行confirmed登録しています。正式集計には含めていません。
 
 ## 開発者ページで確認する項目
 

@@ -2077,6 +2077,54 @@ const KORIYAMA_CONFIRMED_HERO = {
   sourceType: 'ai_generated', theme: '市街地・公園・水辺・山並み・福島県中部の都市景観', hasEmbeddedText: false,
   reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
 }
+const NAHA_CONFIRMED_HERO = {
+  src: '/images/destinations/naha/hero-v1.webp', alt: '那覇の琉球建築と石畳、南国の街並みをイメージしたビジュアル',
+  type: 'destination_fixed', status: 'confirmed', isIllustration: true, isPhoto: false,
+  sourceType: 'ai_generated', theme: '首里城周辺・琉球建築・石畳・南国の青空', hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
+}
+const MATSUSHIMA_MIYAGI_CONFIRMED_HERO = {
+  src: '/images/destinations/matsushima-miyagi/hero-v1.webp', alt: '松島湾の島々と松、遊覧船をイメージしたビジュアル',
+  type: 'destination_fixed', status: 'confirmed', isIllustration: true, isPhoto: false,
+  sourceType: 'ai_generated', theme: '松島湾・島々・松・遊覧船・朝夕の光', hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
+}
+const SHIROISHI_SAGA_CONFIRMED_HERO = {
+  src: '/images/destinations/shiroishi-saga/hero-v1.webp', alt: '佐賀県白石町の田園と水路、有明海をイメージしたビジュアル',
+  type: 'destination_fixed', status: 'confirmed', isIllustration: true, isPhoto: false,
+  sourceType: 'ai_generated', theme: '佐賀平野・有明海・田園・水路・農村景観', hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
+}
+const MINAMISATSUMA_CONFIRMED_HERO = {
+  src: '/images/destinations/minamisatsuma/hero-v1.webp', alt: '南さつまの海岸線と夕景をイメージしたビジュアル',
+  type: 'destination_fixed', status: 'confirmed', isIllustration: true, isPhoto: false,
+  sourceType: 'ai_generated', theme: '吹上浜・リアス海岸・海岸線・夕景・南薩摩の自然', hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
+}
+const ISAHAYA_CONFIRMED_HERO = {
+  src: '/images/destinations/isahaya/hero-v1.webp', alt: '諫早の眼鏡橋と公園の水辺をイメージしたビジュアル',
+  type: 'destination_fixed', status: 'confirmed', isIllustration: true, isPhoto: false,
+  sourceType: 'ai_generated', theme: '眼鏡橋・諫早公園・水辺・落ち着いた街並み', hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
+}
+const OMURA_CONFIRMED_HERO = {
+  src: '/images/destinations/omura/hero-v1.webp', alt: '大村湾と桜並木、海辺の公園をイメージしたビジュアル',
+  type: 'destination_fixed', status: 'confirmed', isIllustration: true, isPhoto: false,
+  sourceType: 'ai_generated', theme: '大村湾・桜並木・海辺の公園・穏やかな湾岸', hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
+}
+const KAHOKU_ISHIKAWA_CONFIRMED_HERO = {
+  src: '/images/destinations/kahoku-ishikawa/hero-v1.webp', alt: 'かほくの日本海と砂丘、夕景をイメージしたビジュアル',
+  type: 'destination_fixed', status: 'confirmed', isIllustration: true, isPhoto: false,
+  sourceType: 'ai_generated', theme: '日本海・海岸・砂丘・夕日・石川県の海辺', hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
+}
+const HAKUI_CONFIRMED_HERO = {
+  src: '/images/destinations/hakui/hero-v1.webp', alt: '羽咋の千里浜と日本海の夕景をイメージしたビジュアル',
+  type: 'destination_fixed', status: 'confirmed', isIllustration: true, isPhoto: false,
+  sourceType: 'ai_generated', theme: '千里浜なぎさドライブウェイ・日本海・砂浜・夕景', hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
+}
 
 // 旅先ごとの固定イメージ画像を追加したときは、この対応表へ登録する。
 // まず destination.id を優先し、既存データとの互換性のため city キーも残す。
@@ -2193,7 +2241,8 @@ const DESTINATION_LOCAL_IMAGES = {
   調布市: { hero: CHOFU_CONFIRMED_HERO },
   '神奈川県-川崎市': { hero: KAWASAKI_CONFIRMED_HERO },
   川崎市: { hero: KAWASAKI_CONFIRMED_HERO },
-  松島町: { hero: '/images/destinations/matsushima-hero.jpg' },
+  '宮城県-松島町': { hero: MATSUSHIMA_MIYAGI_CONFIRMED_HERO },
+  松島町: { hero: MATSUSHIMA_MIYAGI_CONFIRMED_HERO },
   '宮城県-仙台市': {
     hero: SENDAI_CONFIRMED_HERO,
   },
@@ -2212,7 +2261,8 @@ const DESTINATION_LOCAL_IMAGES = {
   広島市: { hero: HIROSHIMA_CONFIRMED_HERO },
   '広島県-廿日市市': { hero: MIYAJIMA_CONFIRMED_HERO },
   廿日市市: { hero: MIYAJIMA_CONFIRMED_HERO },
-  那覇市: { hero: '/images/destinations/naha-hero.jpg' },
+  '沖縄県-那覇市': { hero: NAHA_CONFIRMED_HERO },
+  那覇市: { hero: NAHA_CONFIRMED_HERO },
   '沖縄県-石垣市': {
     hero: ISHIGAKI_CONFIRMED_HERO,
   },
@@ -2436,6 +2486,18 @@ const DESTINATION_LOCAL_IMAGES = {
   八戸市: { hero: HACHINOHE_CONFIRMED_HERO },
   '福島県-郡山市': { hero: KORIYAMA_CONFIRMED_HERO },
   郡山市: { hero: KORIYAMA_CONFIRMED_HERO },
+  '佐賀県-白石町': { hero: SHIROISHI_SAGA_CONFIRMED_HERO },
+  白石町: { hero: SHIROISHI_SAGA_CONFIRMED_HERO },
+  '鹿児島県-南さつま市': { hero: MINAMISATSUMA_CONFIRMED_HERO },
+  南さつま市: { hero: MINAMISATSUMA_CONFIRMED_HERO },
+  '長崎県-諫早市': { hero: ISAHAYA_CONFIRMED_HERO },
+  諫早市: { hero: ISAHAYA_CONFIRMED_HERO },
+  '長崎県-大村市': { hero: OMURA_CONFIRMED_HERO },
+  大村市: { hero: OMURA_CONFIRMED_HERO },
+  '石川県-かほく市': { hero: KAHOKU_ISHIKAWA_CONFIRMED_HERO },
+  かほく市: { hero: KAHOKU_ISHIKAWA_CONFIRMED_HERO },
+  '石川県-羽咋市': { hero: HAKUI_CONFIRMED_HERO },
+  羽咋市: { hero: HAKUI_CONFIRMED_HERO },
 }
 
 const DESTINATION_IMAGE_ID_ALIASES = {
@@ -2571,6 +2633,12 @@ const DESTINATION_IMAGE_ID_ALIASES = {
   '岩手県-花巻市': '花巻市',
   '青森県-八戸市': '八戸市',
   '福島県-郡山市': '郡山市',
+  '佐賀県-白石町': '白石町',
+  '鹿児島県-南さつま市': '南さつま市',
+  '長崎県-諫早市': '諫早市',
+  '長崎県-大村市': '大村市',
+  '石川県-かほく市': 'かほく市',
+  '石川県-羽咋市': '羽咋市',
 }
 
 Object.entries(DESTINATION_IMAGE_ID_ALIASES).forEach(([id, city]) => {
