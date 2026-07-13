@@ -2029,6 +2029,54 @@ const KUSHIRO_CONFIRMED_HERO = {
   sourceType: 'ai_generated', theme: '釧路湿原・蛇行する川・朝霧・北海道の大自然', hasEmbeddedText: false,
   reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
 }
+const NOBORIBETSU_CONFIRMED_HERO = {
+  src: '/images/destinations/noboribetsu/hero-v1.webp', alt: '登別の地獄谷と湯けむりの火山景観をイメージしたビジュアル',
+  type: 'destination_fixed', status: 'confirmed', isIllustration: true, isPhoto: false,
+  sourceType: 'ai_generated', theme: '登別地獄谷・火山地形・湯けむり・北海道の山あい', hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
+}
+const HIRAIZUMI_CONFIRMED_HERO = {
+  src: '/images/destinations/hiraizumi/hero-v1.webp', alt: '平泉の寺院と浄土庭園をイメージしたビジュアル',
+  type: 'destination_fixed', status: 'confirmed', isIllustration: true, isPhoto: false,
+  sourceType: 'ai_generated', theme: '寺院・浄土庭園・池・杉林・歴史景観', hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
+}
+const ASHIKAGA_CONFIRMED_HERO = {
+  src: '/images/destinations/ashikaga/hero-v1.webp', alt: '足利の歴史建築と石畳の町並みをイメージしたビジュアル',
+  type: 'destination_fixed', status: 'confirmed', isIllustration: true, isPhoto: false,
+  sourceType: 'ai_generated', theme: '足利学校・歴史建築・石畳・古い町並み', hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
+}
+const KAMINOYAMA_CONFIRMED_HERO = {
+  src: '/images/destinations/kaminoyama/hero-v1.webp', alt: '上山城と温泉街、蔵王連峰をイメージしたビジュアル',
+  type: 'destination_fixed', status: 'confirmed', isIllustration: true, isPhoto: false,
+  sourceType: 'ai_generated', theme: '上山城・温泉街・蔵王連峰・城下町', hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
+}
+const SAKATA_CONFIRMED_HERO = {
+  src: '/images/destinations/sakata/hero-v1.webp', alt: '酒田の山居倉庫と水辺の港町をイメージしたビジュアル',
+  type: 'destination_fixed', status: 'confirmed', isIllustration: true, isPhoto: false,
+  sourceType: 'ai_generated', theme: '山居倉庫・ケヤキ並木・水辺・港町', hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
+}
+const HANAMAKI_CONFIRMED_HERO = {
+  src: '/images/destinations/hanamaki/hero-v1.webp', alt: '花巻の田園と山並み、川の自然風景をイメージしたビジュアル',
+  type: 'destination_fixed', status: 'confirmed', isIllustration: true, isPhoto: false,
+  sourceType: 'ai_generated', theme: '田園・山並み・川・岩手の自然・宮沢賢治の世界観', hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
+}
+const HACHINOHE_CONFIRMED_HERO = {
+  src: '/images/destinations/hachinohe/hero-v1.webp', alt: '八戸の種差海岸と岩礁、青い海をイメージしたビジュアル',
+  type: 'destination_fixed', status: 'confirmed', isIllustration: true, isPhoto: false,
+  sourceType: 'ai_generated', theme: '種差海岸・岩礁・草原・港・青い海', hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
+}
+const KORIYAMA_CONFIRMED_HERO = {
+  src: '/images/destinations/koriyama/hero-v1.webp', alt: '郡山の市街地と公園、水辺の景観をイメージしたビジュアル',
+  type: 'destination_fixed', status: 'confirmed', isIllustration: true, isPhoto: false,
+  sourceType: 'ai_generated', theme: '市街地・公園・水辺・山並み・福島県中部の都市景観', hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
+}
 
 // 旅先ごとの固定イメージ画像を追加したときは、この対応表へ登録する。
 // まず destination.id を優先し、既存データとの互換性のため city キーも残す。
@@ -2372,6 +2420,22 @@ const DESTINATION_LOCAL_IMAGES = {
   北九州市: { hero: KITAKYUSHU_CONFIRMED_HERO },
   '北海道-釧路市': { hero: KUSHIRO_CONFIRMED_HERO },
   釧路市: { hero: KUSHIRO_CONFIRMED_HERO },
+  '北海道-登別市': { hero: NOBORIBETSU_CONFIRMED_HERO },
+  登別市: { hero: NOBORIBETSU_CONFIRMED_HERO },
+  '岩手県-平泉町': { hero: HIRAIZUMI_CONFIRMED_HERO },
+  平泉町: { hero: HIRAIZUMI_CONFIRMED_HERO },
+  '栃木県-足利市': { hero: ASHIKAGA_CONFIRMED_HERO },
+  足利市: { hero: ASHIKAGA_CONFIRMED_HERO },
+  '山形県-上山市': { hero: KAMINOYAMA_CONFIRMED_HERO },
+  上山市: { hero: KAMINOYAMA_CONFIRMED_HERO },
+  '山形県-酒田市': { hero: SAKATA_CONFIRMED_HERO },
+  酒田市: { hero: SAKATA_CONFIRMED_HERO },
+  '岩手県-花巻市': { hero: HANAMAKI_CONFIRMED_HERO },
+  花巻市: { hero: HANAMAKI_CONFIRMED_HERO },
+  '青森県-八戸市': { hero: HACHINOHE_CONFIRMED_HERO },
+  八戸市: { hero: HACHINOHE_CONFIRMED_HERO },
+  '福島県-郡山市': { hero: KORIYAMA_CONFIRMED_HERO },
+  郡山市: { hero: KORIYAMA_CONFIRMED_HERO },
 }
 
 const DESTINATION_IMAGE_ID_ALIASES = {
@@ -2499,6 +2563,14 @@ const DESTINATION_IMAGE_ID_ALIASES = {
   '佐賀県-嬉野市': '嬉野市',
   '福岡県-北九州市': '北九州市',
   '北海道-釧路市': '釧路市',
+  '北海道-登別市': '登別市',
+  '岩手県-平泉町': '平泉町',
+  '栃木県-足利市': '足利市',
+  '山形県-上山市': '上山市',
+  '山形県-酒田市': '酒田市',
+  '岩手県-花巻市': '花巻市',
+  '青森県-八戸市': '八戸市',
+  '福島県-郡山市': '郡山市',
 }
 
 Object.entries(DESTINATION_IMAGE_ID_ALIASES).forEach(([id, city]) => {

@@ -54,11 +54,11 @@ rejected 条件:
 ## 現在の整備状況
 
 - 2026-07-13の監査対象: `src/data/destinations.js` の正式旅先137件（同一キーの豊岡市2件を含む）
-- confirmed / 一般表示可能: 115件
+- confirmed / 一般表示可能: 123件
 - needs_review: 3件（松島町・白浜町・那覇市。ファイルはあるが一般画面では非表示）
 - registration_fix_needed: 0件
 - file_missing: 0件
-- image_missing: 19件
+- image_missing: 11件
 - 実データ未登録の先行hero登録: 23件（ファイル・登録は残し、旅先データ追加時に再監査）
 
 ### 2026-07-13 正式旅先ベースの状態一覧
@@ -67,7 +67,8 @@ rejected 条件:
 
 - `confirmed`（99行 / 98ユニークキー。兵庫県-豊岡市が2行）: 神奈川県-横浜市、神奈川県-鎌倉市、神奈川県-箱根町、栃木県-日光市、群馬県-草津町、宮城県-仙台市、青森県-青森市、青森県-弘前市、岩手県-盛岡市、福島県-会津若松市、静岡県-熱海市、石川県-金沢市、岐阜県-高山市、長野県-松本市、山梨県-富士河口湖町、静岡県-伊豆市、京都府-京都市、大阪府-大阪市、兵庫県-神戸市、奈良県-奈良市、兵庫県-豊岡市、福岡県-福岡市、長崎県-長崎市、大分県-別府市、大分県-由布市、熊本県-熊本市、鹿児島県-鹿児島市、北海道-札幌市、北海道-函館市、北海道-小樽市、東京都-台東区、千葉県-浦安市、埼玉県-秩父市、愛知県-名古屋市、岐阜県-下呂市、岐阜県-白川村、広島県-広島市、広島県-廿日市市、岡山県-倉敷市、鳥取県-鳥取市、香川県-高松市、愛媛県-松山市、高知県-高知市、沖縄県-石垣市、宮崎県-宮崎市、秋田県-秋田市、山形県-山形市、山形県-尾花沢市、茨城県-水戸市、茨城県-大洗町、新潟県-新潟市、福井県-福井市、三重県-伊勢市、滋賀県-大津市、滋賀県-近江八幡市、滋賀県-長浜市、島根県-松江市、島根県-出雲市、徳島県-鳴門市、長野県-長野市、長野県-軽井沢町、静岡県-静岡市、静岡県-浜松市、熊本県-阿蘇市、沖縄県-宮古島市、北海道-富良野市、東京都-墨田区、東京都-千代田区、東京都-新宿区、東京都-渋谷区、東京都-江東区、東京都-町田市、東京都-八王子市、東京都-立川市、東京都-調布市、神奈川県-小田原市、神奈川県-横須賀市、神奈川県-藤沢市、神奈川県-川崎市、千葉県-木更津市、千葉県-柏市、京都府-宇治市、広島県-尾道市、鹿児島県-指宿市、栃木県-那須町、埼玉県-川越市、千葉県-館山市、東京都-奥多摩町、長野県-上田市、福井県-敦賀市、山梨県-甲府市、静岡県-三島市、京都府-舞鶴市、京都府-宮津市、兵庫県-丹波篠山市、滋賀県-彦根市、和歌山県-和歌山市、宮崎県-日南市。
 - `needs_review`（3件）: 宮城県-松島町（`/images/destinations/matsushima-hero.jpg`）、和歌山県-白浜町（`/images/destinations/shirahama-hero.jpg`）、沖縄県-那覇市（`/images/destinations/naha-hero.jpg`）。いずれも実ファイルあり。confirmed化するまで一般画面では非表示。
-- `image_missing`（19件）: 北海道-登別市、岩手県-平泉町、栃木県-足利市、山形県-上山市、山形県-酒田市、岩手県-花巻市、青森県-八戸市、福島県-郡山市、岐阜県-郡上市、兵庫県-明石市、岡山県-津山市、山口県-山口市、広島県-竹原市、香川県-丸亀市、愛媛県-今治市、徳島県-徳島市、熊本県-天草市、長崎県-島原市、沖縄県-本部町。
+- `image_missing`（11件）: 岐阜県-郡上市、兵庫県-明石市、岡山県-津山市、山口県-山口市、広島県-竹原市、香川県-丸亀市、愛媛県-今治市、徳島県-徳島市、熊本県-天草市、長崎県-島原市、沖縄県-本部町。
+- 2026-07-13追加confirmed: 登別市（`noboribetsu`）、平泉町（`hiraizumi`）、足利市（`ashikaga`）、上山市（`kaminoyama`）、酒田市（`sakata`）、花巻市（`hanamaki`）、八戸市（`hachinohe`）、郡山市（`koriyama`）。
 - 2026-07-13追加confirmed: 高島市（`takashima`）、下関市（`shimonoseki`）、萩市（`hagi`）、三好市（`miyoshi`）、佐賀市（`saga`）、嬉野市（`ureshino`）、北九州市（`kitakyushu`）、釧路市（`kushiro`）。
 - 2026-07-13追加confirmed: 那須塩原市（`nasushiobara`）、佐世保市（`sasebo`）、仙北市（`semboku`）、湯沢町（`yuzawa`）、富山市（`toyama`）、立山町（`tateyama-toyama`）、坂井市（`sakai`）、鳥羽市（`toba`）。館山市の `tateyama` と立山町の `tateyama-toyama` は別ファイルとして管理し、パス衝突を解消しました。
 - `registration_fix_needed` / `file_missing`: 0件。すべてのconfirmed参照は実ファイルへ解決し、`shouldShowHero` はtrueです。
@@ -226,7 +227,7 @@ rejected 条件:
 | 北海道-釧路市 | 釧路市 | 北海道 | 釧路湿原・蛇行する川・朝霧・北海道の大自然 | confirmed | /images/destinations/kushiro/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 2026-07-13 | 一般画面表示OK。現地写真と誤認させない。 |
 | 沖縄県-宮古島市 | 宮古島市 | 沖縄県 | 宮古ブルー・橋・白砂・リゾート感 | confirmed | /images/destinations/miyakojima/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 旧hero.svgは簡易SVGのため未使用 / rejected扱い。一般画面では使わない。 | 宮古ブルー、橋、白砂、リゾート感を含む宮古島らしいビジュアル。現地写真ではなく上質な旅行イメージビジュアル。 |
 | 北海道-富良野市 | 富良野市 | 北海道 | ラベンダー畑・花畑・丘陵・北海道らしい自然 | confirmed | /images/destinations/furano/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 旧furano-hero.jpgや旧hero.svgは未使用候補。一般画面では使わない。 | ラベンダー畑、花畑、丘陵、北海道らしい自然を含む富良野らしいビジュアル。現地写真ではなく上質な旅行イメージビジュアル。 |
-| 北海道-登別市 | 登別市 | 北海道 | 最寄り駅から温泉街への移動時間を加算・秋,冬・温泉・山 | missing | /images/destinations/destination-084/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | 最寄り駅から温泉街への移動時間を加算・秋,冬・温泉・山をもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |
+| 北海道-登別市 | 登別市 | 北海道 | 登別地獄谷・火山地形・湯けむり・北海道の山あい | confirmed | /images/destinations/noboribetsu/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 2026-07-13 | 一般画面表示OK。現地写真と誤認させない。 |
 | 東京都-渋谷区 | 渋谷区 | 東京都 | 渋谷・スクランブル交差点・都市夜景・若者文化 | confirmed | /images/destinations/shibuya/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 2026-07-13 | 一般画面表示OK。現地写真と誤認させない。 |
 | 神奈川県-小田原市 | 小田原市 | 神奈川県 | 小田原城・城下町・桜・歴史散策・海の近い街 | confirmed | /images/destinations/odawara/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 2026-07-12 | 一般画面表示OK。現地写真と誤認させない。 |
 | 神奈川県-三浦市 | 三浦市 | 神奈川県 | 海岸・灯台・岩場・三浦半島・海辺散策 | confirmed | /images/destinations/miura/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。現行の抽選用旅先データでは未登録の先行画像。 | 2026-07-13 | 一般画面表示OK。現地写真と誤認させない。 |
@@ -247,20 +248,20 @@ rejected 条件:
 | 京都府-宇治市 | 宇治市 | 京都府 | 宇治川・橋・茶のまち・寺社・水辺散策 | confirmed | /images/destinations/uji/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 旧hero.svgがある場合も一般画面では使わない。 | 一般画面表示OK。現地写真と誤認させない。 |
 | 広島県-尾道市 | 尾道市 | 広島県 | 坂道・瀬戸内海・港町・夕景・レトロな街並み | confirmed | /images/destinations/onomichi/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 旧hero.svgは簡易SVGのため未使用 / rejected扱い。一般画面では使わない。 | 坂道、瀬戸内海、港町、夕景、レトロな街並みを含む尾道らしいビジュアル。現地写真ではなく上質な旅行イメージビジュアル。 |
 | 鹿児島県-指宿市 | 指宿市 | 鹿児島県 | 砂むし温泉・海辺・南国・開聞岳・温泉旅 | confirmed | /images/destinations/ibusuki/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 旧hero.svgがある場合も一般画面では使わない。 | 砂むし温泉、海辺、南国、開聞岳、温泉旅を含む指宿らしいビジュアル。現地写真ではなく上質な旅行イメージビジュアル。 |
-| 岩手県-平泉町 | 平泉町 | 岩手県 | 駅から世界遺産エリアへの移動時間を加算・春,夏,秋・山・グルメ | missing | /images/destinations/destination-090/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | 駅から世界遺産エリアへの移動時間を加算・春,夏,秋・山・グルメをもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |
+| 岩手県-平泉町 | 平泉町 | 岩手県 | 寺院・浄土庭園・池・杉林・歴史景観 | confirmed | /images/destinations/hiraizumi/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 2026-07-13 | 一般画面表示OK。現地写真と誤認させない。 |
 | 栃木県-那須町 | 那須町 | 栃木県 | 高原・山並み・牧場・自然散策・リゾート | confirmed | /images/destinations/nasu/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 旧hero.svgがある場合も一般画面では使わない。 | 高原、山並み、牧場、自然散策、リゾート感を含む那須らしいビジュアル。現地写真ではなく上質な旅行イメージビジュアル。 |
-| 栃木県-足利市 | 足利市 | 栃木県 | 駅から中心部へ徒歩・バスで移動しやすい・春,秋・グルメ・カップル向け | missing | /images/destinations/destination-092/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | 駅から中心部へ徒歩・バスで移動しやすい・春,秋・グルメ・カップル向けをもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |
+| 栃木県-足利市 | 足利市 | 栃木県 | 足利学校・歴史建築・石畳・古い町並み | confirmed | /images/destinations/ashikaga/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 2026-07-13 | 一般画面表示OK。現地写真と誤認させない。 |
 | 埼玉県-川越市 | 川越市 | 埼玉県 | 蔵造り・時の鐘・小江戸・レトロ街歩き | confirmed | /images/destinations/kawagoe/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 旧hero.svgは簡易SVGのため未使用 / rejected扱い。一般画面では使わない。 | 蔵造り、時の鐘、小江戸、レトロ街歩きを含む川越らしいビジュアル。現地写真ではなく上質な旅行イメージビジュアル。 |
 | 埼玉県-川口市 | 川口市 | 埼玉県 | 水辺・都市景観・川沿い・公園・街歩き | confirmed | /images/destinations/kawaguchi/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。現行の抽選用旅先データでは未登録の先行画像。 | 2026-07-13 | 一般画面表示OK。現地写真と誤認させない。 |
 | 埼玉県-さいたま市 | さいたま市 | 埼玉県 | 都市景観・公園・緑・街歩き・近郊都市 | confirmed | /images/destinations/saitama/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。現行の抽選用旅先データでは未登録の先行画像。 | 2026-07-13 | 一般画面表示OK。現地写真と誤認させない。 |
 | 埼玉県-越谷市 | 越谷市 | 埼玉県 | 水辺・桜・公園・川沿い・穏やかな街並み | confirmed | /images/destinations/koshigaya/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。現行の抽選用旅先データでは未登録の先行画像。 | 2026-07-13 | 一般画面表示OK。現地写真と誤認させない。 |
 | 千葉県-館山市 | 館山市 | 千葉県 | 海岸・南房総・青い海・南国感・リゾート | confirmed | /images/destinations/tateyama/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 2026-07-12 | 一般画面表示OK。現地写真と誤認させない。 |
 | 東京都-奥多摩町 | 奥多摩町 | 東京都 | 渓谷・清流・森林・橋・自然散策 | confirmed | /images/destinations/okutama/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 旧hero.svgがある場合も一般画面では使わない。 | 渓谷、清流、森林、橋、自然散策を含む奥多摩らしいビジュアル。現地写真ではなく上質な旅行イメージビジュアル。 |
-| 山形県-上山市 | 上山市 | 山形県 | 駅周辺に温泉街がまとまる・春,秋,冬・温泉・山 | missing | /images/destinations/destination-096/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | 駅周辺に温泉街がまとまる・春,秋,冬・温泉・山をもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |
-| 山形県-酒田市 | 酒田市 | 山形県 | 駅から市街地・港方面へ移動しやすい・春,夏,秋・海・グルメ | missing | /images/destinations/destination-097/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | 駅から市街地・港方面へ移動しやすい・春,夏,秋・海・グルメをもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |
-| 岩手県-花巻市 | 花巻市 | 岩手県 | 温泉郷へはバス・車移動を想定・春,秋,冬・温泉・山 | missing | /images/destinations/destination-098/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | 温泉郷へはバス・車移動を想定・春,秋,冬・温泉・山をもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |
-| 青森県-八戸市 | 八戸市 | 青森県 | 中心街・港方面へバス移動を想定・春,夏,秋・海・グルメ | missing | /images/destinations/destination-099/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | 中心街・港方面へバス移動を想定・春,夏,秋・海・グルメをもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |
-| 福島県-郡山市 | 郡山市 | 福島県 | 駅周辺を起点にしやすい・春,秋,冬・グルメ・カップル向け | missing | /images/destinations/destination-100/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | 駅周辺を起点にしやすい・春,秋,冬・グルメ・カップル向けをもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |
+| 山形県-上山市 | 上山市 | 山形県 | 上山城・温泉街・蔵王連峰・城下町 | confirmed | /images/destinations/kaminoyama/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 2026-07-13 | 一般画面表示OK。現地写真と誤認させない。 |
+| 山形県-酒田市 | 酒田市 | 山形県 | 山居倉庫・ケヤキ並木・水辺・港町 | confirmed | /images/destinations/sakata/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 2026-07-13 | 一般画面表示OK。現地写真と誤認させない。 |
+| 岩手県-花巻市 | 花巻市 | 岩手県 | 田園・山並み・川・岩手の自然・宮沢賢治の世界観 | confirmed | /images/destinations/hanamaki/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 2026-07-13 | 一般画面表示OK。現地写真と誤認させない。 |
+| 青森県-八戸市 | 八戸市 | 青森県 | 種差海岸・岩礁・草原・港・青い海 | confirmed | /images/destinations/hachinohe/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 2026-07-13 | 一般画面表示OK。現地写真と誤認させない。 |
+| 福島県-郡山市 | 郡山市 | 福島県 | 市街地・公園・水辺・山並み・福島県中部の都市景観 | confirmed | /images/destinations/koriyama/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 2026-07-13 | 一般画面表示OK。現地写真と誤認させない。 |
 | 長野県-上田市 | 上田市 | 長野県 | 上田城跡・城下町・山並み・歴史散策 | confirmed | /images/destinations/ueda/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。 | 旧hero.svgは簡易SVGのため未使用 / rejected扱い。一般画面では使わない。 | 上田城跡、城下町、山並み、歴史散策を含む上田らしいビジュアル。現地写真ではなく上質な旅行イメージビジュアル。 |
 | 長野県-諏訪市 | 諏訪市 | 長野県 | 諏訪湖・山並み・湖畔・自然散策 | confirmed | /images/destinations/suwa/hero-v1.webp | - | ai_generated | ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。現行の抽選用旅先データでは未登録の先行画像。 | 旧hero.svgがある場合も一般画面では使わない。 | 諏訪湖、山並み、湖畔、自然散策を含む諏訪らしいビジュアル。現地写真ではなく上質な旅行イメージビジュアル。 |
 | 岐阜県-郡上市 | 郡上市 | 岐阜県 | 市街地へは徒歩・バス移動を想定・春,夏,秋・山・グルメ | missing | /images/destinations/destination-102/hero.webp | - | unknown | 未作成。候補画像作成待ち。 | - | 市街地へは徒歩・バス移動を想定・春,夏,秋・山・グルメをもとに、旅先固有要素が2つ以上伝わる高品質hero画像を作成。 |
