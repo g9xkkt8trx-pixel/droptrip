@@ -4,7 +4,7 @@
 
 ## 判定
 
-**条件付きで公開可能**です。コードと静的検証は通過していますが、本番ドメイン・本番環境変数・実ブラウザでの操作確認は、この作業環境からは確定できません。公開前に下記の高優先度確認を完了してください。
+**条件付きで公開可能**です。コードと静的検証、Vercel向けの設定整備は通過していますが、本番ドメイン・本番環境変数・実ブラウザでの操作確認は、この作業環境からは確定できません。公開前に下記の高優先度確認を完了してください。
 
 ## 実施した安全な修正
 
@@ -14,6 +14,8 @@
 - confirmed hero画像が読み込めない場合、壊れた画像アイコンを残さず、画像エリア内に代替メッセージを表示します。
 - `index.html` のタイトル・robots・OGP/Twitterタイトルを補い、日本語lang、description、OGP、Twitter Card、faviconの設定を静的確認しました。
 - `test:production-readiness` を追加し、基本メタ情報、ErrorBoundary、映えスポットの遅延読み込み、137旅先のconfirmed hero条件を確認します。
+- Vercel設定に、hashed `/assets/*` のimmutableキャッシュと、低リスクのセキュリティヘッダーを追加しました。APIを巻き込むSPA rewriteは追加していません。
+- `VITE_PUBLIC_SITE_URL` がProductionで明示された時だけ、canonical、`og:url`、絶対OGP画像URLをビルド時に出力します。URL未設定・Previewでは誤ったURLを出力しません。
 
 ## 監査結果
 
@@ -28,6 +30,9 @@
 | モバイル実画面 | 未実施 | 内蔵ブラウザがローカル開発サーバーへ接続できない環境制約。CSSの375px/390px/430px向け規則は静的確認済み |
 | 本番環境変数 | 要確認 | Vercel等の本番環境でAI/地図関連の設定、API応答、エラーログ方針を確認 |
 | OGP絶対URL/canonical | 要確認 | 本番ドメイン確定後に設定。未確定のURLをコードへ固定しない |
+| Vercel設定 | 改善済み | Viteビルド、`dist`出力、`/assets/*`キャッシュ、低リスクヘッダーを設定 |
+| API認証・レート制限 | 未実装 | 公開APIの費用・不正利用対策はサーバー側の追加設計が必要 |
+| `robots.txt` / `sitemap.xml` | 未作成 | 実ルートと本番URLが確定していないため、不正なURLを含むファイルは作成しない |
 
 ## 未解決事項と優先度
 
@@ -64,4 +69,3 @@
 - `npm run test:production-readiness`
 - `npm run lint`
 - `npm run build`
-
