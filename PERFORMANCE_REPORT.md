@@ -6,10 +6,10 @@
 
 | 対象 | 変更前 | 変更後 |
 | --- | ---: | ---: |
-| エントリー JavaScript | 805.85KB | 433.34KB |
-| エントリー JavaScript（gzip） | 196.07KB | 120.34KB |
-| CSS | 109.08KB | 109.08KB |
-| CSS（gzip） | 20.09KB | 20.09KB |
+| エントリー JavaScript | 805.85KB | 435.18KB |
+| エントリー JavaScript（gzip） | 196.07KB | 120.69KB |
+| CSS | 109.08KB | 110.04KB |
+| CSS（gzip） | 20.09KB | 20.23KB |
 
 ## 主な要因
 
@@ -29,11 +29,12 @@
 
 | チャンク | サイズ | gzip | 読み込み時点 |
 | --- | ---: | ---: | --- |
-| `index-*.js` | 433.34KB | 120.34KB | 初期表示 |
+| `index-*.js` | 435.18KB | 120.69KB | 初期表示 |
 | `destinations-*.js` | 258.69KB | 55.81KB | 初回描画後。抽選・旅先一覧検索の準備に使用 |
 | `destinationImages-*.js` | 104.04KB | 17.17KB | 旅先データ読み込み時 |
 | `destinationQuality-*.js` | 9.92KB | 4.31KB | 開発者ページで品質監査を開く時 |
 | `drawBalance-*.js` | 2.92KB | 1.44KB | 開発者ページで抽選バランスを確認する時 |
+| `photoSpots-*.js` | 0.37KB | 0.26KB | 「映え」詳細を開く時 |
 
 ## 維持した仕様
 

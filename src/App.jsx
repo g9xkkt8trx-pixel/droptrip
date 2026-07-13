@@ -2792,6 +2792,7 @@ function App() {
   const [isDestinationDataReady, setIsDestinationDataReady] = useState(false)
   const [destinationQualityReport, setDestinationQualityReport] = useState(emptyDestinationQualityReport)
   const [drawBalanceReport, setDrawBalanceReport] = useState(emptyDrawBalanceReport)
+  const [photoSpotResult, setPhotoSpotResult] = useState({ destinationId: '', spots: [] })
 
   useEffect(() => {
     let isActive = true
@@ -2825,6 +2826,24 @@ function App() {
       isActive = false
     }
   }, [currentPage, destinations, isDestinationDataReady])
+
+  useEffect(() => {
+    if (resultDetailView !== 'trends' || !destination) return undefined
+
+    let isActive = true
+    import('./data/photoSpots.js').then(({ getConfirmedPhotoSpots }) => {
+      if (isActive) {
+        setPhotoSpotResult({
+          destinationId: destination.id,
+          spots: getConfirmedPhotoSpots(destination),
+        })
+      }
+    })
+
+    return () => {
+      isActive = false
+    }
+  }, [destination, resultDetailView])
 
   const favoriteDestinations = favoriteCities
     .map((city) => destinations.find((place) => place.city === city))
@@ -2967,6 +2986,7 @@ function App() {
   const localFoodDetails = destination ? getLocalFoodDetailItems(destination, localFoodItems) : []
   const featuredTouristSpots = destination && planContext ? getPurposeMatchedTouristSpots(destination, planContext.selectedTravelPurposes) : []
   const trendHighlights = Array.isArray(destination?.trendHighlights) ? destination.trendHighlights : []
+  const confirmedPhotoSpots = photoSpotResult.destinationId === destination?.id ? photoSpotResult.spots : []
   const foodThemeText = destination ? getFoodThemeText(destination, localFoodItems) : ''
   const foodImageIsFeatured = destination ? shouldFeatureFoodImage(destination, localFoodItems) : false
   const tripProposalText = destination && planContext
@@ -4280,6 +4300,39 @@ function App() {
                     <div>
                       <h3 id="trend-empty-title">映え・トレンド情報は追加予定です</h3>
                       <p>この旅先は、写真に残したい立ち寄り候補を手動で確認してから追加します。今はグルメやスポットから旅の中身を見てください。</p>
+                    </div>
+                  </section>
+                )}
+
+                {confirmedPhotoSpots.length > 0 && (
+                  <section className="trend-highlights-card photo-spots-card" aria-labelledby="photo-spots-title">
+                    <div className="photo-spots-heading">
+                      <span aria-hidden="true">◎</span>
+                      <div>
+                        <p>PHOTO SPOTS</p>
+                        <h3 id="photo-spots-title">映えスポット</h3>
+                      </div>
+                    </div>
+                    <div className="trend-highlights-grid">
+                      {confirmedPhotoSpots.map((spot) => (
+                        <article key={spot.id} className="trend-highlight-item photo-spot-item">
+                          <div>
+                            <strong>{spot.name}</strong>
+                            {spot.category && <span>{spot.category}</span>}
+                          </div>
+                          {spot.summary && <p>{spot.summary}</p>}
+                          {(spot.bestTime || spot.bestSeason) && (
+                            <dl className="photo-spot-meta">
+                              {spot.bestTime && <div><dt>おすすめ時間</dt><dd>{spot.bestTime}</dd></div>}
+                              {spot.bestSeason && <div><dt>おすすめ季節</dt><dd>{spot.bestSeason}</dd></div>}
+                            </dl>
+                          )}
+                          {spot.appealTags?.length > 0 && <div className="photo-spot-tags">{spot.appealTags.map((tag) => <span key={tag}>{tag}</span>)}</div>}
+                          {spot.weatherNote && <small>{spot.weatherNote}</small>}
+                          {spot.accessNote && <small>{spot.accessNote}</small>}
+                          {spot.mapQuery && <a className="trend-map-link" href={getTrendMapsSearchUrl(destination, spot)} target="_blank" rel="noopener noreferrer">Google Mapsで探す</a>}
+                        </article>
+                      ))}
                     </div>
                   </section>
                 )}

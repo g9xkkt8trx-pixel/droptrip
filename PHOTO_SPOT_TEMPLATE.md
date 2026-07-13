@@ -1,0 +1,50 @@
+# 映えスポット登録テンプレート
+
+```js
+{
+  id: '東京都-台東区-asakusa-sensoji',
+  destinationId: '東京都-台東区',
+  name: 'スポットの正式名称',
+  category: '寺社・街並み',
+  summary: '写真に残したくなる理由を短く記述します。',
+  appealTags: ['街歩き', '建築'],
+  bestTime: '朝',
+  bestSeason: '春・秋',
+  weatherNote: '天候による見え方や注意点。',
+  accessNote: '最寄り駅からの簡潔な補足。',
+  mapQuery: '東京都台東区 スポットの正式名称',
+  sourceStatus: 'manual_verified',
+  sourceCheckedAt: 'YYYY-MM-DD',
+  status: 'confirmed',
+}
+```
+
+## 項目
+
+- `id`: 全スポットで重複しない固定ID。`destinationId`と英字slugを組み合わせます。
+- `destinationId`: `src/data/destinations.js`で使う`都道府県-市区町村`キーです。
+- `name` / `summary`: 一般画面に表示する必須情報です。
+- `category`: 景色、建築、街並み、寺社など、短い分類です。
+- `appealTags`: 写真の魅力を表す短いタグです。
+- `bestTime` / `bestSeason` / `weatherNote` / `accessNote`: 確認できた項目だけ登録します。
+- `mapQuery`: Google Maps検索に使う、地名を含む検索語です。
+- `sourceStatus` / `sourceCheckedAt`: 確認方法と確認日です。
+
+## 採用基準
+
+`confirmed`にできるのは、実在・名称・旅先との対応・紹介文・地図検索語を確認できたスポットだけです。確認日を`sourceCheckedAt`に記録します。営業状況、撮影可否、季節・天候に依存する内容は断定せず、必要なら`weatherNote`へ短く記録します。
+
+`needs_review`は候補として保存できますが、一般画面には表示されません。`draft`は編集途中の情報です。根拠不明、名称が曖昧、別自治体との区別ができない候補は登録しません。
+
+## 表記・重複防止
+
+- 名称は確認済みの正式表記を優先し、略称や俗称で二重登録しません。
+- 同一`destinationId`内で同名スポットは1件だけにします。
+- 同名自治体を避けるため、`destinationId`は必ず`src/data/destinations.js`の都道府県・cityから確認します。
+
+## 追加後の検証
+
+1. `npm run test:photo-spots` を実行します。
+2. `npm run lint` と `npm run build` を実行します。
+3. 該当旅先の「映え」詳細で、confirmedの項目だけが表示されることを確認します。
+4. 未登録項目の空ラベル、重複表示、検索・heroへの影響がないことを確認します。
