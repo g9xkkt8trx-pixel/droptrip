@@ -2790,24 +2790,34 @@ function App() {
   const [destinationFiltersOpen, setDestinationFiltersOpen] = useState(false)
   const [destinations, setDestinations] = useState([])
   const [isDestinationDataReady, setIsDestinationDataReady] = useState(false)
+  const [destinationDataError, setDestinationDataError] = useState('')
+  const [destinationDataLoadAttempt, setDestinationDataLoadAttempt] = useState(0)
   const [destinationQualityReport, setDestinationQualityReport] = useState(emptyDestinationQualityReport)
   const [drawBalanceReport, setDrawBalanceReport] = useState(emptyDrawBalanceReport)
-  const [photoSpotResult, setPhotoSpotResult] = useState({ destinationId: '', spots: [] })
+  const [photoSpotResult, setPhotoSpotResult] = useState({ destinationId: '', spots: [], status: 'idle', error: '' })
+  const [photoSpotLoadAttempt, setPhotoSpotLoadAttempt] = useState(0)
+  const photoSpotCache = useRef(new Map())
 
   useEffect(() => {
     let isActive = true
 
-    import('./data/destinations.js').then(({ default: destinationList }) => {
-      if (!isActive) return
-      loadedDestinations = destinationList
-      setDestinations(destinationList)
-      setIsDestinationDataReady(true)
-    })
+    import('./data/destinations.js')
+      .then(({ default: destinationList }) => {
+        if (!isActive) return
+        loadedDestinations = destinationList
+        setDestinations(destinationList)
+        setIsDestinationDataReady(true)
+        setDestinationDataError('')
+      })
+      .catch((error) => {
+        console.error('Destination data loading failed', error)
+        if (isActive) setDestinationDataError('旅先データを読み込めませんでした。')
+      })
 
     return () => {
       isActive = false
     }
-  }, [])
+  }, [destinationDataLoadAttempt])
 
   useEffect(() => {
     if (currentPage !== 'developer' || !isDestinationDataReady) return undefined
@@ -2831,19 +2841,39 @@ function App() {
     if (resultDetailView !== 'trends' || !destination) return undefined
 
     let isActive = true
-    import('./data/photoSpots.js').then(({ getConfirmedPhotoSpots }) => {
-      if (isActive) {
-        setPhotoSpotResult({
-          destinationId: destination.id,
-          spots: getConfirmedPhotoSpots(destination),
-        })
+    const destinationId = destination.id
+    const cachedSpots = photoSpotCache.current.get(destinationId)
+
+    if (cachedSpots) {
+      setPhotoSpotResult({ destinationId, spots: cachedSpots, status: 'success', error: '' })
+      return () => {
+        isActive = false
       }
-    })
+    }
+
+    setPhotoSpotResult({ destinationId, spots: [], status: 'loading', error: '' })
+    import('./data/photoSpots.js')
+      .then(({ getConfirmedPhotoSpots }) => {
+        const spots = getConfirmedPhotoSpots(destination)
+        photoSpotCache.current.set(destinationId, spots)
+        if (isActive) setPhotoSpotResult({ destinationId, spots, status: 'success', error: '' })
+      })
+      .catch((error) => {
+        console.error('Photo spots loading failed', error)
+        if (isActive) {
+          setPhotoSpotResult({
+            destinationId,
+            spots: [],
+            status: 'error',
+            error: '映えスポットを読み込めませんでした。',
+          })
+        }
+      })
 
     return () => {
       isActive = false
     }
-  }, [destination, resultDetailView])
+  }, [destination, resultDetailView, photoSpotLoadAttempt])
 
   const favoriteDestinations = favoriteCities
     .map((city) => destinations.find((place) => place.city === city))
@@ -2987,6 +3017,11 @@ function App() {
   const featuredTouristSpots = destination && planContext ? getPurposeMatchedTouristSpots(destination, planContext.selectedTravelPurposes) : []
   const trendHighlights = Array.isArray(destination?.trendHighlights) ? destination.trendHighlights : []
   const confirmedPhotoSpots = photoSpotResult.destinationId === destination?.id ? photoSpotResult.spots : []
+  const photoSpotLoadStatus = photoSpotResult.destinationId === destination?.id ? photoSpotResult.status : 'idle'
+  const photoSpotLoadError = photoSpotResult.destinationId === destination?.id ? photoSpotResult.error : ''
+  const hasHeroImageFailure = destination && imageFailures.some((failure) => (
+    failure.destinationId === destination.id && failure.imageType === 'hero'
+  ))
   const foodThemeText = destination ? getFoodThemeText(destination, localFoodItems) : ''
   const foodImageIsFeatured = destination ? shouldFeatureFoodImage(destination, localFoodItems) : false
   const tripProposalText = destination && planContext
@@ -3971,7 +4006,7 @@ function App() {
           <>
         <header className="hero">
           <div className="logo-mark" aria-hidden="true">
-            <svg viewBox="0 0 48 48" role="img">
+            <svg viewBox="0 0 48 48" aria-hidden="true">
               <path d="M24 4C14.6 4 7 11.5 7 20.8 7 33.4 24 44 24 44s17-10.6 17-23.2C41 11.5 33.4 4 24 4Z" />
               <circle cx="24" cy="20" r="6" />
             </svg>
@@ -4172,6 +4207,15 @@ function App() {
           </fieldset>
 
           <p className="decide-note">思いがけない場所へ、出かけよう。</p>
+          {destinationDataError && (
+            <div className="settings-notice" role="alert">
+              <span>{destinationDataError}</span>
+              <button type="button" onClick={() => {
+                setDestinationDataError('')
+                setDestinationDataLoadAttempt((current) => current + 1)
+              }}>再試行</button>
+            </div>
+          )}
           <button type="submit" className="decide-button" disabled={!isDestinationDataReady}>
             <span>{isDestinationDataReady ? '旅先を決める' : '旅先データを準備中'}</span>
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -4304,6 +4348,13 @@ function App() {
                   </section>
                 )}
 
+                {photoSpotLoadStatus === 'loading' && <p className="settings-notice" role="status">映えスポットを読み込んでいます。</p>}
+                {photoSpotLoadStatus === 'error' && (
+                  <div className="settings-notice" role="alert">
+                    <span>{photoSpotLoadError}</span>
+                    <button type="button" onClick={() => setPhotoSpotLoadAttempt((current) => current + 1)}>再試行</button>
+                  </div>
+                )}
                 {confirmedPhotoSpots.length > 0 && (
                   <section className="trend-highlights-card photo-spots-card" aria-labelledby="photo-spots-title">
                     <div className="photo-spots-heading">
@@ -4430,16 +4481,22 @@ function App() {
             <section className="result-card result-proposal-hero" aria-label="旅先の提案">
               {isFixedHeroImage(destination.heroImage) && (
                 <figure className="result-hero-figure">
-                  <img
-                    key={`${destination.id}-hero`}
-                    src={getImageUrl(destination.heroImage)}
-                    className="result-hero-image"
-                    alt={getImageMetaValue(destination.heroImage, 'alt', `${destination.city}をイメージしたビジュアル`)}
-                    loading="eager"
-                    fetchPriority="high"
-                    decoding="async"
-                    onError={() => reportImageFailure(destination.id, 'hero', 'confirmed')}
-                  />
+                  {hasHeroImageFailure ? (
+                    <div className="image-preview-failed" role="img" aria-label={`${destination.city}の旅先イメージを読み込めませんでした`}>
+                      旅先イメージを読み込めませんでした
+                    </div>
+                  ) : (
+                    <img
+                      key={`${destination.id}-hero`}
+                      src={getImageUrl(destination.heroImage)}
+                      className="result-hero-image"
+                      alt={getImageMetaValue(destination.heroImage, 'alt', `${destination.city}をイメージしたビジュアル`)}
+                      loading="eager"
+                      fetchPriority="high"
+                      decoding="async"
+                      onError={() => reportImageFailure(destination.id, 'hero', 'confirmed')}
+                    />
+                  )}
                   <figcaption>{getImageMetaValue(destination.heroImage, 'sourceType') === 'ai_generated' ? '画像：旅先イメージ（AI生成）' : '画像：旅先イメージ'}</figcaption>
                 </figure>
               )}

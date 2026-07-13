@@ -26,6 +26,69 @@ body {
     #f2f4f3;
 }
 
+.app-error-boundary {
+  display: grid;
+  min-height: 100svh;
+  padding: 24px;
+  place-items: center;
+}
+
+.app-error-boundary section {
+  width: min(100%, 430px);
+  padding: 28px;
+  color: #315f55;
+  background: #fff;
+  border: 1px solid #dbe7e3;
+  border-radius: 18px;
+  box-shadow: 0 20px 60px rgba(34, 76, 67, 0.14);
+  text-align: center;
+}
+
+.app-error-boundary p {
+  margin: 0;
+  color: #e76f51;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.app-error-boundary h1 {
+  margin: 14px 0 10px;
+  font-size: 1.35rem;
+}
+
+.app-error-boundary span {
+  color: #65746f;
+  font-size: 0.82rem;
+}
+
+.app-error-boundary div {
+  display: grid;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.app-error-boundary button {
+  min-height: 44px;
+  border: 1px solid #2f6f61;
+  border-radius: 10px;
+  color: #fff;
+  background: #2f6f61;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+}
+
+.app-error-boundary button + button {
+  color: #2f6f61;
+  background: #f4faf8;
+}
+
+.app-error-boundary button:focus-visible {
+  outline: 3px solid rgba(47, 111, 97, 0.3);
+  outline-offset: 2px;
+}
+
 button,
 input {
   -webkit-tap-highlight-color: transparent;
