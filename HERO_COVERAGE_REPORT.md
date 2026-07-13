@@ -57,3 +57,7 @@
 ## 開発者ページで確認する項目
 
 既存のhero画像レビュー台帳で、全旅先数、confirmed / needs_review / missing、各heroのsrc、status、表示可否と非表示理由、直接画像リンク、プレビューを確認できます。未作成は `hero missing` 一覧で確認します。実ファイルの最終照合はこのレポート作成時に `public` 配下で実施しました。
+
+## 最終監査（2026-07-13）
+
+正式旅先137件を再照合し、confirmed 125件、`shouldShowHero: true` 125件、`image_missing` 11件、`needs_review` 1件、`registration_fix_needed` 0件、`file_missing` 0件を確認しました。旅先データの重複は兵庫県-豊岡市の1件、`destinationImages` 未参照のhero WebPは5件です。残件の詳細と推奨slugは `FINAL_HERO_REMAINING.md` を正とします。
