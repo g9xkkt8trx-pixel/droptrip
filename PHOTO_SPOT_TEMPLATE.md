@@ -15,6 +15,8 @@
   mapQuery: '東京都台東区 スポットの正式名称',
   sourceStatus: 'manual_verified',
   sourceCheckedAt: 'YYYY-MM-DD',
+  sourceName: '確認した公式観光サイトまたは施設公式サイト',
+  sourceUrl: 'https://example.com/official-spot-page',
   status: 'confirmed',
 }
 ```
@@ -28,11 +30,12 @@
 - `appealTags`: 写真の魅力を表す短いタグです。
 - `bestTime` / `bestSeason` / `weatherNote` / `accessNote`: 確認できた項目だけ登録します。
 - `mapQuery`: Google Maps検索に使う、地名を含む検索語です。
-- `sourceStatus` / `sourceCheckedAt`: 確認方法と確認日です。
+- `sourceStatus` / `sourceCheckedAt`: 確認方法と確認日です。confirmedは`manual_verified`と確認日を必須にします。
+- `sourceName` / `sourceUrl`: 監査用の情報源です。confirmedは原則として公式観光サイトまたは施設公式サイトの名称とHTTP(S) URLを記録します。一般画面には表示しません。
 
 ## 採用基準
 
-`confirmed`にできるのは、実在・名称・旅先との対応・紹介文・地図検索語を確認できたスポットだけです。確認日を`sourceCheckedAt`に記録します。営業状況、撮影可否、季節・天候に依存する内容は断定せず、必要なら`weatherNote`へ短く記録します。
+`confirmed`にできるのは、実在・名称・旅先との対応・紹介文・地図検索語を公式情報で確認できたスポットだけです。`sourceStatus: 'manual_verified'`、確認日、公式情報源の名称とURLを記録します。営業状況、撮影可否、季節・天候に依存する内容は断定せず、必要なら`weatherNote`へ短く記録します。
 
 `needs_review`は候補として保存できますが、一般画面には表示されません。`draft`は編集途中の情報です。根拠不明、名称が曖昧、別自治体との区別ができない候補は登録しません。
 

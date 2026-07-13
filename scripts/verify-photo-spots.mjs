@@ -30,6 +30,29 @@ for (const spot of photoSpots) {
   if (spot.status === 'confirmed' && (!normalizedName || !String(spot.summary ?? '').trim())) {
     failures.push(`confirmed spot needs name and summary: ${spot.id}`)
   }
+
+  if (spot.status === 'confirmed' && spot.sourceStatus !== 'manual_verified') {
+    failures.push(`confirmed spot needs manual_verified sourceStatus: ${spot.id}`)
+  }
+
+  if (spot.status === 'confirmed' && !String(spot.sourceCheckedAt ?? '').trim()) {
+    failures.push(`confirmed spot needs sourceCheckedAt: ${spot.id}`)
+  }
+
+  if (spot.status === 'confirmed' && !String(spot.sourceName ?? '').trim()) {
+    failures.push(`confirmed spot needs sourceName: ${spot.id}`)
+  }
+
+  if (spot.status === 'confirmed') {
+    try {
+      const sourceUrl = new URL(String(spot.sourceUrl ?? ''))
+      if (!['http:', 'https:'].includes(sourceUrl.protocol)) {
+        failures.push(`confirmed spot sourceUrl must use http or https: ${spot.id}`)
+      }
+    } catch {
+      failures.push(`confirmed spot needs a valid sourceUrl: ${spot.id}`)
+    }
+  }
 }
 
 for (const destination of destinations) {
