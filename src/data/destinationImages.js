@@ -1677,6 +1677,126 @@ const FUJISAWA_CONFIRMED_HERO = {
   rejectedReason: '',
 }
 
+const YOKOSUKA_CONFIRMED_HERO = {
+  src: '/images/destinations/yokosuka/hero-v1.webp',
+  alt: '横須賀の港と海辺の街並みをイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '港町・海辺・艦船・横須賀らしい街並み',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-13',
+  rejectedReason: '',
+}
+
+const KISARAZU_CONFIRMED_HERO = {
+  src: '/images/destinations/kisarazu/hero-v1.webp',
+  alt: '木更津の海辺と東京湾の景色をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '東京湾・海辺・橋・港町・ベイエリア',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-13',
+  rejectedReason: '',
+}
+
+const KASHIWA_CONFIRMED_HERO = {
+  src: '/images/destinations/kashiwa/hero-v1.webp',
+  alt: '柏の公園と水辺、緑のある街並みをイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '公園・水辺・緑・街歩き・近郊都市',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-13',
+  rejectedReason: '',
+}
+
+const MACHIDA_CONFIRMED_HERO = {
+  src: '/images/destinations/machida/hero-v1.webp',
+  alt: '町田の水辺と緑のある街並みをイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '街歩き・水辺・公園・緑・郊外散策',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-13',
+  rejectedReason: '',
+}
+
+const HACHIOJI_CONFIRMED_HERO = {
+  src: '/images/destinations/hachioji/hero-v1.webp',
+  alt: '八王子の山並みと市街地をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '高尾山方面・山並み・市街地・自然散策',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-13',
+  rejectedReason: '',
+}
+
+const TACHIKAWA_CONFIRMED_HERO = {
+  src: '/images/destinations/tachikawa/hero-v1.webp',
+  alt: '立川の街並みと広い通り、公園の緑をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '街並み・公園・広い通り・都市散策・緑',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-13',
+  rejectedReason: '',
+}
+
+const CHOFU_CONFIRMED_HERO = {
+  src: '/images/destinations/chofu/hero-v1.webp',
+  alt: '調布の桜並木と水辺の街並みをイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '深大寺周辺・桜・水辺・緑・落ち着いた街歩き',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-13',
+  rejectedReason: '',
+}
+
+const KAWASAKI_CONFIRMED_HERO = {
+  src: '/images/destinations/kawasaki/hero-v1.webp',
+  alt: '川崎の臨海部と都市景観をイメージしたビジュアル',
+  type: 'destination_fixed',
+  status: 'confirmed',
+  isIllustration: true,
+  isPhoto: false,
+  sourceType: 'ai_generated',
+  theme: '臨海部・水辺・都市景観・工場夜景・港町',
+  hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。',
+  confirmedAt: '2026-07-13',
+  rejectedReason: '',
+}
+
 // 旅先ごとの固定イメージ画像を追加したときは、この対応表へ登録する。
 // まず destination.id を優先し、既存データとの互換性のため city キーも残す。
 const DESTINATION_LOCAL_IMAGES = {
@@ -1776,6 +1896,22 @@ const DESTINATION_LOCAL_IMAGES = {
   浦安市: { hero: URAYASU_CONFIRMED_HERO },
   '神奈川県-藤沢市': { hero: FUJISAWA_CONFIRMED_HERO },
   藤沢市: { hero: FUJISAWA_CONFIRMED_HERO },
+  '神奈川県-横須賀市': { hero: YOKOSUKA_CONFIRMED_HERO },
+  横須賀市: { hero: YOKOSUKA_CONFIRMED_HERO },
+  '千葉県-木更津市': { hero: KISARAZU_CONFIRMED_HERO },
+  木更津市: { hero: KISARAZU_CONFIRMED_HERO },
+  '千葉県-柏市': { hero: KASHIWA_CONFIRMED_HERO },
+  柏市: { hero: KASHIWA_CONFIRMED_HERO },
+  '東京都-町田市': { hero: MACHIDA_CONFIRMED_HERO },
+  町田市: { hero: MACHIDA_CONFIRMED_HERO },
+  '東京都-八王子市': { hero: HACHIOJI_CONFIRMED_HERO },
+  八王子市: { hero: HACHIOJI_CONFIRMED_HERO },
+  '東京都-立川市': { hero: TACHIKAWA_CONFIRMED_HERO },
+  立川市: { hero: TACHIKAWA_CONFIRMED_HERO },
+  '東京都-調布市': { hero: CHOFU_CONFIRMED_HERO },
+  調布市: { hero: CHOFU_CONFIRMED_HERO },
+  '神奈川県-川崎市': { hero: KAWASAKI_CONFIRMED_HERO },
+  川崎市: { hero: KAWASAKI_CONFIRMED_HERO },
   松島町: { hero: '/images/destinations/matsushima-hero.jpg' },
   '宮城県-仙台市': {
     hero: SENDAI_CONFIRMED_HERO,
