@@ -2125,6 +2125,54 @@ const HAKUI_CONFIRMED_HERO = {
   sourceType: 'ai_generated', theme: '千里浜なぎさドライブウェイ・日本海・砂浜・夕景', hasEmbeddedText: false,
   reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
 }
+const GUJO_CONFIRMED_HERO = {
+  src: '/images/destinations/gujo/hero-v1.webp', alt: '郡上八幡の清流と城下町をイメージしたビジュアル',
+  type: 'destination_fixed', status: 'confirmed', isIllustration: true, isPhoto: false,
+  sourceType: 'ai_generated', theme: '郡上八幡・清流・石畳・城下町・山あい', hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
+}
+const AKASHI_CONFIRMED_HERO = {
+  src: '/images/destinations/akashi/hero-v1.webp', alt: '明石海峡大橋と海岸、港をイメージしたビジュアル',
+  type: 'destination_fixed', status: 'confirmed', isIllustration: true, isPhoto: false,
+  sourceType: 'ai_generated', theme: '明石海峡大橋・海岸・港・淡路島方面の海景色', hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
+}
+const TSUYAMA_CONFIRMED_HERO = {
+  src: '/images/destinations/tsuyama/hero-v1.webp', alt: '津山城跡の石垣と桜、城下町をイメージしたビジュアル',
+  type: 'destination_fixed', status: 'confirmed', isIllustration: true, isPhoto: false,
+  sourceType: 'ai_generated', theme: '津山城跡・石垣・桜・城下町・中国山地', hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
+}
+const YAMAGUCHI_CONFIRMED_HERO = {
+  src: '/images/destinations/yamaguchi/hero-v1.webp', alt: '山口の五重塔と池、緑豊かな歴史景観をイメージしたビジュアル',
+  type: 'destination_fixed', status: 'confirmed', isIllustration: true, isPhoto: false,
+  sourceType: 'ai_generated', theme: '瑠璃光寺五重塔・池・庭園・歴史景観・緑豊かな街', hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
+}
+const TAKEHARA_CONFIRMED_HERO = {
+  src: '/images/destinations/takehara/hero-v1.webp', alt: '竹原の白壁と石畳の歴史的町並みをイメージしたビジュアル',
+  type: 'destination_fixed', status: 'confirmed', isIllustration: true, isPhoto: false,
+  sourceType: 'ai_generated', theme: '町並み保存地区・白壁・石畳・古い町並み・瀬戸内', hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
+}
+const MARUGAME_CONFIRMED_HERO = {
+  src: '/images/destinations/marugame/hero-v1.webp', alt: '丸亀城の石垣と城下町をイメージしたビジュアル',
+  type: 'destination_fixed', status: 'confirmed', isIllustration: true, isPhoto: false,
+  sourceType: 'ai_generated', theme: '丸亀城・石垣・城下町・瀬戸内海方面の眺望', hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
+}
+const IMABARI_CONFIRMED_HERO = {
+  src: '/images/destinations/imabari/hero-v1.webp', alt: '今治の来島海峡大橋と島々、青い海をイメージしたビジュアル',
+  type: 'destination_fixed', status: 'confirmed', isIllustration: true, isPhoto: false,
+  sourceType: 'ai_generated', theme: 'しまなみ海道・来島海峡大橋・島々・青い海・港町', hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
+}
+const TOKUSHIMA_CONFIRMED_HERO = {
+  src: '/images/destinations/tokushima/hero-v1.webp', alt: '徳島の眉山と吉野川、市街地をイメージしたビジュアル',
+  type: 'destination_fixed', status: 'confirmed', isIllustration: true, isPhoto: false,
+  sourceType: 'ai_generated', theme: '眉山・吉野川・市街地・水辺・山と街', hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
+}
 
 // 旅先ごとの固定イメージ画像を追加したときは、この対応表へ登録する。
 // まず destination.id を優先し、既存データとの互換性のため city キーも残す。
@@ -2498,6 +2546,22 @@ const DESTINATION_LOCAL_IMAGES = {
   かほく市: { hero: KAHOKU_ISHIKAWA_CONFIRMED_HERO },
   '石川県-羽咋市': { hero: HAKUI_CONFIRMED_HERO },
   羽咋市: { hero: HAKUI_CONFIRMED_HERO },
+  '岐阜県-郡上市': { hero: GUJO_CONFIRMED_HERO },
+  郡上市: { hero: GUJO_CONFIRMED_HERO },
+  '兵庫県-明石市': { hero: AKASHI_CONFIRMED_HERO },
+  明石市: { hero: AKASHI_CONFIRMED_HERO },
+  '岡山県-津山市': { hero: TSUYAMA_CONFIRMED_HERO },
+  津山市: { hero: TSUYAMA_CONFIRMED_HERO },
+  '山口県-山口市': { hero: YAMAGUCHI_CONFIRMED_HERO },
+  山口市: { hero: YAMAGUCHI_CONFIRMED_HERO },
+  '広島県-竹原市': { hero: TAKEHARA_CONFIRMED_HERO },
+  竹原市: { hero: TAKEHARA_CONFIRMED_HERO },
+  '香川県-丸亀市': { hero: MARUGAME_CONFIRMED_HERO },
+  丸亀市: { hero: MARUGAME_CONFIRMED_HERO },
+  '愛媛県-今治市': { hero: IMABARI_CONFIRMED_HERO },
+  今治市: { hero: IMABARI_CONFIRMED_HERO },
+  '徳島県-徳島市': { hero: TOKUSHIMA_CONFIRMED_HERO },
+  徳島市: { hero: TOKUSHIMA_CONFIRMED_HERO },
 }
 
 const DESTINATION_IMAGE_ID_ALIASES = {
@@ -2639,6 +2703,14 @@ const DESTINATION_IMAGE_ID_ALIASES = {
   '長崎県-大村市': '大村市',
   '石川県-かほく市': 'かほく市',
   '石川県-羽咋市': '羽咋市',
+  '岐阜県-郡上市': '郡上市',
+  '兵庫県-明石市': '明石市',
+  '岡山県-津山市': '津山市',
+  '山口県-山口市': '山口市',
+  '広島県-竹原市': '竹原市',
+  '香川県-丸亀市': '丸亀市',
+  '愛媛県-今治市': '今治市',
+  '徳島県-徳島市': '徳島市',
 }
 
 Object.entries(DESTINATION_IMAGE_ID_ALIASES).forEach(([id, city]) => {
