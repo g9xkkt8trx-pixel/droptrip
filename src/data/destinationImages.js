@@ -1917,6 +1917,63 @@ const TAMBASASAYAMA_CONFIRMED_HERO = {
   rejectedReason: '',
 }
 
+const NASUSHIOBARA_CONFIRMED_HERO = {
+  src: '/images/destinations/nasushiobara/hero-v1.webp',
+  alt: '那須塩原の渓流と山並みをイメージしたビジュアル',
+  type: 'destination_fixed', status: 'confirmed', isIllustration: true, isPhoto: false,
+  sourceType: 'ai_generated', theme: '渓流・山並み・温泉・高原・自然散策', hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
+}
+const SASEBO_CONFIRMED_HERO = {
+  src: '/images/destinations/sasebo/hero-v1.webp',
+  alt: '佐世保の港と島々の風景をイメージしたビジュアル',
+  type: 'destination_fixed', status: 'confirmed', isIllustration: true, isPhoto: false,
+  sourceType: 'ai_generated', theme: '港町・九十九島・島々・海・高台からの景色', hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
+}
+const SEMBOKU_CONFIRMED_HERO = {
+  src: '/images/destinations/semboku/hero-v1.webp',
+  alt: '仙北の湖と山、四季の自然をイメージしたビジュアル',
+  type: 'destination_fixed', status: 'confirmed', isIllustration: true, isPhoto: false,
+  sourceType: 'ai_generated', theme: '田沢湖・角館周辺・山並み・紅葉・自然景観', hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
+}
+const YUZAWA_CONFIRMED_HERO = {
+  src: '/images/destinations/yuzawa/hero-v1.webp',
+  alt: '湯沢町の雪景色と温泉街をイメージしたビジュアル',
+  type: 'destination_fixed', status: 'confirmed', isIllustration: true, isPhoto: false,
+  sourceType: 'ai_generated', theme: '雪景色・温泉街・スキー・山あい・冬旅', hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
+}
+const TOYAMA_CONFIRMED_HERO = {
+  src: '/images/destinations/toyama/hero-v1.webp',
+  alt: '富山の市街地と立山連峰をイメージしたビジュアル',
+  type: 'destination_fixed', status: 'confirmed', isIllustration: true, isPhoto: false,
+  sourceType: 'ai_generated', theme: '立山連峰・市街地・川沿い・北陸の都市景観', hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
+}
+const TATEYAMA_TOYAMA_CONFIRMED_HERO = {
+  src: '/images/destinations/tateyama-toyama/hero-v1.webp',
+  alt: '立山の雪山と高山湖をイメージしたビジュアル',
+  type: 'destination_fixed', status: 'confirmed', isIllustration: true, isPhoto: false,
+  sourceType: 'ai_generated', theme: '立山連峰・室堂・雪山・高山湖・アルペンルート', hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
+}
+const SAKAI_CONFIRMED_HERO = {
+  src: '/images/destinations/sakai/hero-v1.webp',
+  alt: '坂井の海岸と断崖の風景をイメージしたビジュアル',
+  type: 'destination_fixed', status: 'confirmed', isIllustration: true, isPhoto: false,
+  sourceType: 'ai_generated', theme: '東尋坊・日本海・断崖・海岸・自然景観', hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
+}
+const TOBA_CONFIRMED_HERO = {
+  src: '/images/destinations/toba/hero-v1.webp',
+  alt: '鳥羽の海と島々、港町をイメージしたビジュアル',
+  type: 'destination_fixed', status: 'confirmed', isIllustration: true, isPhoto: false,
+  sourceType: 'ai_generated', theme: '鳥羽湾・島々・港町・海・伊勢志摩', hasEmbeddedText: false,
+  reviewNote: 'ユーザー確認済み。文字なし高品質AI生成hero画像としてconfirmed登録。', confirmedAt: '2026-07-13', rejectedReason: '',
+}
+
 // 旅先ごとの固定イメージ画像を追加したときは、この対応表へ登録する。
 // まず destination.id を優先し、既存データとの互換性のため city キーも残す。
 const DESTINATION_LOCAL_IMAGES = {
@@ -2167,6 +2224,22 @@ const DESTINATION_LOCAL_IMAGES = {
   白川村: { hero: SHIRAKAWA_CONFIRMED_HERO },
   '栃木県-那須町': { hero: NASU_CONFIRMED_HERO },
   那須町: { hero: NASU_CONFIRMED_HERO },
+  '栃木県-那須塩原市': { hero: NASUSHIOBARA_CONFIRMED_HERO },
+  那須塩原市: { hero: NASUSHIOBARA_CONFIRMED_HERO },
+  '長崎県-佐世保市': { hero: SASEBO_CONFIRMED_HERO },
+  佐世保市: { hero: SASEBO_CONFIRMED_HERO },
+  '秋田県-仙北市': { hero: SEMBOKU_CONFIRMED_HERO },
+  仙北市: { hero: SEMBOKU_CONFIRMED_HERO },
+  '新潟県-湯沢町': { hero: YUZAWA_CONFIRMED_HERO },
+  湯沢町: { hero: YUZAWA_CONFIRMED_HERO },
+  '富山県-富山市': { hero: TOYAMA_CONFIRMED_HERO },
+  富山市: { hero: TOYAMA_CONFIRMED_HERO },
+  '富山県-立山町': { hero: TATEYAMA_TOYAMA_CONFIRMED_HERO },
+  立山町: { hero: TATEYAMA_TOYAMA_CONFIRMED_HERO },
+  '福井県-坂井市': { hero: SAKAI_CONFIRMED_HERO },
+  坂井市: { hero: SAKAI_CONFIRMED_HERO },
+  '三重県-鳥羽市': { hero: TOBA_CONFIRMED_HERO },
+  鳥羽市: { hero: TOBA_CONFIRMED_HERO },
   '東京都-奥多摩町': { hero: OKUTAMA_CONFIRMED_HERO },
   奥多摩町: { hero: OKUTAMA_CONFIRMED_HERO },
   '鹿児島県-指宿市': { hero: IBUSUKI_CONFIRMED_HERO },
@@ -2308,6 +2381,14 @@ const DESTINATION_IMAGE_ID_ALIASES = {
   '栃木県-宇都宮市': '宇都宮市',
   '岐阜県-白川村': '白川村',
   '栃木県-那須町': '那須町',
+  '栃木県-那須塩原市': '那須塩原市',
+  '長崎県-佐世保市': '佐世保市',
+  '秋田県-仙北市': '仙北市',
+  '新潟県-湯沢町': '湯沢町',
+  '富山県-富山市': '富山市',
+  '富山県-立山町': '立山町',
+  '福井県-坂井市': '坂井市',
+  '三重県-鳥羽市': '鳥羽市',
   '東京都-奥多摩町': '奥多摩町',
   '鹿児島県-指宿市': '指宿市',
   '鹿児島県-鹿児島市': '鹿児島市',
