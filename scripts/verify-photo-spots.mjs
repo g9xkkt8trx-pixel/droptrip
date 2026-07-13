@@ -11,6 +11,7 @@ const destinations = [...rawDestinations, ...supplementalDestinations].map((dest
   id: `${destination.prefecture}-${destination.city}`,
 }))
 const destinationIds = new Set(destinations.map((destination) => destination.id))
+const uniqueDestinations = [...new Map(destinations.map((destination) => [destination.id, destination])).values()]
 const failures = []
 const seenIds = new Set()
 const namesByDestination = new Map()
@@ -55,13 +56,16 @@ for (const spot of photoSpots) {
   }
 }
 
-for (const destination of destinations) {
+for (const destination of uniqueDestinations) {
   const visibleSpots = getConfirmedPhotoSpots(destination)
   if (visibleSpots.some((spot) => spot.status !== 'confirmed')) {
     failures.push(`non-confirmed spot is visible: ${destination.id}`)
   }
   if (new Set(visibleSpots.map((spot) => spot.name)).size !== visibleSpots.length) {
     failures.push(`visible spot names are duplicated: ${destination.id}`)
+  }
+  if (visibleSpots.length < 3) {
+    failures.push(`destination needs at least three confirmed spots: ${destination.id} (${visibleSpots.length})`)
   }
 }
 
