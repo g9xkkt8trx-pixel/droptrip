@@ -73,3 +73,13 @@
 - [ ] Productionへ昇格する前にPreviewで上記を確認
 - [ ] 問題時はVercel Deploymentsから直前の正常デプロイへPromote/Rollback
 - [ ] APIキー漏えい・異常利用時は、Vercelと各API提供元でキーを即時無効化・再発行
+
+
+## 2026-07-14 Production release checks
+
+- [x] AI trip plans are publicly available without a premium switch.
+- [x] Public browser allowance is one successful new plan per local calendar day.
+- [x] Failed, 429, and cached requests do not consume the daily allowance.
+- [x] Development-only usage reset control is hidden in production builds.
+- [x] public/robots.txt is deployed; sitemap is omitted until crawlable detail URLs exist.
+- [ ] Monitor API usage and add a durable server-side rate limiter before scaling traffic.

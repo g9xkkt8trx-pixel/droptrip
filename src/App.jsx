@@ -24,12 +24,6 @@ import {
 import { getOpenAiApiKeySource } from './services/openAiConfig'
 import { generateOpenAiPlan, getOpenAiCommunicationModeLabel, OPENAI_PLAN_MODEL } from './services/openAiPlan'
 import {
-  isPremiumEnabled,
-  loadPremiumStatus,
-  PREMIUM_STATUS_STORAGE_KEY,
-  savePremiumStatus,
-} from './services/premium'
-import {
   createDestinationSearchFields,
   dedupeDestinations,
   getDestinationSearchMatches,
@@ -336,7 +330,6 @@ const DEBUG_STORAGE_KEYS = [
   MAPS_API_KEY_STORAGE_KEY,
   OPENAI_API_KEY_STORAGE_KEY,
   AI_PLAN_USAGE_STORAGE_KEY,
-  PREMIUM_STATUS_STORAGE_KEY,
   TRAVEL_CACHE_STORAGE_KEY,
   DRAW_HISTORY_STORAGE_KEY,
   INPUT_STATE_STORAGE_KEY,
@@ -2776,7 +2769,6 @@ function App() {
   const [aiPlanUsage, setAiPlanUsage] = useState(loadAiPlanUsageFromStorage)
   const [aiPlanCooldownUntil, setAiPlanCooldownUntil] = useState(loadAiPlanCooldownUntil)
   const [aiPlanClock, setAiPlanClock] = useState(() => Date.now())
-  const [isPremiumUser, setIsPremiumUser] = useState(loadPremiumStatus)
   const [drawSimulation, setDrawSimulation] = useState(null)
   const [conditionTestResults, setConditionTestResults] = useState({})
   const [betaFeedbackNotes, setBetaFeedbackNotes] = useState(loadBetaFeedbackNotes)
@@ -3107,6 +3099,10 @@ function App() {
       : '未設定'
   const todayAiPlanUsageCount = aiPlanUsage.date === getAiPlanLocalDateKey() ? aiPlanUsage.count : 0
   const remainingAiPlanCount = Math.max(0, AI_PLAN_DAILY_LIMIT - todayAiPlanUsageCount)
+  const isAiPlanLimitReached = remainingAiPlanCount === 0
+  const showDevelopmentControls = import.meta.env.DEV
+    && typeof window !== 'undefined'
+    && ['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname)
   const aiPlanCooldownSeconds = getAiPlanCooldownSeconds(aiPlanCooldownUntil, aiPlanClock)
   const imagePreviewItems = createImagePreviewData(destinations)
   const filteredImagePreviewItems = filterImagePreviewItems(imagePreviewItems, imagePreviewFilter)
@@ -3393,13 +3389,6 @@ function App() {
     const resetUsage = { date: getAiPlanLocalDateKey(), count: 0 }
     saveAiPlanUsage(resetUsage)
     setOpenAiApiKeyNotice('本日のAI生成回数をリセットしました。')
-  }
-
-  const togglePremiumStatus = () => {
-    const nextStatus = !isPremiumUser
-    savePremiumStatus(nextStatus)
-    setIsPremiumUser(nextStatus)
-    resetAiPlanState()
   }
 
   const resetAiPlanState = () => {
@@ -3955,13 +3944,6 @@ function App() {
   const generateAiPlan = async () => {
     if (aiPlanRequestInFlight.current) return
     if (!destination || !planContext) return
-    if (!isPremiumEnabled(isPremiumUser)) {
-      ++aiPlanRequestId.current
-      setAiPlanResult(null)
-      setAiPlanStatus('premium-required')
-      setAiPlanNotice('プレミアム機能は今後提供予定です')
-      return
-    }
     const cacheKey = createAiPlanCacheKey({
       destinationId: destination.id,
       departure: planContext.departure,
@@ -3989,7 +3971,6 @@ function App() {
     }
     if (todayAiPlanUsageCount >= AI_PLAN_DAILY_LIMIT) {
       ++aiPlanRequestId.current
-      setAiPlanResult(null)
       setAiPlanStatus('limit')
       setAiPlanNotice('本日のAIプラン生成回数に達しました。明日またお試しください。')
       return
@@ -4002,7 +3983,6 @@ function App() {
     aiPlanRequestInFlight.current = true
     const requestId = ++aiPlanRequestId.current
     setAiPlanNotice('')
-    setAiPlanResult(null)
     setAiPlanLoadingStage(0)
     setAiPlanStatus('loading')
     const season = planContext.travelSeason === '今の季節'
@@ -4033,10 +4013,6 @@ function App() {
         budget: currentBudget,
         photoSpots: aiDestination.photoSpots,
       })
-      saveAiPlanUsage({
-        date: getAiPlanLocalDateKey(),
-        count: todayAiPlanUsageCount + 1,
-      })
       const result = await generateOpenAiPlan({
         prompt,
         destination: aiDestination,
@@ -4044,6 +4020,10 @@ function App() {
         storedApiKey: savedOpenAiApiKey,
       })
       if (requestId === aiPlanRequestId.current) {
+        saveAiPlanUsage({
+          date: getAiPlanLocalDateKey(),
+          count: todayAiPlanUsageCount + 1,
+        })
         aiPlanCache.current.set(cacheKey, result.plan)
         if (!result.plan.isFallback) saveAiPlanSessionCache(cacheKey, result.plan)
         const cooldownUntil = createAiPlanCooldownUntil()
@@ -4064,10 +4044,11 @@ function App() {
           AI_CONFIGURATION_ERROR: 'AIプランを準備できませんでした。時間をおいて再度お試しください。',
           AI_RATE_LIMIT: 'ただいまAIプランが混み合っています。少し時間をおいて再度お試しください。',
           RATE_LIMITED: 'ただいまAIプランが混み合っています。少し時間をおいて再度お試しください。',
+          OUTPUT_TRUNCATED: '旅行プランの生成が途中で終了しました。もう一度お試しください。',
           UPSTREAM_TIMEOUT: 'AIプランの生成に時間がかかっています。少し時間をおいて再試行してください。',
           UPSTREAM_ERROR: 'AIプランを生成できませんでした。少し時間をおいて再試行してください。',
           AI_TIMEOUT: 'AIプランの生成に時間がかかっています。少し時間をおいて再試行してください。',
-          AI_INVALID_RESPONSE: 'AIプランを整理できませんでした。もう一度お試しください。',
+          AI_INVALID_RESPONSE: '旅行プランの整理に失敗しました。もう一度生成してください。',
         }
         setAiPlanNotice(notices[error?.code] ?? 'AIプランを生成できませんでした。しばらくしてから再度お試しください。')
       }
@@ -4697,21 +4678,20 @@ function App() {
                 <p>追加候補の移動時間はアプリ内で断定せず、詳しい移動はGoogle Maps等で確認してください。</p>
               </section>
             )}
-            <section className={`premium-guide-card ${isPremiumUser ? 'active' : ''}`} aria-labelledby="premium-guide-title">
+            <section className="premium-guide-card" aria-labelledby="premium-guide-title">
               <div className="premium-guide-heading">
                 <span aria-hidden="true">✦</span>
                 <div>
-                  <p>PREMIUM AI PLAN</p>
+                  <p>AI TRIP PLAN</p>
                   <h2 id="premium-guide-title">もっと詳しい旅程はAIプランで</h2>
                 </div>
-                {isPremiumUser && <b>有効</b>}
               </div>
               <p className="premium-guide-description">観光スポットやご当地グルメを使って、日程別にもう少し詳しい回り方を整理できます。</p>
-              <button type="button" className={`ai-plan-button ${isPremiumUser ? 'premium-active' : 'premium-locked'}`} onClick={generateAiPlan} disabled={aiPlanStatus === 'loading' || aiPlanCooldownSeconds > 0}>
+              <button type="button" className="ai-plan-button premium-active" onClick={generateAiPlan} disabled={aiPlanStatus === 'loading' || aiPlanCooldownSeconds > 0 || isAiPlanLimitReached}>
                 <span aria-hidden="true">✦</span>
-                {aiPlanStatus === 'loading' ? 'AIプランを生成中...' : aiPlanCooldownSeconds > 0 ? `次の生成まで約${aiPlanCooldownSeconds}秒` : 'AIプランを作成'}
+                {aiPlanStatus === 'loading' ? 'AI\u30d7\u30e9\u30f3\u3092\u751f\u6210\u4e2d...' : isAiPlanLimitReached ? '本日の生成上限に達しました' : aiPlanCooldownSeconds > 0 ? `\u6b21\u306e\u751f\u6210\u307e\u3067\u7d04${aiPlanCooldownSeconds}\u79d2` : 'AI\u30d7\u30e9\u30f3\u3092\u4f5c\u6210'}
               </button>
-              <p className="ai-plan-usage-note">簡易制限: 本日はあと{remainingAiPlanCount}回生成できます{aiPlanCooldownSeconds > 0 ? ` / 次の生成まで約${aiPlanCooldownSeconds}秒` : ''}</p>
+              <p className="ai-plan-usage-note">{'\u672c\u65e5\u306f\u3042\u3068'}{remainingAiPlanCount}{'\u56de\u751f\u6210\u3067\u304d\u307e\u3059'}{aiPlanCooldownSeconds > 0 ? ` / \u6b21\u306e\u751f\u6210\u307e\u3067\u7d04${aiPlanCooldownSeconds}\u79d2` : ''}</p>
               {aiPlanNotice && <p className="ai-plan-key-notice" role="status">{aiPlanNotice}</p>}
               {aiPlanStatus === 'error' && (
                 <button type="button" className="ai-plan-retry" onClick={generateAiPlan}>もう一度試す</button>
@@ -4719,21 +4699,21 @@ function App() {
               {aiPlanStatus === 'loading' && (
                 <div className="ai-plan-loading" role="status"><span aria-hidden="true" /><div><b>{AI_PLAN_LOADING_STAGES[aiPlanLoadingStage]}</b><small>生成には少し時間がかかります</small></div></div>
               )}
-              {aiPlanStatus === 'success' && aiPlanResult && (
+              {aiPlanResult && (aiPlanStatus === 'success' || aiPlanStatus === 'error') && (
                 <section className="ai-plan-card" aria-labelledby="ai-plan-title">
                   <div className="ai-plan-heading">
                     <span aria-hidden="true">AI</span>
                     <div><p>PERSONALIZED TRIP</p><h3 id="ai-plan-title">{aiPlanResult.title}</h3></div>
                     <b>{OPENAI_PLAN_MODEL}</b>
                   </div>
-                  <div className="ai-plan-overview">
-                    {aiPlanResult.concept && <p className="ai-plan-concept">{aiPlanResult.concept}</p>}
-                    <p>{aiPlanResult.summary}</p>
-                  </div>
                   {aiPlanResult.isFallback ? (
                     <div className="ai-generated-content">{aiPlanResult.summary}</div>
                   ) : (
                     <>
+                      <div className="ai-plan-overview">
+                        {aiPlanResult.concept && <p className="ai-plan-concept">{aiPlanResult.concept}</p>}
+                        <p>{aiPlanResult.summary}</p>
+                      </div>
                       <div className="ai-plan-days">
                         {aiPlanResult.days.map((day) => (
                           <section className="ai-plan-day" key={`${day.day}-${day.title}`}>
@@ -4790,14 +4770,17 @@ function App() {
                       {aiPlanResult.tips.length > 0 && <ul className="ai-plan-tips">{aiPlanResult.tips.map((tip) => <li key={tip}>{tip}</li>)}</ul>}
                     </>
                   )}
-                  <dl>
-                    <div><dt>出発地</dt><dd>{planContext.departure}</dd></div>
-                    <div><dt>旅先</dt><dd>{destination.prefecture} {destination.city}</dd></div>
-                    <div><dt>旅行日程</dt><dd>{currentTripSchedule.label}</dd></div>
-                    <div><dt>季節</dt><dd>{planContext.travelSeason === '今の季節' ? `今の季節（${getCurrentSeason()}）` : planContext.travelSeason}</dd></div>
-                    <div><dt>同行者・旅のスタイル</dt><dd>{planContext.selectedFilters.length > 0 ? planContext.selectedFilters.join('、') : '指定なし'}</dd></div>
-                    <div><dt>旅の目的</dt><dd>{planContext.selectedTravelPurposes.length > 0 ? planContext.selectedTravelPurposes.join('、') : '指定なし'}</dd></div>
-                  </dl>
+                  <section className="ai-plan-detail-section ai-plan-context">
+                    <h4>作成条件</h4>
+                    <dl>
+                      <div><dt>出発地</dt><dd>{planContext.departure}</dd></div>
+                      <div><dt>旅先</dt><dd>{destination.prefecture} {destination.city}</dd></div>
+                      <div><dt>旅行日程</dt><dd>{currentTripSchedule.label}</dd></div>
+                      <div><dt>季節</dt><dd>{planContext.travelSeason === '今の季節' ? `今の季節（${getCurrentSeason()}）` : planContext.travelSeason}</dd></div>
+                      <div><dt>同行者・旅のスタイル</dt><dd>{planContext.selectedFilters.length > 0 ? planContext.selectedFilters.join('、') : '指定なし'}</dd></div>
+                      <div><dt>旅の目的</dt><dd>{planContext.selectedTravelPurposes.length > 0 ? planContext.selectedTravelPurposes.join('、') : '指定なし'}</dd></div>
+                    </dl>
+                  </section>
                   {aiPlanResult.disclaimer && <p className="ai-plan-notice">{aiPlanResult.disclaimer}</p>}
                 </section>
               )}
@@ -5565,18 +5548,9 @@ function App() {
               <strong>本日のAI生成回数</strong>
               <p>{todayAiPlanUsageCount} / {AI_PLAN_DAILY_LIMIT}回</p>
             </div>
-            <button type="button" onClick={resetAiPlanUsage} disabled={todayAiPlanUsageCount === 0}>回数をリセット</button>
-          </div>
-          <div className="premium-test-settings">
-            <div>
-              <strong>プレミアム状態を切り替える</strong>
-              <p>開発テスト専用。決済機能とは連携していません。</p>
-            </div>
-            <label className="premium-switch">
-              <input type="checkbox" checked={isPremiumUser} onChange={togglePremiumStatus} />
-              <span aria-hidden="true" />
-              <b>{isPremiumUser ? 'ON' : 'OFF'}</b>
-            </label>
+            {showDevelopmentControls && (
+              <button type="button" onClick={resetAiPlanUsage} disabled={todayAiPlanUsageCount === 0}>回数をリセット</button>
+            )}
           </div>
         </section>
 
@@ -6325,7 +6299,6 @@ function App() {
               <div><dt>長期候補診断</dt><dd>{destination?.nearbyDestinationHints?.length > 0 && currentTripSchedule.days >= 3 && !(planContext?.tripSuggestions?.length > 0) ? 'nearbyDestinationHintsあり / 長期表示なし' : '表示条件に問題なし'}</dd></div>
               <div><dt>説明強化優先</dt><dd>{featuredTouristSpots.length < 3 || localFoodDetails.length < 2 ? 'スポットまたはグルメ説明を追加確認' : '具体情報あり'}</dd></div>
               <div><dt>本日のAI生成回数</dt><dd>{todayAiPlanUsageCount} / {AI_PLAN_DAILY_LIMIT}回</dd></div>
-              <div><dt>プレミアム状態</dt><dd>{isPremiumUser ? '有効（テスト）' : '無効'}</dd></div>
               <div><dt>移動情報取得状態</dt><dd>{travelStatusLabels[travelInfo.status] ?? travelInfo.status}</dd></div>
               <div><dt>TRANSIT origin候補</dt><dd>{travelInfo.transitDebug?.originCandidates?.join(' / ') || '未検索'}</dd></div>
               <div><dt>TRANSIT destination候補</dt><dd>{travelInfo.transitDebug?.destinationCandidates?.join(' / ') || '未検索'}</dd></div>
@@ -6368,3 +6341,4 @@ function App() {
 }
 
 export default App
+/*xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/

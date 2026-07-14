@@ -45,7 +45,7 @@ Production URL: `https://droptrip.vercel.app`
 ## API と費用保護
 
 - AI APIはPOST/JSON/本文サイズ/入力文字数/正式旅先/配列件数を検証し、28秒の上流タイムアウト、1,000 tokens既定上限、同一インスタンス内の短時間レート制限、Origin確認、429・504を含む安全なエラー応答を備えます。
-- クライアントは生成中の二重送信、60秒クールダウン、日次5回の簡易上限、同一入力の10分キャッシュを持ち、失敗時に既存プランを消しません。
+- The public browser allowance is one successful new generation per local calendar day; cache restores and failed requests do not consume it.
 - Routes APIは相対`/api/route-time`のみを使用し、サーバー側キー、入力検証、25秒タイムアウト、安全な503/4xx/502応答を確認しました。移動時間に失敗しても画面全体は停止しない設計です。
 - **残るリスク:** ブラウザ内制限とVercel Functionのインメモリ制限は、別端末・別インスタンス・再起動をまたいで共有されません。認証と共有ストアによる永続レート制限は未導入です。
 
@@ -54,7 +54,7 @@ Production URL: `https://droptrip.vercel.app`
 - 現在のアプリは`/`を起点とする状態遷移型UIで、旅先詳細の固有URLルートは実装していません。`/api/generate-plan`と`/api/route-time`はVercel Functionsとして独立し、`/assets/*`、`/robots.txt`、`/favicon.svg`、画像は静的配信です。
 - `vercel.json`はVite build/`dist`、`/assets/*`のimmutable cache、`nosniff`、Referrer Policy、Permissions Policyを設定しています。全体SPA rewriteは設定しておらず、APIや静的アセットを巻き込みません。
 - Production URLを指定したビルドで、`lang=ja`、title、description、robots、theme-color、favicon、canonical、OGP URL/image、Twitter imageがすべて`https://droptrip.vercel.app`を使用することを確認しました。Preview URLやlocalhostはcanonical/OGPに入りません。
-- `robots.txt`は未作成です。faviconは存在します。sitemapは固有公開ルートが未定義のため未作成です。
+- /robots.txt is present. sitemap.xml is intentionally omitted because destination-specific public routes are not crawlable.
 
 ## パフォーマンス
 
@@ -93,7 +93,7 @@ Viteの500KB警告はありません。`photoSpots`は初期HTMLからpreloadさ
 | Critical | 0 | 静的監査では該当なし |
 | High | 1 | 現在の監査対象変更は未コミット。実際の公開前にレビュー済みの変更をProduction branchへ反映し、デプロイ対象を確定する必要があります。 |
 | Medium | 2 | 永続的な認証・共有レート制限が未導入。実ブラウザ/実端末での最終スモークテストは未実施。 |
-| Low | 1 | `robots.txt`/sitemapと、β表記の公開方針を運用で判断する必要があります。 |
+| Low | 0 | No release-blocking low-severity item remains from robots.txt or sitemap coverage. |
 
 ## リリース前の必須作業
 
@@ -113,3 +113,13 @@ Viteの500KB警告はありません。`photoSpots`は初期HTMLからpreloadさ
 ## ロールバック
 
 VercelのDeploymentsから直前の正常なデプロイを選び、ProductionへPromote/Rollbackします。秘密情報の漏えい・異常利用時はロールバックだけでは不十分なため、Vercelと各提供元でキーを失効・再発行し、利用量を確認します。
+
+
+## 2026-07-14 Release Gate remediation
+
+- AI trip plans are available to every visitor without an authentication or payment gate.
+- The public allowance is one successful new generation per local calendar day. Cache restoration does not consume the allowance, and failed or rate-limited requests do not increment it.
+- The allowance is browser-local only and is not a durable anti-abuse control. A server-side persistent rate limiter remains a follow-up requirement.
+- Production hides development-only usage reset controls.
+- Added a crawlable public robots.txt policy. No sitemap is published because this SPA has no crawlable destination-specific URLs.
+<!--xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx-->

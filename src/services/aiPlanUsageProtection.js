@@ -1,9 +1,13 @@
-export const AI_PLAN_DAILY_LIMIT = 5
+import { normalizeAiPlanResponse } from './aiPlanV2.js'
+
+export const AI_PLAN_DAILY_LIMIT = 1
 export const AI_PLAN_COOLDOWN_MS = 60_000
 export const AI_PLAN_CACHE_TTL_MS = 10 * 60_000
 export const AI_PLAN_USAGE_STORAGE_KEY = 'droptrip-ai-plan-usage'
 export const AI_PLAN_COOLDOWN_STORAGE_KEY = 'droptrip-ai-plan-cooldown'
-export const AI_PLAN_CACHE_STORAGE_KEY = 'droptrip-ai-plan-cache-v2'
+export const AI_PLAN_CACHE_VERSION = 3
+export const AI_PLAN_CACHE_STORAGE_KEY = 'droptrip-ai-plan-cache-v3'
+const LEGACY_AI_PLAN_CACHE_STORAGE_KEYS = ['droptrip-ai-plan-cache-v2']
 
 export const getAiPlanLocalDateKey = (date = new Date()) => {
   const year = date.getFullYear()
@@ -76,15 +80,26 @@ export const createAiPlanCacheKey = (input = {}) => JSON.stringify(input)
 
 export const loadAiPlanSessionCache = (now = Date.now()) => {
   const storage = getStorage('sessionStorage')
+  try {
+    LEGACY_AI_PLAN_CACHE_STORAGE_KEYS.forEach((key) => storage?.removeItem(key))
+  } catch {
+    // キャッシュを読めない環境では、画面内キャッシュだけを利用する。
+  }
   const saved = storage ? safeParse(storage.getItem(AI_PLAN_CACHE_STORAGE_KEY) ?? '{}', {}) : {}
-  if (typeof saved?.key !== 'string' || saved.key.length > 1_500 || !saved?.plan || typeof saved.plan !== 'object') return null
-  if (!Number.isFinite(saved.expiresAt) || saved.expiresAt <= now || saved.expiresAt - now > AI_PLAN_CACHE_TTL_MS) return null
-  return { key: saved.key, plan: saved.plan, expiresAt: saved.expiresAt }
+  const planIsObject = saved?.plan && typeof saved.plan === 'object' && !Array.isArray(saved.plan)
+  const normalized = planIsObject ? normalizeAiPlanResponse(saved.plan) : { ok: false }
+  if (saved?.version !== AI_PLAN_CACHE_VERSION || typeof saved?.key !== 'string' || saved.key.length > 1_500 || saved?.plan?.isFallback === true || !normalized.ok || !Number.isFinite(saved.expiresAt) || saved.expiresAt <= now || saved.expiresAt - now > AI_PLAN_CACHE_TTL_MS) {
+    try { storage?.removeItem(AI_PLAN_CACHE_STORAGE_KEY) } catch { /* no-op */ }
+    return null
+  }
+  return { key: saved.key, plan: normalized.plan, expiresAt: saved.expiresAt }
 }
 
 export const saveAiPlanSessionCache = (key, plan, now = Date.now()) => {
-  if (typeof key !== 'string' || key.length > 1_500 || !plan || typeof plan !== 'object') return null
-  const entry = { key, plan, expiresAt: now + AI_PLAN_CACHE_TTL_MS }
+  if (!plan || typeof plan !== 'object' || Array.isArray(plan) || plan.isFallback === true) return null
+  const normalized = normalizeAiPlanResponse(plan)
+  if (typeof key !== 'string' || key.length > 1_500 || !normalized.ok) return null
+  const entry = { version: AI_PLAN_CACHE_VERSION, key, plan: normalized.plan, expiresAt: now + AI_PLAN_CACHE_TTL_MS }
   try {
     const serialized = JSON.stringify(entry)
     if (serialized.length > 16_000) return null

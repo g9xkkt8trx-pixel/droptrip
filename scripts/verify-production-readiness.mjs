@@ -13,6 +13,7 @@ const openAiPlanSource = await readFile(new URL('../src/services/openAiPlan.js',
 const travelTimeSource = await readFile(new URL('../src/services/travelTime.js', import.meta.url), 'utf8')
 const envExample = await readFile(new URL('../.env.example', import.meta.url), 'utf8')
 const gitignore = await readFile(new URL('../.gitignore', import.meta.url), 'utf8')
+const robotsTxt = await readFile(new URL('../public/robots.txt', import.meta.url), 'utf8')
 const viteConfig = await readFile(new URL('../vite.config.js', import.meta.url), 'utf8')
 const vercelConfig = JSON.parse(await readFile(new URL('../vercel.json', import.meta.url), 'utf8'))
 const destinations = [...rawDestinations, ...supplementalDestinations]
@@ -37,7 +38,10 @@ if (!appSource.includes("import('./data/photoSpots.js')")) failures.push('映え
 if (appSource.includes("from './data/photoSpots.js'")) failures.push('映えスポットの静的 import が残っています。')
 if (!appSource.includes('photoSpotCache')) failures.push('映えスポットの結果キャッシュが見つかりません。')
 if (!appSource.includes('hasHeroImageFailure')) failures.push('hero画像の読み込み失敗フォールバックが見つかりません。')
+if (appSource.includes('isPremiumUser') || appSource.includes('togglePremiumStatus')) failures.push('AI plan production UI depends on premium state')
+if (!appSource.includes('const isAiPlanLimitReached = remainingAiPlanCount === 0')) failures.push('AI plan daily limit is missing')
 if (!gitignore.includes('.env') || !gitignore.includes('.env.*')) failures.push('.env と .env.* が .gitignore の対象ではありません。')
+if (robotsTxt.trim() !== ['User-agent: *', 'Allow: /'].join('\n')) failures.push('robots.txt public crawl policy is invalid')
 
 const requiredEnvironmentVariables = [
   'VITE_PUBLIC_SITE_URL',

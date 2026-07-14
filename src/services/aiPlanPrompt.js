@@ -73,11 +73,11 @@ export const createAiPlanPrompt = ({
   ), 3)
 
   return [
-    'あなたはDROPTRIPの日本国内旅行プランナーです。出力はJSONのみで、Markdownや前置きは出力しません。',
+    'あなたはDROPTRIPの日本国内旅行プランナーです。出力はJSONのみで、Markdown、前置き、後書き、入力条件の再掲は出力しません。',
     'DROPTRIPから渡された正式データを最優先し、入力にない施設名、店名、料理名、営業時間、料金、休館日、予約可否、移動時間を作らないでください。',
     'confirmed映えスポットが2件以上ある場合、旅程itemsとrecommendedPhotoSpotsに少なくとも2件を含めます。店舗名が不明な食事は「駅周辺の郷土料理店」など一般表現にしてください。',
     '予定を詰め込みすぎず、各日に休憩を含めます。移動の詳細は断定せず、地図や公式情報で確認する表現にします。',
-    '雨天代替案を最低1件、写真撮影の注意・最適時間をデータの範囲で追加します。予算は概算・変動する旨をdisclaimerに入れます。',
+    '同じ注意事項を複数箇所へ繰り返さず、短い文でまとめます。雨天代替案を最低1件、写真撮影の注意・最適時間をデータの範囲で追加します。予算は概算・変動する旨をdisclaimerに入れます。',
     '',
     '## 入力条件',
     '出発地: ' + departure,
@@ -110,7 +110,7 @@ export const createAiPlanPrompt = ({
     '',
     '## JSON出力ルール',
     'title, concept, summary, days, recommendedPhotoSpots, localFoodSuggestions, budgetEstimate, rainPlan, tips, disclaimerを必ず含める。',
-    'daysは旅行日数に合わせ、day、title、itemsを持つ。itemsはtime、type、title、description、duration、location、mapQuery、photoTip、cautionを必ず文字列で含める。',
-    '不明な値は空文字、該当がない配列は空配列にする。' + getScheduleTone(tripSchedule),
+    'daysは旅行日数に合わせる。日帰りは1日、itemsは各日最大5件。itemsはtime、type、title、description、duration、location、mapQuery、photoTip、cautionを文字列で含め、descriptionは120文字以内、photoTip/cautionは各80文字以内にする。',
+    'recommendedPhotoSpots/localFoodSuggestionsは各最大3件、rainPlanは最大2件、tipsは最大4件。不明な値は空文字、該当がない配列は空配列にする。' + getScheduleTone(tripSchedule),
   ].filter(Boolean).join('\n')
 }

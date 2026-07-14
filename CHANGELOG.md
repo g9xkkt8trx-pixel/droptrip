@@ -4,8 +4,10 @@ DROPTRIP のβ版リリース履歴を管理するためのメモです。
 
 ## v0.1.0-beta
 
+- AIプランでJSONが途中終了した内容を表示・再利用する不具合を修正しました。日程別の出力上限を日帰り2,200・1泊2日3,000・2泊以上3,800 tokensへ見直し、OpenAIの途中終了を検出して`OUTPUT_TRUNCATED`として再試行へ切り替えます。サーバー成功応答は検証済みオブジェクトだけに限定し、旧テキストフォールバックの二重描画を解消、V3キャッシュは文字列・不正形式を破棄します。
+- AIプランでOpenAIのJSON文字列が旧テキストフォールバックとして表示される不具合を修正しました。サーバーは検証済みオブジェクトだけを返し、クライアントはコードフェンス・二重JSON・ラッパー内JSONを安全に正規化します。不正JSONは生表示せず、既存プランを保った再試行案内へ切り替えます。
 - 本番公開候補の最終静的監査を実施し、検索137件・hero137件・confirmed映えスポット408件、AIプランV2/費用保護、Routes API、SEO、遅延読み込み、Production URLを指定したビルドを再確認しました。初期JSは447.53KB（gzip 124.31KB）、`photoSpots`遅延チャンクは156.40KB（gzip 35.21KB）で、Viteの500KB警告はありません。実ブラウザの最終スモークテストと、共有ストア・認証を使う永続レート制限は運用上の残課題として記録しています。
-- AIプランの費用保護として、ブラウザ内の日次5回目安・60秒クールダウン・10分1件キャッシュ、APIのJSON/Origin/本文/入力検証、28秒タイムアウト、1,000 tokens上限、Vercel Function内の補助的な短時間レート制限を追加しました。インメモリ制限は恒久対策ではないため、認証と共有ストアを使う制限は残課題として記録しています。
+- AI plan cost protection now provides one successful new generation per local browser day, a 60-second cooldown, a 10-minute single-entry cache, API JSON/Origin/body/input validation, a 28-second timeout, and output-token limits. Browser and in-memory limits remain non-durable safeguards.
 - AIプランV2を追加しました。対象旅先1件の正式データとconfirmed映えスポット最大3件を、生成時だけ遅延読み込みしてOpenAIへ渡し、JSON Schemaによる日別タイムライン、映え・食・費用目安・雨天案・注意点のカード表示へ更新しました。入力・出力上限、タイムアウト、同一条件の画面内キャッシュ、安全なエラー表示と再試行を加え、検索、hero、通常の映えスポット遅延表示は変更していません。
 - Vercel本番デプロイ設定を監査し、hashed assetsのimmutableキャッシュ、低リスクのセキュリティヘッダー、本番URLが明示された時だけcanonical/OGP絶対URLを出力するビルド設定、環境変数・デプロイ手順の文書化を追加しました。API、旅先、hero、映えスポット、検索の仕様は変更していません。
 - 本番公開前の品質監査として、描画エラー境界、旅先データ読み込み失敗時の再試行、映えスポット遅延読み込みのloading/error/retry/cache、confirmed hero画像の読み込み失敗フォールバックを追加しました。SEO基本メタ情報と静的本番準備検証も追加し、検索・hero表示・旅先/映えスポットデータの仕様は変更していません。
@@ -225,3 +227,12 @@ DROPTRIP のβ版リリース履歴を管理するためのメモです。
 - Added concrete Osaka City spots and local food metadata for result-screen display.
 
 
+
+
+## 2026-07-14
+
+- Released AI trip-plan access to all visitors with a one-successful-generation-per-local-day browser policy.
+- Removed production dependence on the manual premium toggle and hid development-only usage reset controls.
+- Ensured failed, rate-limited, and cached AI requests do not consume the local daily allowance.
+- Added public/robots.txt and intentionally deferred sitemap.xml until crawlable detail URLs exist.
+<!--xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx-->
