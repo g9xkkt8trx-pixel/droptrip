@@ -4,8 +4,8 @@ import { supplementalDestinations } from '../src/data/supplementalDestinations.j
 
 const OPENAI_RESPONSES_API_URL = 'https://api.openai.com/v1/responses'
 const DEFAULT_MODEL = 'gpt-4.1-mini'
-const DEFAULT_TIMEOUT_MS = 28_000
-const DEFAULT_MAX_OUTPUT_TOKENS = 1_000
+const DEFAULT_TIMEOUT_MS = 30_000
+const DEFAULT_MAX_OUTPUT_TOKENS = 2400
 const MAX_PROMPT_LENGTH = 8_000
 const MAX_BODY_BYTES = 18_000
 const MAX_DESTINATION_PAYLOAD_LENGTH = 12_000
@@ -19,6 +19,11 @@ const MAX_ARRAY_ITEMS = {
   photoSpots: 3,
 }
 const ALLOWED_TRAVEL_TYPES = new Set(['日帰り', '1泊2日', '2泊3日'])
+const OUTPUT_TOKENS_BY_TRAVEL_TYPE = {
+  日帰り: 2_200,
+  '1泊2日': 3_000,
+  '2泊3日': 3_800,
+}
 const REQUEST_WINDOWS = [
   { durationMs: 60_000, maxRequests: 2 },
   { durationMs: 10 * 60_000, maxRequests: 5 },
@@ -34,7 +39,7 @@ const readBoundedInteger = (value, fallback, minimum, maximum) => {
 }
 
 const REQUEST_TIMEOUT_MS = readBoundedInteger(process.env.AI_REQUEST_TIMEOUT_MS, DEFAULT_TIMEOUT_MS, 10_000, 30_000)
-const MAX_OUTPUT_TOKENS = readBoundedInteger(process.env.AI_MAX_OUTPUT_TOKENS, DEFAULT_MAX_OUTPUT_TOKENS, 400, 1_200)
+const CONFIGURED_MAX_OUTPUT_TOKENS = readBoundedInteger(process.env.AI_MAX_OUTPUT_TOKENS, DEFAULT_MAX_OUTPUT_TOKENS, 1_500, 4_000)
 
 const safeError = (response, status, code, message) => response.status(status).json({ ok: false, code, error: message, message })
 
@@ -118,13 +123,23 @@ const hasValidDestination = (destination) => {
 
 const extractOutputText = (response) => {
   if (typeof response.output_text === 'string' && response.output_text.trim()) return response.output_text.trim()
-  return response.output
+  const content = response.output
     ?.flatMap((item) => item.content ?? [])
-    .filter((content) => content.type === 'output_text' && typeof content.text === 'string')
-    .map((content) => content.text)
-    .join('\n')
-    .trim() ?? ''
+    .find((item) => item.type === 'output_text' && typeof item.text === 'string' && item.text.trim())
+  return content?.text?.trim() ?? ''
 }
+
+export const isOutputTruncated = (response) => (
+  response?.status === 'incomplete'
+  || Boolean(response?.incomplete_details)
+  || response?.output?.some((item) => item?.status === 'incomplete' || Boolean(item?.incomplete_details))
+  || response?.choices?.some((choice) => choice?.finish_reason === 'length')
+)
+
+const getMaxOutputTokens = (travelType) => Math.max(
+  OUTPUT_TOKENS_BY_TRAVEL_TYPE[travelType] ?? OUTPUT_TOKENS_BY_TRAVEL_TYPE.日帰り,
+  CONFIGURED_MAX_OUTPUT_TOKENS,
+)
 
 export default async function handler(request, response) {
   if (request.method !== 'POST') {
@@ -188,7 +203,7 @@ export default async function handler(request, response) {
       body: JSON.stringify({
         model,
         input: prompt,
-        max_output_tokens: MAX_OUTPUT_TOKENS,
+        max_output_tokens: getMaxOutputTokens(travelType),
         temperature: 0.3,
         text: { format: { type: 'json_schema', name: 'droptrip_ai_plan_v2', strict: true, schema: AI_PLAN_V2_JSON_SCHEMA } },
       }),
@@ -203,11 +218,17 @@ export default async function handler(request, response) {
     const openAiPayload = await openAiResponse.json()
     const usage = openAiPayload?.usage
     if (usage && typeof usage === 'object') console.info('[generate-plan] OpenAI usage', { inputTokens: usage.input_tokens, outputTokens: usage.output_tokens })
-    const plan = extractOutputText(openAiPayload)
-    if (!plan) return safeError(response, 502, 'UPSTREAM_ERROR', 'AIプランを生成できませんでした。')
-    const isStructuredPlan = Boolean(parseAiPlanV2(plan))
-    if (!isStructuredPlan) console.error('[generate-plan] OpenAI response did not match the AI Plan V2 schema')
-    return response.status(200).json({ ok: true, plan, model, format: isStructuredPlan ? 'ai-plan-v2' : 'text-fallback' })
+    if (isOutputTruncated(openAiPayload)) {
+      console.error('[generate-plan] OpenAI output was truncated', { status: openAiPayload?.status, reason: openAiPayload?.incomplete_details?.reason })
+      return safeError(response, 502, 'OUTPUT_TRUNCATED', '旅行プランの生成が途中で終了しました。もう一度お試しください。')
+    }
+    const rawPlan = extractOutputText(openAiPayload)
+    if (!rawPlan) return safeError(response, 502, 'UPSTREAM_ERROR', 'AIプランを生成できませんでした。')
+    const parsedPlan = parseAiPlanV2(rawPlan)
+    if (parsedPlan) return response.status(200).json({ ok: true, plan: parsedPlan, model, format: 'ai-plan-v2' })
+
+    console.error('[generate-plan] OpenAI response could not be normalized')
+    return safeError(response, 502, 'AI_INVALID_RESPONSE', '旅行プランの整理に失敗しました。もう一度生成してください。')
   } catch (error) {
     console.error('[generate-plan] Request error', { name: error?.name ?? 'Error' })
     return safeError(response, error?.name === 'AbortError' ? 504 : 502, error?.name === 'AbortError' ? 'UPSTREAM_TIMEOUT' : 'UPSTREAM_ERROR', error?.name === 'AbortError' ? 'AIプランの生成に時間がかかっています。' : 'AIプランを生成できませんでした。')

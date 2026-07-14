@@ -1,5 +1,5 @@
 import { getOpenAiApiKey } from './openAiConfig'
-import { createAiPlanTextFallback, parseAiPlanV2 } from './aiPlanV2'
+import { createAiPlanTextFallback, normalizeAiPlanResponse, normalizeAiPlanV2 } from './aiPlanV2'
 
 const SERVER_PLAN_API_URL = '/api/generate-plan'
 const OPENAI_RESPONSES_API_URL = 'https://api.openai.com/v1/responses'
@@ -16,13 +16,22 @@ const extractOutputText = (response) => {
 
   const text = response.output
     ?.flatMap((item) => item.content ?? [])
-    .filter((content) => content.type === 'output_text' && typeof content.text === 'string')
-    .map((content) => content.text)
-    .join('\n')
-    .trim()
+    .find((content) => content.type === 'output_text' && typeof content.text === 'string' && content.text.trim())
+    ?.text
+    ?.trim()
 
   if (!text) throw new Error('OpenAI API response did not include output text')
   return text
+}
+
+const toClientPlan = (rawPlan) => {
+  const normalized = normalizeAiPlanResponse(rawPlan)
+  if (normalized.ok) return { plan: normalized.plan, format: 'ai-plan-v2' }
+  const fallback = createAiPlanTextFallback(rawPlan)
+  if (fallback?.summary) return { plan: fallback, format: 'legacy-text' }
+  const error = new Error('AI plan response could not be normalized')
+  error.code = 'AI_INVALID_RESPONSE'
+  throw error
 }
 
 const requestServerPlan = async ({ prompt, destination, travelType, signal }) => {
@@ -49,17 +58,22 @@ const requestServerPlan = async ({ prompt, destination, travelType, signal }) =>
   }
 
   const data = await response.json().catch(() => ({}))
-  if (typeof data.plan !== 'string' || !data.plan.trim()) {
+  if (!data?.ok || !data.plan || typeof data.plan !== 'object' || Array.isArray(data.plan)) {
     const error = new Error('AI plan server response did not include a plan')
     error.code = 'AI_INVALID_RESPONSE'
     throw error
   }
-  const parsedPlan = data.format === 'ai-plan-v2' ? parseAiPlanV2(data.plan) : null
+  const plan = normalizeAiPlanV2(data.plan)
+  if (!plan) {
+    const error = new Error('AI plan server response was invalid')
+    error.code = 'AI_INVALID_RESPONSE'
+    throw error
+  }
   return {
-    plan: parsedPlan ?? createAiPlanTextFallback(data.plan),
+    plan,
     mode: 'server',
     model: data.model || 'server setting',
-    format: parsedPlan ? 'ai-plan-v2' : 'fallback',
+    format: 'ai-plan-v2',
   }
 }
 
@@ -69,7 +83,7 @@ const canUseLocalDirectFallback = () => {
 }
 
 // 開発専用フォールバック。公開ビルドでは絶対にこの経路を使用しない。
-const requestLocalDirectPlan = async (prompt, storedApiKey, signal) => {
+const requestLocalDirectPlan = async (prompt, storedApiKey, signal, travelType) => {
   const apiKey = getOpenAiApiKey(storedApiKey)
   if (!apiKey) throw new Error('Local OpenAI API key is not configured')
 
@@ -82,7 +96,7 @@ const requestLocalDirectPlan = async (prompt, storedApiKey, signal) => {
     body: JSON.stringify({
       model: OPENAI_PLAN_MODEL,
       input: prompt,
-      max_output_tokens: 1200,
+      max_output_tokens: travelType === '日帰り' ? 2200 : travelType === '1泊2日' ? 3000 : 3800,
     }),
     signal,
   })
@@ -95,12 +109,12 @@ const requestLocalDirectPlan = async (prompt, storedApiKey, signal) => {
   }
 
   const text = extractOutputText(await response.json())
-  const parsedPlan = parseAiPlanV2(text)
+  const normalized = toClientPlan(text)
   return {
-    plan: parsedPlan ?? createAiPlanTextFallback(text),
+    plan: normalized.plan,
     mode: 'local-direct',
     model: OPENAI_PLAN_MODEL,
-    format: parsedPlan ? 'ai-plan-v2' : 'fallback',
+    format: normalized.format,
   }
 }
 
@@ -117,7 +131,7 @@ export const generateOpenAiPlan = async ({ prompt, destination, travelType, stor
       return await requestServerPlan({ prompt, destination, travelType, signal: controller.signal })
     } catch (error) {
       if (!error.serverUnavailable || !canUseLocalDirectFallback()) throw error
-      return await requestLocalDirectPlan(prompt, storedApiKey, controller.signal)
+      return await requestLocalDirectPlan(prompt, storedApiKey, controller.signal, travelType)
     }
   } catch (error) {
     if (controller.signal.aborted && !error.code) error.code = 'AI_TIMEOUT'
