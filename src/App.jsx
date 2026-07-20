@@ -42,6 +42,7 @@ import {
 } from './config/appVersion'
 
 let loadedDestinations = []
+const IS_DEVELOPER_BUILD = import.meta.env.DEV
 
 const getImageUrl = (image) => {
   if (typeof image === 'string') return image
@@ -2751,10 +2752,10 @@ function App() {
   const [compareCities, setCompareCities] = useState(() => loadStoredCities(COMPARE_STORAGE_KEY))
   const [comparisonSeason, setComparisonSeason] = useState(restoredInputState.travelSeason)
   const [comparisonFilters, setComparisonFilters] = useState(restoredInputState.selectedFilters)
-  const [savedApiKey, setSavedApiKey] = useState(loadStoredApiKey)
+  const [savedApiKey, setSavedApiKey] = useState(() => (IS_DEVELOPER_BUILD ? loadStoredApiKey() : ''))
   const [apiKeyInput, setApiKeyInput] = useState('')
   const [apiKeyNotice, setApiKeyNotice] = useState('')
-  const [savedOpenAiApiKey, setSavedOpenAiApiKey] = useState(() => loadStoredApiKey(OPENAI_API_KEY_STORAGE_KEY))
+  const [savedOpenAiApiKey, setSavedOpenAiApiKey] = useState(() => (IS_DEVELOPER_BUILD ? loadStoredApiKey(OPENAI_API_KEY_STORAGE_KEY) : ''))
   const [openAiApiKeyInput, setOpenAiApiKeyInput] = useState('')
   const [openAiApiKeyNotice, setOpenAiApiKeyNotice] = useState('')
   const [travelTimeCache] = useState(loadTravelTimeCache)
@@ -2827,7 +2828,7 @@ function App() {
   }, [destinationDataLoadAttempt])
 
   useEffect(() => {
-    if (currentPage !== 'developer' || !isDestinationDataReady) return undefined
+    if (!IS_DEVELOPER_BUILD || currentPage !== 'developer' || !isDestinationDataReady) return undefined
 
     let isActive = true
     Promise.all([
@@ -3103,6 +3104,7 @@ function App() {
   const todayAiPlanUsageCount = aiPlanUsage.date === getAiPlanLocalDateKey() ? aiPlanUsage.count : 0
   const remainingAiPlanCount = Math.max(0, AI_PLAN_DAILY_LIMIT - todayAiPlanUsageCount)
   const isAiPlanLimitReached = remainingAiPlanCount === 0
+  const isDeveloperPage = IS_DEVELOPER_BUILD && currentPage === 'developer'
   const showDevelopmentControls = import.meta.env.DEV
     && typeof window !== 'undefined'
     && ['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname)
@@ -3430,6 +3432,7 @@ function App() {
   }
 
   const switchPage = (page) => {
+    if (page === 'developer' && !IS_DEVELOPER_BUILD) return
     if (page === 'result') {
       setResultDetailView('overview')
     }
@@ -3449,6 +3452,7 @@ function App() {
   }
 
   const handleDeveloperTitleClick = (event) => {
+    if (!IS_DEVELOPER_BUILD) return
     const now = event.timeStamp
     const previous = developerTitleClicks.current
     const nextCount = now - previous.lastClickAt <= 1200 ? previous.count + 1 : 1
@@ -4020,7 +4024,7 @@ function App() {
         prompt,
         destination: aiDestination,
         travelType: planContext.tripType,
-        storedApiKey: savedOpenAiApiKey,
+        storedApiKey: IS_DEVELOPER_BUILD ? savedOpenAiApiKey : '',
       })
       if (requestId === aiPlanRequestId.current) {
         saveAiPlanUsage({
@@ -4064,8 +4068,8 @@ function App() {
   return (
     <main className="app-shell">
       <section
-        className={`trip-card ${currentPage === 'developer' ? 'developer-page' : currentPage === 'history' ? 'history-page' : currentPage === 'favorites' ? 'favorites-page' : currentPage === 'comparison' ? 'comparison-page' : currentPage === 'calculation' ? 'calculation-page' : currentPage === 'destinations' ? 'destinations-page' : currentPage === 'result' ? 'result-page' : 'main-page'}`}
-        aria-labelledby={currentPage === 'developer' ? 'developer-page-title' : currentPage === 'history' ? 'history-page-title' : currentPage === 'favorites' ? 'favorites-page-title' : currentPage === 'comparison' ? 'comparison-page-title' : currentPage === 'calculation' ? 'calculation-page-title' : currentPage === 'destinations' ? 'destinations-page-title' : currentPage === 'result' ? resultDetailView === 'food' ? 'result-food-page-title' : resultDetailView === 'spots' ? 'result-spots-page-title' : resultDetailView === 'trends' ? 'result-trends-page-title' : resultDetailView === 'feedback' ? 'result-feedback-page-title' : 'result-page-title' : 'app-title'}
+        className={`trip-card ${isDeveloperPage ? 'developer-page' : currentPage === 'history' ? 'history-page' : currentPage === 'favorites' ? 'favorites-page' : currentPage === 'comparison' ? 'comparison-page' : currentPage === 'calculation' ? 'calculation-page' : currentPage === 'destinations' ? 'destinations-page' : currentPage === 'result' ? 'result-page' : 'main-page'}`}
+        aria-labelledby={isDeveloperPage ? 'developer-page-title' : currentPage === 'history' ? 'history-page-title' : currentPage === 'favorites' ? 'favorites-page-title' : currentPage === 'comparison' ? 'comparison-page-title' : currentPage === 'calculation' ? 'calculation-page-title' : currentPage === 'destinations' ? 'destinations-page-title' : currentPage === 'result' ? resultDetailView === 'food' ? 'result-food-page-title' : resultDetailView === 'spots' ? 'result-spots-page-title' : resultDetailView === 'trends' ? 'result-trends-page-title' : resultDetailView === 'feedback' ? 'result-feedback-page-title' : 'result-page-title' : 'app-title'}
       >
         {currentPage === 'main' || currentPage === 'result' ? (
           <>
@@ -4079,7 +4083,7 @@ function App() {
             </svg>
           </div>
           <p className="eyebrow">WHERE TO NEXT?</p>
-          <h1 id="app-title" onClick={handleDeveloperTitleClick}>DROPTRIP</h1>
+          <h1 id="app-title" onClick={IS_DEVELOPER_BUILD ? handleDeveloperTitleClick : undefined}>DROPTRIP</h1>
           <p className="subtitle">運命の旅行先を決めよう</p>
           <p className="hero-description">今の気分に合う旅先を提案します。</p>
         </header>
@@ -4537,7 +4541,7 @@ function App() {
                   {resultFeedbackNotice && <p className="settings-notice" role="status">{resultFeedbackNotice}</p>}
                   <div className="feedback-actions">
                     <button type="button" onClick={copyResultFeedback}>感想をコピーする</button>
-                    <button type="button" className="secondary" onClick={() => { saveResultFeedbackNote(); setResultFeedbackNotice('端末内に保存しました。開発者ページのβテストメモで確認できます。') }}>端末内に保存</button>
+                    <button type="button" className="secondary" onClick={() => { saveResultFeedbackNote(); setResultFeedbackNotice('端末内に保存しました。必要に応じてお問い合わせ時の参考にしてください。') }}>端末内に保存</button>
                   </div>
                 </section>
               </section>
@@ -5320,7 +5324,7 @@ function App() {
             </section>
             <p className="footer-note">DROPTRIP Calculation Guide</p>
           </>
-        ) : (
+        ) : IS_DEVELOPER_BUILD && currentPage === 'developer' ? (
           <>
         <header className="developer-page-header">
           <button type="button" onClick={() => switchPage('main')}>
@@ -6339,7 +6343,7 @@ function App() {
         </section>
         <p className="footer-note">DROPTRIP Developer Tools</p>
           </>
-        )}
+        ) : null}
       </section>
       <AppFooter />
       <PwaSupport />

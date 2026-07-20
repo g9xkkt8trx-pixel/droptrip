@@ -46,7 +46,8 @@ for (const file of requiredPublicFiles) {
   }
 }
 
-const [footerSource, noticeSource, versionSource, envExample, contactSource, termsSource, privacySource, viteConfig] = await Promise.all([
+const [appSource, footerSource, noticeSource, versionSource, envExample, contactSource, termsSource, privacySource, viteConfig] = await Promise.all([
+  readFile(new URL('../src/App.jsx', import.meta.url), 'utf8'),
   readFile(new URL('../src/components/AppFooter.jsx', import.meta.url), 'utf8'),
   readFile(new URL('../src/components/ServiceNotice.jsx', import.meta.url), 'utf8'),
   readFile(new URL('../src/config/appVersion.js', import.meta.url), 'utf8'),
@@ -68,6 +69,10 @@ if (!termsSource.includes('/contact.html') || !privacySource.includes('/contact.
 if (!viteConfig.includes('VITE_CONTACT_FORM_URL')) failures.push('contact form URL is not injected at build time')
 if (getSafeContactFormUrl('https://example.com/form') !== 'https://example.com/form') failures.push('safe contact form URL was rejected')
 if (getSafeContactFormUrl('javascript:alert(1)') || getSafeContactFormUrl('data:text/html,test') || getSafeContactFormUrl('mailto:test@example.com')) failures.push('unsafe contact form URL was accepted')
+if (!appSource.includes('const IS_DEVELOPER_BUILD = import.meta.env.DEV')) failures.push('developer tools are not restricted to DEV builds')
+if (!appSource.includes("if (page === 'developer' && !IS_DEVELOPER_BUILD) return")) failures.push('production navigation can still open developer tools')
+if (!appSource.includes('onClick={IS_DEVELOPER_BUILD ? handleDeveloperTitleClick : undefined}')) failures.push('title tap handler is still active in production')
+if (!appSource.includes("IS_DEVELOPER_BUILD && currentPage === 'developer' ? (")) failures.push('developer page rendering is not restricted to DEV builds')
 
 if (failures.length > 0) {
   console.error(`運用基盤検証に失敗しました。\n${failures.join('\n')}`)
