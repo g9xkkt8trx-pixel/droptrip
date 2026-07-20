@@ -7,6 +7,7 @@
 
 - `public/manifest.webmanifest`: `standalone`表示、`/`を開始URL・scopeにしたWeb App Manifest。
 - アイコン: 192px、512px、maskable 512px、Apple Touch Icon 180px。既存faviconの稲妻モチーフと色を踏襲しています。
+- Richer PWA Install UI: 実際のDROPTRIPトップ画面を元にした横長1280x720と縦長390x844のスクリーンショットをmanifestへ登録しています。
 - Service Worker: 外部プラグインを追加せず、Viteビルド時に`dist/service-worker.js`を生成します。
 
 ## キャッシュ方針
