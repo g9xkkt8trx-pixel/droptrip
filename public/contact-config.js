@@ -1,0 +1,1 @@
+window.DROPTRIP_CONTACT_FORM_URL = '';

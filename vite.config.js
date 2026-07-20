@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 import { mkdir, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { cwd } from 'node:process'
+import { getSafeContactFormUrl } from './src/utils/contactFormUrl.js'
 
 const getPublicSiteOrigin = (value = '') => {
   try {
@@ -33,7 +34,7 @@ const createPublicSiteMetadataPlugin = (siteOrigin) => ({
   },
 })
 
-const createServiceWorkerPlugin = () => ({
+const createServiceWorkerPlugin = (contactFormUrl) => ({
   name: 'droptrip-service-worker',
   apply: 'build',
   async closeBundle() {
@@ -100,14 +101,20 @@ self.addEventListener('fetch', (event) => {
     const outputDirectory = resolve(cwd(), 'dist')
     await mkdir(outputDirectory, { recursive: true })
     await writeFile(resolve(outputDirectory, 'service-worker.js'), serviceWorker, 'utf8')
+    await writeFile(
+      resolve(outputDirectory, 'contact-config.js'),
+      `window.DROPTRIP_CONTACT_FORM_URL = ${JSON.stringify(contactFormUrl)};\n`,
+      'utf8',
+    )
   },
 })
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '')
   const publicSiteOrigin = getPublicSiteOrigin(env.VITE_PUBLIC_SITE_URL)
+  const contactFormUrl = getSafeContactFormUrl(env.VITE_CONTACT_FORM_URL)
 
   return {
-    plugins: [react(), createPublicSiteMetadataPlugin(publicSiteOrigin), createServiceWorkerPlugin()],
+    plugins: [react(), createPublicSiteMetadataPlugin(publicSiteOrigin), createServiceWorkerPlugin(contactFormUrl)],
   }
 })

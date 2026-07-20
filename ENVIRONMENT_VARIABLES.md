@@ -10,6 +10,7 @@
 | `VITE_GOOGLE_MAPS_API_KEY` | 公開される | ローカル任意 | `src/services/travelTime.js` | localhostの直接通信を使えない。サーバーAPIを先に試す | 設定しない |
 | `VITE_OPENAI_API_KEY` | 公開される | ローカル任意 | `src/services/openAiConfig.js` | localhostの直接通信を使えない。サーバーAPIを先に試す | 設定しない |
 | `VITE_OPENAI_PLAN_MODEL` | 公開される | ローカル任意 | `src/services/openAiPlan.js` | `gpt-4.1-mini` を使用 | 設定しない |
+| `VITE_CONTACT_FORM_URL` | 一般公開 | 任意 | `vite.config.js` / `public/contact.html` | 外部送信ボタンを表示せず「お問い合わせフォームは準備中です」と表示 | Production、必要ならPreview |
 | `GOOGLE_MAPS_API_KEY` | 秘密 | API利用時は必須 | `api/route-time.js` | `/api/route-time` は503を返す | Production、API確認を行うPreview |
 | `OPENAI_API_KEY` | 秘密 | AIプラン利用時は必須 | `api/generate-plan.js` | `/api/generate-plan` は503を返す | Production、API確認を行うPreview |
 | `OPENAI_PLAN_MODEL` | 秘密ではないがサーバー設定 | 任意 | `api/generate-plan.js` | `gpt-4.1-mini` を使用 | Production、API確認を行うPreview |
@@ -30,6 +31,7 @@
 - Previewには `VITE_PUBLIC_SITE_URL` を設定しません。Preview URLをcanonicalやOGPへ混ぜません。
 - APIをPreviewで検証する場合のみ、秘密のサーバー変数をPreviewにも設定します。不要なら設定せず、APIが安全に503となることを確認します。
 - `VITE_GOOGLE_MAPS_API_KEY` と `VITE_OPENAI_API_KEY` はProduction/Previewへ設定しません。
+- `VITE_CONTACT_FORM_URL` はGoogleフォームなどの問い合わせURLです。`https://`または`http://`だけを有効とし、Sensitive指定は不要です。未設定時は外部フォームへのリンクを表示しません。
 - `AI_REQUEST_TIMEOUT_MS`は10,000〜30,000、`AI_MAX_OUTPUT_TOKENS`は1,500〜4,000だけが有効です。未設定時は30,000msと2,400 tokensを使い、日帰り・宿泊日数ごとの実際の上限はサーバー側で安全に調整します。
 - ブラウザ内の日次1回・60秒クールダウンは環境変数ではなく簡易制限です。共有ストアを使う恒久的な利用回数制限ではありません。
 - 障害対応では、`ENABLE_AI_PLAN=false` または `ENABLE_ROUTE_TIME=false` をVercelのサーバー環境変数へ設定し、対象Functionだけをメンテナンス状態にできます。`VITE_`接頭辞は付けません。

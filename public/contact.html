@@ -1,1 +1,55 @@
-<!doctype html><html lang="ja"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="robots" content="noindex,follow" /><title>お問い合わせ | DROPTRIP</title><link rel="stylesheet" href="/legal.css" /></head><body><main class="legal-shell"><a class="legal-brand" href="/">DROPTRIP</a><article class="legal-card"><h1>お問い合わせ</h1><p>不具合報告と改善要望は、DROPTRIPのGitHub Issuesから受け付けます。個人情報、APIキー、予約情報、決済情報は記載しないでください。</p><h2>送信前に含めてほしい情報</h2><pre class="contact-template">種別：不具合報告 / 改善要望&#10;使用端末：&#10;ブラウザ：&#10;発生した画面：&#10;旅先：&#10;操作内容：&#10;発生したエラー・期待した結果：</pre><p>GitHub Issuesが利用できない場合は、運営者が公開する問い合わせ窓口をこのページへ設定してください。問い合わせ先のメールアドレスを追加する場合は、スパム対策と受信体制を確認してから公開します。</p><div class="legal-actions"><a href="https://github.com/g9xkkt8trx-pixel/droptrip/issues/new" rel="noopener noreferrer">GitHub Issuesを開く</a><a class="secondary" href="/">DROPTRIPへ戻る</a></div></article></main></body></html>
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex,follow" />
+    <title>お問い合わせ | DROPTRIP</title>
+    <link rel="stylesheet" href="/legal.css" />
+  </head>
+  <body>
+    <main class="legal-shell">
+      <a class="legal-brand" href="/">DROPTRIP</a>
+      <article class="legal-card">
+        <h1>お問い合わせ</h1>
+        <p>不具合報告や改善要望を受け付けています。回答には時間がかかる場合があります。個人情報、APIキー、予約情報、決済情報は入力しないでください。</p>
+        <h2>報告時に書いてほしい情報</h2>
+        <pre class="contact-template">種別：不具合報告 / 改善要望
+使用端末：
+OS：
+ブラウザ：
+発生した画面：
+旅先：
+操作内容：
+表示されたエラー：
+再現手順：
+スクリーンショットの有無：</pre>
+        <div id="contact-form-slot">
+          <p class="legal-meta">お問い合わせフォームは準備中です。</p>
+        </div>
+        <div class="legal-actions">
+          <a class="secondary" href="/">DROPTRIPへ戻る</a>
+        </div>
+      </article>
+    </main>
+    <script src="/contact-config.js"></script>
+    <script>
+      (() => {
+        const slot = document.getElementById('contact-form-slot')
+        const value = typeof window.DROPTRIP_CONTACT_FORM_URL === 'string' ? window.DROPTRIP_CONTACT_FORM_URL.trim() : ''
+        try {
+          const url = new URL(value)
+          if (!['http:', 'https:'].includes(url.protocol)) return
+          const link = document.createElement('a')
+          link.href = url.href
+          link.target = '_blank'
+          link.rel = 'noopener noreferrer'
+          link.textContent = 'お問い合わせフォームを開く'
+          slot.replaceChildren(link)
+        } catch {
+          // A missing or unsafe public URL intentionally keeps the preparation message.
+        }
+      })()
+    </script>
+  </body>
+</html>
