@@ -25,6 +25,7 @@ import { getOpenAiApiKeySource } from './services/openAiConfig'
 import { generateOpenAiPlan, getOpenAiCommunicationModeLabel, OPENAI_PLAN_MODEL } from './services/openAiPlan'
 import AppFooter from './components/AppFooter'
 import ServiceNotice from './components/ServiceNotice'
+import PwaSupport from './components/PwaSupport'
 import {
   createDestinationSearchFields,
   dedupeDestinations,
@@ -6341,6 +6342,7 @@ function App() {
         )}
       </section>
       <AppFooter />
+      <PwaSupport />
       <ScrollToTopButton />
     </main>
   )

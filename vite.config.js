@@ -1,5 +1,8 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
+import { mkdir, writeFile } from 'node:fs/promises'
+import { resolve } from 'node:path'
+import { cwd } from 'node:process'
 
 const getPublicSiteOrigin = (value = '') => {
   try {
@@ -30,11 +33,81 @@ const createPublicSiteMetadataPlugin = (siteOrigin) => ({
   },
 })
 
+const createServiceWorkerPlugin = () => ({
+  name: 'droptrip-service-worker',
+  apply: 'build',
+  async closeBundle() {
+    const buildId = new Date().toISOString()
+    const cacheName = `droptrip-runtime-${buildId}`
+    const serviceWorker = `/* DROPTRIP service worker: ${buildId} */
+const CACHE_NAME = ${JSON.stringify(cacheName)}
+const OFFLINE_URL = '/offline.html'
+const STATIC_PATHS = ['/assets/', '/images/', '/icons/', '/manifest.webmanifest', '/legal.css']
+
+self.addEventListener('install', (event) => {
+  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.add(OFFLINE_URL)))
+})
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil((async () => {
+    const names = await caches.keys()
+    await Promise.all(names.filter((name) => name.startsWith('droptrip-runtime-') && name !== CACHE_NAME).map((name) => caches.delete(name)))
+    await self.clients.claim()
+  })())
+})
+
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') self.skipWaiting()
+})
+
+const isCacheableStaticRequest = (url) => STATIC_PATHS.some((path) => url.pathname.startsWith(path))
+
+self.addEventListener('fetch', (event) => {
+  const { request } = event
+  const url = new URL(request.url)
+  if (request.method !== 'GET' || url.origin !== self.location.origin || url.pathname.startsWith('/api/')) return
+
+  if (request.mode === 'navigate') {
+    event.respondWith((async () => {
+      try {
+        const response = await fetch(request)
+        if (response.ok) {
+          const cache = await caches.open(CACHE_NAME)
+          await cache.put(request, response.clone())
+        }
+        return response
+      } catch {
+        return (await caches.match(request)) || (await caches.match(OFFLINE_URL))
+      }
+    })())
+    return
+  }
+
+  if (!isCacheableStaticRequest(url)) return
+  event.respondWith((async () => {
+    const cached = await caches.match(request)
+    const network = fetch(request).then(async (response) => {
+      if (response.ok && response.type === 'basic') {
+        const cache = await caches.open(CACHE_NAME)
+        await cache.put(request, response.clone())
+      }
+      return response
+    })
+    return cached || network
+  })())
+})
+`
+    const outputDirectory = resolve(cwd(), 'dist')
+    await mkdir(outputDirectory, { recursive: true })
+    await writeFile(resolve(outputDirectory, 'service-worker.js'), serviceWorker, 'utf8')
+  },
+})
+
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '')
   const publicSiteOrigin = getPublicSiteOrigin(env.VITE_PUBLIC_SITE_URL)
 
   return {
-    plugins: [react(), createPublicSiteMetadataPlugin(publicSiteOrigin)],
+    plugins: [react(), createPublicSiteMetadataPlugin(publicSiteOrigin), createServiceWorkerPlugin()],
   }
 })

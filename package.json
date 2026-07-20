@@ -12,6 +12,7 @@
     "test:ai-plan-v2": "node scripts/verify-ai-plan-v2.mjs",
     "test:ai-usage-protection": "node scripts/verify-ai-usage-protection.mjs",
     "test:operations": "node scripts/verify-operations.mjs",
+    "test:pwa": "node scripts/verify-pwa.mjs",
     "test:production-readiness": "node scripts/verify-production-readiness.mjs",
     "preview": "vite preview"
   },

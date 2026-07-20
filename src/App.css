@@ -5885,6 +5885,79 @@ h1 {
   font-size: 0.7rem;
 }
 
+.pwa-support {
+  width: min(920px, calc(100% - 32px));
+  margin: 0 auto max(20px, env(safe-area-inset-bottom));
+}
+
+.pwa-notice,
+.pwa-install-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+  padding: 12px 14px;
+  border: 1px solid #d8e4e0;
+  border-radius: 10px;
+  background: #f6faf8;
+  box-shadow: 0 8px 22px rgba(34, 76, 67, 0.06);
+}
+
+.pwa-notice strong,
+.pwa-install-card strong {
+  display: block;
+  color: #315f55;
+  font-size: 0.82rem;
+}
+
+.pwa-notice span,
+.pwa-install-card span {
+  color: #5e706a;
+  font-size: 0.76rem;
+  line-height: 1.55;
+}
+
+.pwa-offline { border-color: #ead8ad; background: #fff9e9; }
+.pwa-update { border-color: #d8cdf2; background: #f7f4ff; }
+
+.pwa-notice button,
+.pwa-install-actions button {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 8px 13px;
+  border: 1px solid #2f6f61;
+  border-radius: 8px;
+  color: #fff;
+  background: #2f6f61;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.pwa-install-card { align-items: flex-start; }
+
+.pwa-install-actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.pwa-install-actions .pwa-dismiss-button {
+  color: #53716a;
+  border-color: #d6e2de;
+  background: #fff;
+}
+
+.pwa-notice button:focus-visible,
+.pwa-install-actions button:focus-visible {
+  outline: 3px solid rgba(47, 111, 97, 0.3);
+  outline-offset: 2px;
+}
+
 .release-version-badge {
   display: inline-flex;
   align-items: center;
@@ -6972,7 +7045,10 @@ h1 {
 }
 
 @media (max-width: 480px) {
-  .app-shell { padding: 0; place-items: start center; }
+  .app-shell {
+    padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+    place-items: start center;
+  }
   .trip-card {
     min-height: 100svh;
     padding: 18px 14px 20px;

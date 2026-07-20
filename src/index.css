@@ -89,6 +89,28 @@ body {
   outline-offset: 2px;
 }
 
+@media (max-width: 480px) {
+  .app-shell {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .pwa-notice,
+  .pwa-install-card {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .pwa-install-actions,
+  .pwa-notice button {
+    width: 100%;
+  }
+
+  .pwa-install-actions button {
+    flex: 1 1 100%;
+  }
+}
+
 button,
 input {
   -webkit-tap-highlight-color: transparent;
