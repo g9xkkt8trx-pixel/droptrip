@@ -40,6 +40,7 @@ const readBoundedInteger = (value, fallback, minimum, maximum) => {
 
 const REQUEST_TIMEOUT_MS = readBoundedInteger(process.env.AI_REQUEST_TIMEOUT_MS, DEFAULT_TIMEOUT_MS, 10_000, 30_000)
 const CONFIGURED_MAX_OUTPUT_TOKENS = readBoundedInteger(process.env.AI_MAX_OUTPUT_TOKENS, DEFAULT_MAX_OUTPUT_TOKENS, 1_500, 4_000)
+const isFeatureEnabled = (value) => String(value ?? 'true').trim().toLowerCase() !== 'false'
 
 const safeError = (response, status, code, message) => response.status(status).json({ ok: false, code, error: message, message })
 
@@ -145,6 +146,10 @@ export default async function handler(request, response) {
   if (request.method !== 'POST') {
     response.setHeader('Allow', 'POST')
     return safeError(response, 405, 'METHOD_NOT_ALLOWED', 'この操作は利用できません。')
+  }
+
+  if (!isFeatureEnabled(process.env.ENABLE_AI_PLAN)) {
+    return safeError(response, 503, 'AI_PLAN_MAINTENANCE', '現在メンテナンス中です。時間をおいてお試しください。')
   }
 
   const contentType = getHeader(request, 'content-type')

@@ -23,6 +23,8 @@ import {
 } from './services/aiPlanUsageProtection'
 import { getOpenAiApiKeySource } from './services/openAiConfig'
 import { generateOpenAiPlan, getOpenAiCommunicationModeLabel, OPENAI_PLAN_MODEL } from './services/openAiPlan'
+import AppFooter from './components/AppFooter'
+import ServiceNotice from './components/ServiceNotice'
 import {
   createDestinationSearchFields,
   dedupeDestinations,
@@ -4042,6 +4044,7 @@ function App() {
           OPENAI_NOT_CONFIGURED: 'AIプランを準備できませんでした。時間をおいて再度お試しください。',
           AI_NOT_CONFIGURED: 'AIプランを準備できませんでした。時間をおいて再度お試しください。',
           AI_CONFIGURATION_ERROR: 'AIプランを準備できませんでした。時間をおいて再度お試しください。',
+          AI_PLAN_MAINTENANCE: '現在メンテナンス中です。時間をおいてお試しください。',
           AI_RATE_LIMIT: 'ただいまAIプランが混み合っています。少し時間をおいて再度お試しください。',
           RATE_LIMITED: 'ただいまAIプランが混み合っています。少し時間をおいて再度お試しください。',
           OUTPUT_TRUNCATED: '旅行プランの生成が途中で終了しました。もう一度お試しください。',
@@ -4630,6 +4633,7 @@ function App() {
               <p className="access-confirm-note">移動時間・乗換・料金はGoogle Mapsで確認してください。</p>
               <a href={drivingMapsUrl} target="_blank" rel="noopener noreferrer">Google Mapsで経路を見る</a>
             </section>
+            <ServiceNotice kind="route" />
             <section className="result-save-actions" aria-label="旅先の保存と比較">
               <button
                 type="button"
@@ -4785,6 +4789,7 @@ function App() {
                 </section>
               )}
             </section>
+            <ServiceNotice kind="ai" />
 
             <nav className="result-bottom-actions" aria-label="抽選結果画面の操作">
               <button type="button" onClick={() => switchPage('main')}>条件を変えて探す</button>
@@ -4843,17 +4848,17 @@ function App() {
           <button type="button" onClick={() => switchPage('destinations')}>旅行先一覧を見る <span aria-hidden="true">→</span></button>
         </nav>
 
-        <div className="beta-version-badge" aria-label={`DROPTRIP ${APP_VERSION}`}>
-          <span>DROPTRIP β</span>
+        <div className="release-version-badge" aria-label={`DROPTRIP ${APP_VERSION}`}>
+          <span>DROPTRIP</span>
           <small>{APP_VERSION}</small>
         </div>
-        <aside className="beta-test-guide-card" aria-label="βテスト中の案内">
-          <strong>βテスト中です</strong>
-          <p>旅先提案・移動時間・画像・グルメ情報は改善中です。使っていて気になった点があればメモしてください。</p>
+        <aside className="service-feedback-card" aria-label="フィードバックのご案内">
+          <strong>フィードバックをお寄せください</strong>
+          <p>不具合報告や改善要望は、利用画面・旅先・操作内容を添えてお知らせください。</p>
           <div>
-            <span>提案は自然？</span>
-            <span>スマホで見やすい？</span>
-            <span>交通比較は分かりやすい？</span>
+            <a href="/contact.html">お問い合わせ窓口</a>
+            <a href="/terms.html">利用規約</a>
+            <a href="/privacy.html">プライバシーポリシー</a>
           </div>
         </aside>
         <p className="footer-note">思いがけない場所へ、出かけよう。</p>
@@ -6335,6 +6340,7 @@ function App() {
           </>
         )}
       </section>
+      <AppFooter />
       <ScrollToTopButton />
     </main>
   )

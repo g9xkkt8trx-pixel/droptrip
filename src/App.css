@@ -5833,7 +5833,59 @@ h1 {
   font-size: 0.72rem;
 }
 
-.beta-version-badge {
+.service-notice {
+  margin: 14px 0;
+  padding: 11px 13px;
+  border: 1px solid #d9e7e1;
+  border-radius: 8px;
+  background: #f4f8f6;
+}
+
+.service-notice-ai { background: #f5f3fb; border-color: #ded7ed; }
+
+.service-notice p {
+  margin: 0;
+  color: #53645f;
+  font-size: 0.78rem;
+  line-height: 1.65;
+}
+
+.service-notice a {
+  color: #2b6658;
+  font-weight: 700;
+}
+
+.service-footer {
+  width: min(920px, calc(100% - 32px));
+  margin: 18px auto 32px;
+  padding: 16px 0 0;
+  border-top: 1px solid #dce6e1;
+  text-align: center;
+}
+
+.service-footer nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 16px;
+}
+
+.service-footer a {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  color: #42635b;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.service-footer p {
+  margin: 4px 0 0;
+  color: #8a9893;
+  font-size: 0.7rem;
+}
+
+.release-version-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -5850,18 +5902,18 @@ h1 {
   font-weight: 800;
 }
 
-.beta-version-badge span {
+.release-version-badge span {
   color: #345f55;
   letter-spacing: 0.04em;
 }
 
-.beta-version-badge small {
+.release-version-badge small {
   color: #9aa6a2;
   font-size: 0.56rem;
   font-weight: 800;
 }
 
-.beta-test-guide-card {
+.service-feedback-card {
   margin: 12px 0 0;
   padding: 14px;
   color: #5f6e69;
@@ -5871,32 +5923,36 @@ h1 {
   box-shadow: 0 10px 22px rgba(43, 80, 71, 0.05);
 }
 
-.beta-test-guide-card strong {
+.service-feedback-card strong {
   display: block;
   color: #315f55;
   font-size: 0.78rem;
 }
 
-.beta-test-guide-card p {
+.service-feedback-card p {
   margin: 6px 0 10px;
   font-size: 0.66rem;
   font-weight: 700;
   line-height: 1.7;
 }
 
-.beta-test-guide-card div {
+.service-feedback-card div {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
 }
 
-.beta-test-guide-card span {
+.service-feedback-card a {
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
   padding: 6px 9px;
   color: #2f675d;
   background: #edf7f4;
   border-radius: 999px;
   font-size: 0.58rem;
   font-weight: 900;
+  text-decoration: none;
 }
 
 .page-switch-card {

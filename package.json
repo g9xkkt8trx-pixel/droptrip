@@ -1,7 +1,7 @@
 {
   "name": "droptrip",
   "private": true,
-  "version": "0.1.0-beta",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -11,6 +11,7 @@
     "test:photo-spots": "node scripts/verify-photo-spots.mjs",
     "test:ai-plan-v2": "node scripts/verify-ai-plan-v2.mjs",
     "test:ai-usage-protection": "node scripts/verify-ai-usage-protection.mjs",
+    "test:operations": "node scripts/verify-operations.mjs",
     "test:production-readiness": "node scripts/verify-production-readiness.mjs",
     "preview": "vite preview"
   },

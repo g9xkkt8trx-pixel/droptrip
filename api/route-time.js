@@ -2,6 +2,7 @@ const ROUTES_API_URL = 'https://routes.googleapis.com/directions/v2:computeRoute
 const ROUTE_FIELD_MASK = 'routes.duration,routes.distanceMeters'
 const REQUEST_TIMEOUT_MS = 25_000
 const MAX_LOCATION_LENGTH = 200
+const isFeatureEnabled = (value) => String(value ?? 'true').trim().toLowerCase() !== 'false'
 
 const appendJapan = (value) => {
   const address = value.trim()
@@ -25,12 +26,6 @@ const toWaypoint = (value) => {
     : null
 }
 
-const describeWaypoint = (waypoint) => {
-  if (waypoint?.address) return waypoint.address
-  const coordinates = waypoint?.location?.latLng
-  return coordinates ? `${coordinates.latitude},${coordinates.longitude}` : 'unknown'
-}
-
 const getGoogleErrorSummary = (body, status) => {
   try {
     return JSON.parse(body)?.error?.message?.slice(0, 240) || `Google Routes API returned ${status}`
@@ -43,6 +38,14 @@ export default async function handler(request, response) {
   if (request.method !== 'POST') {
     response.setHeader('Allow', 'POST')
     return response.status(405).json({ error: 'Method not allowed' })
+  }
+
+  if (!isFeatureEnabled(process.env.ENABLE_ROUTE_TIME)) {
+    return response.status(503).json({
+      error: '現在メンテナンス中です。時間をおいてお試しください。',
+      code: 'ROUTE_TIME_MAINTENANCE',
+      hasGoogleMapsApiKey: null,
+    })
   }
 
   const rawApiKey = process.env.GOOGLE_MAPS_API_KEY
@@ -65,8 +68,6 @@ export default async function handler(request, response) {
     console.error('[route-time] Server environment variable is missing', {
       httpStatus: 503,
       errorType: 'SERVER_API_KEY_MISSING',
-      origin: describeWaypoint(origin),
-      destination: describeWaypoint(destination),
       travelMode,
       hasGoogleMapsApiKey,
     })
@@ -112,8 +113,6 @@ export default async function handler(request, response) {
       console.error('[route-time] Google Routes request failed', {
         httpStatus: googleResponse.status,
         googleError: errorSummary,
-        origin: describeWaypoint(origin),
-        destination: describeWaypoint(destination),
         travelMode,
         hasGoogleMapsApiKey,
       })
@@ -131,8 +130,6 @@ export default async function handler(request, response) {
       console.error('[route-time] Route not found', {
         httpStatus: 404,
         errorType: 'ROUTE_NOT_FOUND',
-        origin: describeWaypoint(origin),
-        destination: describeWaypoint(destination),
         travelMode,
         hasGoogleMapsApiKey,
       })
@@ -155,8 +152,6 @@ export default async function handler(request, response) {
     console.error('[route-time] Request error', {
       httpStatus: 502,
       errorType: error?.name ?? 'ROUTE_ERROR',
-      origin: describeWaypoint(origin),
-      destination: describeWaypoint(destination),
       travelMode,
       hasGoogleMapsApiKey,
     })
